@@ -2,7 +2,7 @@ export const helmetConfig = {
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
       styleSrc: ["'self'", "https://fonts.googleapis.com", "https://api.fontshare.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://api.fontshare.com"],
       imgSrc: ["'self'", "data:"],

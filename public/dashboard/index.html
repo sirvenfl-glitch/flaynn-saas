@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#030407">
+    <meta name="color-scheme" content="dark">
+    <title>Flaynn · Dashboard membre</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/defaut.css">
+    <link rel="stylesheet" href="/dashboard/dashboard.css">
+</head>
+<body class="dashboard-body">
+    <a href="#app" class="skip-link">Aller au tableau de bord</a>
+    <div class="ambient-bg" aria-hidden="true"></div>
+
+    <header class="nav-glass dashboard-topbar">
+        <div class="container nav-content">
+            <a href="/" class="logo-container" aria-label="Flaynn — Accueil site">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="24" height="24" rx="6" fill="var(--accent-violet)"/>
+                    <path d="M7 17L17 7M17 7H9M17 7V15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="logo-text">Flaynn</span>
+            </a>
+            <p class="dashboard-topbar__title" id="dashboard-startup-name">Chargement…</p>
+        </div>
+    </header>
+
+    <div class="dashboard-shell">
+        <aside class="dashboard-sidebar" aria-label="Navigation espace membre">
+            <nav class="dashboard-nav-side">
+                <a href="/dashboard/" class="dashboard-nav-side__link" data-route="/dashboard/">Vue d’ensemble</a>
+                <a href="/dashboard/pillars" class="dashboard-nav-side__link" data-route="/dashboard/pillars">Piliers</a>
+                <a href="/dashboard/network" class="dashboard-nav-side__link" data-route="/dashboard/network">Marché</a>
+            </nav>
+        </aside>
+
+        <main id="main-content" class="dashboard-main">
+            <div id="app" class="dashboard-app" tabindex="-1"></div>
+        </main>
+    </div>
+
+    <nav class="dashboard-nav-mobile" aria-label="Navigation mobile" role="navigation">
+        <a href="/dashboard/" class="dashboard-nav-mobile__item" data-route="/dashboard/">Accueil</a>
+        <a href="/dashboard/pillars" class="dashboard-nav-mobile__item" data-route="/dashboard/pillars">Piliers</a>
+        <a href="/dashboard/network" class="dashboard-nav-mobile__item" data-route="/dashboard/network">Marché</a>
+    </nav>
+
+    <script type="module" src="/dashboard/app.js"></script>
+</body>
+</html>
