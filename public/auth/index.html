@@ -1,190 +1,63 @@
 <!DOCTYPE html>
 <html lang="fr" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Connexion et création de compte Flaynn.">
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#030407">
-    <meta name="color-scheme" content="dark">
-    <title>Flaynn · Connexion</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="dns-prefetch" href="https://api.fontshare.com">
-    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/defaut.css">
-    <link rel="stylesheet" href="/auth/auth.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0d14">
+  <title>Espace Membre — Flaynn</title>
+  <!-- On réutilise le CSS principal pour hériter de la DA Dark Clarity -->
+  <link rel="stylesheet" href="/css/defaut.css">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: var(--surface-void); }
+    .auth-wrap { width: 100%; max-width: 440px; padding: var(--space-4); }
+    .auth-card { padding: var(--space-6) var(--space-5); }
+    .auth-tabs { display: flex; gap: var(--space-4); border-bottom: 1px solid var(--border-default); margin-bottom: var(--space-5); padding-bottom: var(--space-2); }
+    .auth-tab { background: none; border: none; padding: 0 var(--space-2) var(--space-2); color: var(--text-secondary); font: 500 1rem var(--font-body); cursor: pointer; transition: color 0.3s; position: relative; }
+    .auth-tab.is-active { color: var(--text-primary); }
+    .auth-tab.is-active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent-violet); border-radius: 2px 2px 0 0; }
+    .logo-container { text-align: center; margin-bottom: var(--space-6); }
+    .logo-container a { color: var(--text-primary); text-decoration: none; font: 900 1.5rem var(--font-display); letter-spacing: -0.03em; }
+    .form-actions { margin-top: var(--space-5); }
+  </style>
 </head>
-<body class="auth-body">
+<body>
 
-    <div class="ambient-bg" aria-hidden="true"></div>
+  <div class="auth-wrap">
+    <div class="logo-container">
+      <a href="/">Flaynn.</a>
+    </div>
 
-    <header class="nav-glass" role="banner">
-        <div class="container nav-content">
-            <a href="/" class="logo-container" aria-label="Flaynn — Retour accueil">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect width="24" height="24" rx="6" fill="var(--accent-violet)"/>
-                    <path d="M7 17L17 7M17 7H9M17 7V15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span class="logo-text">Flaynn</span>
-            </a>
-            <a href="/" class="btn-ghost auth-back-link">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Retour
-            </a>
+    <article class="card-glass auth-card">
+      <nav class="auth-tabs" aria-label="Authentification">
+        <button type="button" class="auth-tab is-active" data-tab="login">Connexion</button>
+        <button type="button" class="auth-tab" data-tab="register">Inscription</button>
+      </nav>
+
+      <form id="auth-form" novalidate>
+        <div class="field" id="field-name" hidden>
+          <label for="name" class="field__label">Nom de la startup ou complet</label>
+          <input type="text" id="name" name="name" class="field__input" placeholder="ex: Flaynn SaaS">
         </div>
-    </header>
-
-    <main class="auth-main" id="main-content">
-        <div class="auth-layout">
-
-            <!-- Side branding (desktop) -->
-            <aside class="auth-brand" aria-hidden="true">
-                <div class="auth-brand__inner">
-                    <p class="auth-brand__eyebrow">Plateforme Flaynn</p>
-                    <h1 class="auth-brand__title">Votre potentiel,<br><span class="gradient-text">objectivement.</span></h1>
-                    <p class="auth-brand__sub">Score sur 5 piliers, benchmark sectoriel et mise en relation avec les investisseurs de l'écosystème français.</p>
-                    <ul class="auth-brand__perks" role="list">
-                        <li class="auth-brand__perk">
-                            <span class="auth-perk-icon" aria-hidden="true">
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="var(--accent-emerald)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </span>
-                            Analyse IA sur 5 piliers
-                        </li>
-                        <li class="auth-brand__perk">
-                            <span class="auth-perk-icon" aria-hidden="true">
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="var(--accent-emerald)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </span>
-                            Benchmark vs votre secteur
-                        </li>
-                        <li class="auth-brand__perk">
-                            <span class="auth-perk-icon" aria-hidden="true">
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="var(--accent-emerald)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </span>
-                            Mise en relation investisseurs ciblée
-                        </li>
-                        <li class="auth-brand__perk">
-                            <span class="auth-perk-icon" aria-hidden="true">
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="var(--accent-emerald)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </span>
-                            Résultats sous 24h
-                        </li>
-                    </ul>
-                    <div class="auth-brand__trust">
-                        <span class="pulse-dot" aria-hidden="true"></span>
-                        <span>Accès bêta — places limitées</span>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Auth card -->
-            <section class="auth-card-wrap" aria-label="Formulaire d'authentification">
-                <div class="auth-card card-glass">
-                    <!-- Tabs -->
-                    <div class="auth-tabs" role="tablist" aria-label="Choisir une action">
-                        <button type="button" class="auth-tab auth-tab--active"
-                            role="tab" id="tab-login"
-                            aria-controls="panel-login"
-                            aria-selected="true">
-                            Connexion
-                        </button>
-                        <button type="button" class="auth-tab"
-                            role="tab" id="tab-register"
-                            aria-controls="panel-register"
-                            aria-selected="false">
-                            Créer un compte
-                        </button>
-                        <div class="auth-tabs__indicator" aria-hidden="true"></div>
-                    </div>
-
-                    <!-- Alert zone -->
-                    <div id="auth-alert" class="auth-alert" role="alert" aria-live="polite" hidden></div>
-
-                    <!-- CONNEXION -->
-                    <div id="panel-login" class="auth-panel" role="tabpanel" aria-labelledby="tab-login">
-                        <form id="form-login" class="auth-form" novalidate>
-                            <div class="field" data-validate="required|email">
-                                <label for="login-email" class="field__label">Email</label>
-                                <input type="email" id="login-email" name="email"
-                                    class="field__input" autocomplete="email"
-                                    required placeholder="vous@startup.com">
-                                <span class="field__error" role="alert"></span>
-                            </div>
-                            <div class="field" data-validate="required|min:8">
-                                <label for="login-password" class="field__label">Mot de passe</label>
-                                <div class="auth-password-wrap">
-                                    <input type="password" id="login-password" name="password"
-                                        class="field__input" autocomplete="current-password"
-                                        required placeholder="••••••••">
-                                    <button type="button" class="auth-toggle-pw" aria-label="Afficher / masquer le mot de passe" data-target="login-password">
-                                        <svg class="eye-open" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5S1 8 1 8z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
-                                    </button>
-                                </div>
-                                <span class="field__error" role="alert"></span>
-                            </div>
-                            <button type="submit" class="btn-form btn-form--submit" id="btn-login">
-                                <span class="btn-form__text">Se connecter</span>
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- INSCRIPTION -->
-                    <div id="panel-register" class="auth-panel" role="tabpanel" aria-labelledby="tab-register" hidden>
-                        <form id="form-register" class="auth-form" novalidate>
-                            <div class="field" data-validate="required|min:2|max:60">
-                                <label for="reg-name" class="field__label">Nom complet</label>
-                                <input type="text" id="reg-name" name="name"
-                                    class="field__input" autocomplete="name"
-                                    required placeholder="Marie Dupont">
-                                <span class="field__error" role="alert"></span>
-                            </div>
-                            <div class="field" data-validate="required|email">
-                                <label for="reg-email" class="field__label">Email professionnel</label>
-                                <input type="email" id="reg-email" name="email"
-                                    class="field__input" autocomplete="email"
-                                    required placeholder="vous@startup.com">
-                                <span class="field__error" role="alert"></span>
-                            </div>
-                            <div class="field" data-validate="required|min:8">
-                                <label for="reg-password" class="field__label">Mot de passe</label>
-                                <div class="auth-password-wrap">
-                                    <input type="password" id="reg-password" name="password"
-                                        class="field__input" autocomplete="new-password"
-                                        required placeholder="Min. 8 caractères">
-                                    <button type="button" class="auth-toggle-pw" aria-label="Afficher / masquer" data-target="reg-password">
-                                        <svg class="eye-open" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5S1 8 1 8z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
-                                    </button>
-                                </div>
-                                <div class="auth-pw-strength" id="pw-strength" aria-live="polite" aria-label="Force du mot de passe">
-                                    <div class="auth-pw-strength__bar"><div class="auth-pw-strength__fill" id="pw-strength-fill"></div></div>
-                                    <span class="auth-pw-strength__label" id="pw-strength-label"></span>
-                                </div>
-                                <span class="field__error" role="alert"></span>
-                            </div>
-                            <div class="auth-legal">
-                                <p class="form-legal">En créant un compte, vous acceptez d'être recontacté dans le cadre de votre scoring. Pas de revente de données.</p>
-                            </div>
-                            <button type="submit" class="btn-form btn-form--submit" id="btn-register">
-                                <span class="btn-form__text">Créer mon compte</span>
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </section>
+        <div class="field">
+          <label for="email" class="field__label">Email professionnel</label>
+          <input type="email" id="email" name="email" class="field__input" required placeholder="contact@flaynn.fr">
         </div>
-    </main>
+        <div class="field">
+          <label for="password" class="field__label">Mot de passe</label>
+          <input type="password" id="password" name="password" class="field__input" required placeholder="••••••••">
+        </div>
 
-    <script type="module" src="/auth/auth.js"></script>
+        <div id="auth-error" class="field__error" role="alert"></div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn--primary" id="submit-btn">
+            <span class="btn__text">Se connecter</span>
+          </button>
+        </div>
+      </form>
+    </article>
+  </div>
+
+  <script src="/auth/app.js" type="module"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ import { helmetConfig, corsConfig } from './config/security.js';
 import { errorHandler } from './middleware/error-handler.js';
 import scoringRoutes from './routes/scoring.js';
 import dashboardApiRoutes from './routes/dashboard-api.js';
+import authRoutes from './routes/auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // Définition du chemin vers le dossier frontend public
@@ -53,6 +54,7 @@ const start = async () => {
     fastify.log.info(`[ARCHITECT-PRIME] Enregistrement des routes...`);
     await fastify.register(scoringRoutes);
     await fastify.register(dashboardApiRoutes);
+    await fastify.register(authRoutes);
 
     fastify.log.info(`[ARCHITECT-PRIME] Montage du dossier statique : ${siteRoot}`);
     await fastify.register(fastifyStatic, {
