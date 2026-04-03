@@ -1,17 +1,10 @@
-# Dependencies
 flaynn-api/node_modules/
-
-# Secrets
 .env
 .env.local
 .env.*.local
-
-# OS / IDE
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
-
-# Logs
 *.log
 npm-debug.log*
