@@ -18,34 +18,34 @@ export default async function scoringRoutes(fastify) {
   fastify.post('/api/score', {
     config: {
       rateLimit: { max: 3, timeWindow: '1 minute' }
-    }
+    },
+    onRequest: [fastify.authenticate]
   }, async (request, reply) => {
-    const parsed = ScoreSubmissionSchema.parse(request.body);
-
-    const reference = `FLY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
-    // 1. Résilience : Persistance initiale (Outbox)
-    let userEmail = null;
     try {
-      const userCheck = await pool.query('SELECT email FROM users WHERE email = $1', [parsed.email]);
-      if (userCheck.rowCount > 0) userEmail = userCheck.rows[0].email;
+      const parsed = ScoreSubmissionSchema.parse(request.body);
+      const userEmail = request.user.email;
+      const payload = { ...parsed, email: userEmail };
+      const reference = `FLY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      const initialData = { status: 'pending_webhook', payload };
+      await pool.query(
+        'INSERT INTO scores (reference_id, user_email, startup_name, data) VALUES ($1, $2, $3, $4::jsonb)',
+        [reference, userEmail, payload.startup_name, JSON.stringify(initialData)]
+      );
+
+      try {
+        await n8nBridge.submitScore({ ...payload, reference }, request.id);
+      } catch (err) {
+        request.log.error(err, `Échec n8n pour ${reference}, mais score persisté en attente.`);
+      }
+
+      return reply.code(200).send({ success: true, reference });
     } catch (err) {
-      request.log.warn('Vérification utilisateur échouée.');
+      if (err instanceof z.ZodError) {
+        return reply.code(422).send({ error: 'VALIDATION_FAILED', details: err.flatten().fieldErrors });
+      }
+      request.log.error(err);
+      return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur interne lors du scoring.' });
     }
-
-    const initialData = { status: 'pending_webhook', payload: parsed };
-    await pool.query(
-      'INSERT INTO scores (reference_id, user_email, startup_name, data) VALUES ($1, $2, $3, $4)',
-      [reference, userEmail, parsed.startup_name, JSON.stringify(initialData)]
-    );
-
-    // 2. Délégation au webhook (Asynchrone). Si n8n plante, la base a quand même la trace.
-    try {
-      await n8nBridge.submitScore({ ...parsed, reference }, request.id);
-    } catch (err) {
-      request.log.error(err, `Échec n8n pour ${reference}, mais score persisté en attente.`);
-    }
-
-    return reply.code(200).send({ success: true, reference });
   });
 }
