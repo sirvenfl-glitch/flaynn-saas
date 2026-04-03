@@ -454,6 +454,7 @@ document.getElementById('footer-year').textContent = String(new Date().getFullYe
   if (auth) {
     link.textContent = auth.name ? auth.name.split(' ')[0] : 'Mon espace';
     link.style.color = 'var(--accent-violet)';
+    link.href = '/dashboard/';
   } else {
     link.textContent = 'Connexion';
     link.href = '/auth/';

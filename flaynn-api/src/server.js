@@ -76,6 +76,7 @@ const start = async () => {
 
     // Gestion du Dashboard SPA
     fastify.get('/dashboard', async (_request, reply) => reply.redirect(302, '/dashboard/'));
+    fastify.get('/auth', async (_request, reply) => reply.redirect(302, '/auth/'));
 
     fastify.setNotFoundHandler(async (request, reply) => {
       if (request.method !== 'GET') return reply.code(404).send({ error: 'Not Found' });
