@@ -21,6 +21,21 @@ function clearAuth() {
   localStorage.removeItem('flaynn_auth');
 }
 
+async function syncAuthFromSession() {
+  try {
+    const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
+    if (!res.ok) {
+      clearAuth();
+      return null;
+    }
+    const data = await res.json();
+    localStorage.setItem('flaynn_auth', JSON.stringify(data.user));
+    return data.user;
+  } catch {
+    return getAuth();
+  }
+}
+
 /* ── Demo data ─────────────────────────────────────────────────────────── */
 const DEMO_DATA = {
   isDemo: true,
@@ -746,7 +761,12 @@ function initTopbar(auth) {
 
     const logoutBtn = el('button', 'dashboard-logout-btn', { type: 'button' });
     logoutBtn.textContent = 'Déconnexion';
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      } catch {
+        /* On efface quand même l'état local */
+      }
       clearAuth();
       window.location.replace('/');
     });
@@ -809,7 +829,7 @@ async function main() {
   const app = document.getElementById('app');
   if (!app) return;
 
-  const auth = getAuth();
+  const auth = await syncAuthFromSession();
   initTopbar(auth);
 
   clearEl(app);
@@ -830,16 +850,15 @@ async function main() {
     /* Utilisateur connecté : tente l'API, fallback démo si indisponible */
     try {
       const id = new URLSearchParams(window.location.search).get('id');
-      const headers = auth && auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {};
       
       if (id && id !== 'demo') {
-        const res = await fetch(`/api/dashboard/${encodeURIComponent(id)}`, { headers });
+        const res = await fetch(`/api/dashboard/${encodeURIComponent(id)}`, { credentials: 'same-origin' });
         if (res.status === 401 || res.status === 403) throw new Error('Non autorisé');
         if (!res.ok) throw new Error('API indisponible');
         const apiData = await res.json();
         data = { ...apiData, isDemo: false, isList: false };
       } else {
-        const res = await fetch(`/api/dashboard/list`, { headers });
+        const res = await fetch(`/api/dashboard/list`, { credentials: 'same-origin' });
         if (res.status === 401 || res.status === 403) throw new Error('Non autorisé');
         if (!res.ok) throw new Error('API indisponible');
         const listData = await res.json();

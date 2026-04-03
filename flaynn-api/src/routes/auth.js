@@ -38,14 +38,11 @@ export default async function authRoutes(fastify) {
       }
 
       // 3. Génération du JWT sécurisé
-      const token = fastify.jwt.sign(
-        { email: user.email, name: user.name },
-        { expiresIn: '7d' } // Valide 7 jours
-      );
+      const tokens = await fastify.createSessionTokens(user);
+      reply.setAuthCookies(tokens);
 
       return reply.code(200).send({
         success: true,
-        token,
         user: { name: user.name, email: user.email }
       });
     } catch (err) {
@@ -76,21 +73,17 @@ export default async function authRoutes(fastify) {
       const passwordHash = await argon2.hash(parsed.password);
       
       // 3. Sauvegarde dans PostgreSQL
-      await pool.query(
-        'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3)',
+      const insert = await pool.query(
+        'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email',
         [parsed.name, parsed.email, passwordHash]
       );
-
-      // 4. Génération du JWT sécurisé pour connexion immédiate
-      const token = fastify.jwt.sign(
-        { email: parsed.email, name: parsed.name },
-        { expiresIn: '7d' }
-      );
+      const user = insert.rows[0];
+      const tokens = await fastify.createSessionTokens(user);
+      reply.setAuthCookies(tokens);
 
       return reply.code(200).send({
         success: true,
-        token,
-        user: { name: parsed.name, email: parsed.email }
+        user: { name: user.name, email: user.email }
       });
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -98,6 +91,37 @@ export default async function authRoutes(fastify) {
       }
       request.log.error(err);
       return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur interne du serveur.' });
+    }
+  });
+
+  fastify.post('/api/auth/refresh', async (request, reply) => {
+    return fastify.authenticate(request, reply).then(() => {
+      if (reply.sent) return reply;
+      return reply.code(200).send({
+        success: true,
+        user: { name: request.user.name, email: request.user.email }
+      });
+    });
+  });
+
+  fastify.get('/api/auth/session', async (request, reply) => {
+    await fastify.authenticate(request, reply);
+    if (reply.sent) return reply;
+    return reply.code(200).send({
+      authenticated: true,
+      user: { name: request.user.name, email: request.user.email }
+    });
+  });
+
+  fastify.post('/api/auth/logout', async (request, reply) => {
+    try {
+      await fastify.revokeRefreshToken(request.cookies?.flaynn_rt);
+      reply.clearAuthCookies();
+      return reply.code(200).send({ success: true });
+    } catch (err) {
+      request.log.error(err);
+      reply.clearAuthCookies();
+      return reply.code(200).send({ success: true });
     }
   });
 }

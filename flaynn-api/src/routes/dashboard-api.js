@@ -7,13 +7,7 @@ export default async function dashboardApiRoutes(fastify) {
   // Route 1 : Récupérer la liste des analyses d'un utilisateur
   fastify.get('/api/dashboard/list', {
     config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
-    onRequest: async (request, reply) => {
-      try {
-        await request.jwtVerify();
-      } catch (err) {
-        return reply.code(401).send({ error: 'UNAUTHORIZED', message: 'Veuillez vous reconnecter.' });
-      }
-    }
+    onRequest: [fastify.authenticate]
   }, async (request, reply) => {
     try {
       const userEmail = request.user.email;
@@ -31,13 +25,7 @@ export default async function dashboardApiRoutes(fastify) {
   // Route 2 : Récupérer une analyse spécifique par son ID
   fastify.get('/api/dashboard/:id', {
     config: { rateLimit: { max: 60, timeWindow: '1 minute' } },
-    onRequest: async (request, reply) => {
-      try {
-        await request.jwtVerify();
-      } catch (err) {
-        return reply.code(401).send({ error: 'UNAUTHORIZED', message: 'Veuillez vous reconnecter.' });
-      }
-    }
+    onRequest: [fastify.authenticate]
   }, async (request, reply) => {
     const raw = request.params.id;
     const parsed = idSchema.safeParse(raw);

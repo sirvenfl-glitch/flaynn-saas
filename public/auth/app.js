@@ -4,6 +4,25 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const syncSession = async () => {
+    try {
+      const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
+      if (!res.ok) {
+        localStorage.removeItem('flaynn_auth');
+        return null;
+      }
+      const data = await res.json();
+      localStorage.setItem('flaynn_auth', JSON.stringify(data.user));
+      return data.user;
+    } catch {
+      return null;
+    }
+  };
+
+  void syncSession().then((user) => {
+    if (user) window.location.replace('/dashboard/');
+  });
+
   const params = new URLSearchParams(window.location.search);
   if (params.get('register') === '1' || window.location.hash === '#register') {
     const regTab = document.querySelector('.auth-tab[data-tab="register"]');
@@ -96,14 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`/api/auth/${currentMode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(payload)
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Erreur lors de l\'authentification');
 
-      // Stockage de l'authentification (incluant le token) et redirection vers le dashboard
-      localStorage.setItem('flaynn_auth', JSON.stringify({ ...data.user, token: data.token }));
+      localStorage.setItem('flaynn_auth', JSON.stringify(data.user));
       window.location.replace('/dashboard/');
     } catch (err) {
       errorEl.textContent = err.message;
