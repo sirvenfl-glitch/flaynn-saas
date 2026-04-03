@@ -65,7 +65,11 @@
                 <a href="#investors" class="nav-link">Investisseurs</a>
             </nav>
             <div class="nav-actions">
-                <a href="/dashboard/" class="btn-ghost btn-ghost--nav" id="nav-member-link">Espace membre</a>
+                <div class="nav-auth-guest" id="nav-auth-guest">
+                    <a href="/auth/" class="btn-ghost btn-nav-auth" id="nav-auth-login">Connexion</a>
+                    <a href="/auth/?register=1" class="btn-primary btn-nav-signup" id="nav-auth-register">S'inscrire</a>
+                </div>
+                <a href="/dashboard/" class="btn-ghost btn-nav-user" id="nav-member-link" hidden>Mon espace</a>
                 <button type="button" class="btn-primary nav-cta" id="btn-header-cta">
                     Lancer l'audit
                 </button>
@@ -86,7 +90,11 @@
                 <a href="#pillars" class="nav-mobile-link">Méthode</a>
                 <a href="#scoring" class="nav-mobile-link">Scoring</a>
                 <a href="#investors" class="nav-mobile-link">Investisseurs</a>
-                <a href="/dashboard/" class="nav-mobile-link">Espace membre</a>
+                <div class="nav-mobile-auth" id="nav-mobile-auth-guest">
+                    <a href="/auth/" class="nav-mobile-link">Connexion</a>
+                    <a href="/auth/?register=1" class="nav-mobile-link">S'inscrire</a>
+                </div>
+                <a href="/dashboard/" class="nav-mobile-link nav-mobile-link--user" id="nav-mobile-member" hidden>Mon espace</a>
             </nav>
             <button type="button" class="btn-primary btn-large nav-mobile-cta" id="btn-mobile-cta">
                 Lancer mon scoring

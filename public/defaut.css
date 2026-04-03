@@ -677,9 +677,66 @@
   }
   .btn-ghost:hover { color: var(--text-primary); }
 
-  .btn-ghost--nav { display: none; }
-  @media (min-width: 900px) {
-    .btn-ghost--nav { display: inline-flex; }
+  /* Auth desktop : visible dès tablette (évite de masquer Connexion / S'inscrire) */
+  .nav-auth-guest {
+    display: none;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+  @media (min-width: 768px) {
+    .nav-auth-guest {
+      display: flex;
+    }
+  }
+  .nav-auth-guest[hidden] {
+    display: none;
+  }
+
+  .btn-nav-auth {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.9375rem;
+  }
+
+  .btn-nav-signup {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-4);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    background: var(--gradient-hero);
+    color: #fff;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-normal) ease;
+    white-space: nowrap;
+  }
+  .btn-nav-signup:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+  }
+
+  .btn-nav-user {
+    display: none;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.9375rem;
+  }
+  @media (min-width: 768px) {
+    .btn-nav-user:not([hidden]) {
+      display: inline-flex;
+    }
   }
 
   .btn-ghost--hero {
@@ -796,6 +853,19 @@
   .nav-mobile-link:hover {
     color: var(--text-primary);
     padding-left: var(--space-2);
+  }
+
+  .nav-mobile-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-top: var(--space-2);
+    margin-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .nav-mobile-auth[hidden] {
+    display: none;
   }
 
   .nav-mobile-cta {

@@ -444,20 +444,34 @@ async function bootDeferred() {
 
 document.getElementById('footer-year').textContent = String(new Date().getFullYear());
 
-/* ── Nav auth state ─────────────────────────────────────────────────────── */
+/* ── Nav auth state : Connexion + S'inscrire (invité) ou Mon espace (connecté) ─ */
 (function updateNavAuth() {
   const auth = (() => {
     try { return JSON.parse(localStorage.getItem('flaynn_auth') || 'null'); } catch { return null; }
   })();
-  const link = /** @type {HTMLAnchorElement|null} */ (document.getElementById('nav-member-link'));
-  if (!link) return;
+  const guest = document.getElementById('nav-auth-guest');
+  const userLink = /** @type {HTMLAnchorElement|null} */ (document.getElementById('nav-member-link'));
+  const mobileGuest = document.getElementById('nav-mobile-auth-guest');
+  const mobileUser = /** @type {HTMLAnchorElement|null} */ (document.getElementById('nav-mobile-member'));
+
   if (auth) {
-    link.textContent = auth.name ? auth.name.split(' ')[0] : 'Mon espace';
-    link.style.color = 'var(--accent-violet)';
-    link.href = '/dashboard/';
+    if (guest) guest.hidden = true;
+    if (mobileGuest) mobileGuest.hidden = true;
+    if (userLink) {
+      userLink.hidden = false;
+      userLink.textContent = auth.name ? String(auth.name).split(' ')[0] : 'Mon espace';
+      userLink.style.color = 'var(--accent-violet)';
+      userLink.href = '/dashboard/';
+    }
+    if (mobileUser) {
+      mobileUser.hidden = false;
+      mobileUser.textContent = auth.name ? String(auth.name).split(' ')[0] : 'Mon espace';
+    }
   } else {
-    link.textContent = 'Connexion';
-    link.href = '/auth/';
+    if (guest) guest.hidden = false;
+    if (mobileGuest) mobileGuest.hidden = false;
+    if (userLink) userLink.hidden = true;
+    if (mobileUser) mobileUser.hidden = true;
   }
 })();
 

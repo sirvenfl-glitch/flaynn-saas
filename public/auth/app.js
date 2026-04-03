@@ -4,6 +4,12 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('register') === '1') {
+    const regTab = document.querySelector('.auth-tab[data-tab="register"]');
+    if (regTab) regTab.click();
+  }
+
   const form = document.getElementById('auth-form');
   const nameField = document.getElementById('field-name');
   const nameInput = document.getElementById('name');
