@@ -296,6 +296,13 @@ class ScoringFormController {
     if (this.stepLabel) {
       this.stepLabel.textContent = String(this.currentStep);
     }
+    const dots = this.form.closest('.scoring-form-wrap')
+      ?.querySelectorAll('.progress-dot');
+    if (dots) {
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('progress-dot--active', i < this.currentStep);
+      });
+    }
   }
 
   async #submit() {
@@ -436,6 +443,74 @@ document.getElementById('footer-year').textContent = String(new Date().getFullYe
 
 document.getElementById('btn-header-cta')?.addEventListener('click', () => scrollToId('scoring'));
 document.getElementById('btn-hero-cta')?.addEventListener('click', () => scrollToId('scoring'));
+document.getElementById('btn-sticky-cta')?.addEventListener('click', () => scrollToId('scoring'));
+document.getElementById('btn-mobile-cta')?.addEventListener('click', () => {
+  closeMobileMenu();
+  scrollToId('scoring');
+});
+
+// ── Nav mobile ──────────────────────────────────────────────────────────────
+function openMobileMenu() {
+  const btn = document.getElementById('nav-hamburger');
+  const menu = document.getElementById('nav-mobile-menu');
+  if (!btn || !menu) return;
+  menu.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+  window.requestAnimationFrame(() => menu.removeAttribute('hidden'));
+}
+
+function closeMobileMenu() {
+  const btn = document.getElementById('nav-hamburger');
+  const menu = document.getElementById('nav-mobile-menu');
+  if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+  menu.hidden = true;
+}
+
+document.getElementById('nav-hamburger')?.addEventListener('click', () => {
+  const isOpen = document.getElementById('nav-hamburger')?.getAttribute('aria-expanded') === 'true';
+  if (isOpen) closeMobileMenu();
+  else openMobileMenu();
+});
+
+document.getElementById('nav-mobile-menu')?.querySelectorAll('.nav-mobile-link').forEach((link) => {
+  link.addEventListener('click', () => closeMobileMenu());
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeMobileMenu();
+});
+
+// ── Sticky CTA ──────────────────────────────────────────────────────────────
+const stickyCtaEl = document.getElementById('mobile-sticky-cta');
+if (stickyCtaEl) {
+  stickyCtaEl.removeAttribute('aria-hidden');
+  const heroSection = document.querySelector('.hero');
+  const formSection = document.getElementById('scoring');
+  const observer = new IntersectionObserver(
+    () => {
+      const heroVisible = heroSection
+        ? [...document.querySelectorAll('.hero')].some((el) => {
+            const r = el.getBoundingClientRect();
+            return r.bottom > 0;
+          })
+        : false;
+      const formVisible = formSection
+        ? formSection.getBoundingClientRect().top < window.innerHeight
+        : false;
+      if (!heroVisible && !formVisible) {
+        stickyCtaEl.classList.add('is-visible');
+      } else {
+        stickyCtaEl.classList.remove('is-visible');
+      }
+    },
+    { threshold: 0 }
+  );
+  if (heroSection) observer.observe(heroSection);
+  if (formSection) observer.observe(formSection);
+}
 
 function initLiquidUX() {
   // 1. Glow effect dynamique (Bento Cards & Inputs)
