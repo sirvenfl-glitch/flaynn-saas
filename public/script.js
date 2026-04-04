@@ -538,31 +538,30 @@ async function bootDeferred() {
 
 document.getElementById('footer-year').textContent = String(new Date().getFullYear());
 
-/* ── Nav auth state : Connexion + S'inscrire (invité) ou Mon espace (connecté) ─ */
+/* ── Nav auth state : Espace membre (invité) ou Prénom (connecté) ─ */
 (function updateNavAuth() {
   const auth = (() => {
     try { return JSON.parse(localStorage.getItem('flaynn_auth') || 'null'); } catch { return null; }
   })();
-  const guest = document.getElementById('nav-auth-guest');
+  const guestLink = document.getElementById('nav-auth-guest');
   const userLink = /** @type {HTMLAnchorElement|null} */ (document.getElementById('nav-member-link'));
+  const memberName = document.getElementById('nav-member-name');
   const mobileGuest = document.getElementById('nav-mobile-auth-guest');
   const mobileUser = /** @type {HTMLAnchorElement|null} */ (document.getElementById('nav-mobile-member'));
 
   if (auth) {
-    if (guest) guest.hidden = true;
+    if (guestLink) guestLink.hidden = true;
     if (mobileGuest) mobileGuest.hidden = true;
     if (userLink) {
       userLink.hidden = false;
-      userLink.textContent = auth.name ? String(auth.name).split(' ')[0] : 'Mon espace';
-      userLink.style.color = 'var(--accent-violet)';
-      userLink.href = '/dashboard/';
+      if (memberName) memberName.textContent = auth.name ? String(auth.name).split(' ')[0] : 'Mon espace';
     }
     if (mobileUser) {
       mobileUser.hidden = false;
       mobileUser.textContent = auth.name ? String(auth.name).split(' ')[0] : 'Mon espace';
     }
   } else {
-    if (guest) guest.hidden = false;
+    if (guestLink) guestLink.hidden = false;
     if (mobileGuest) mobileGuest.hidden = false;
     if (userLink) userLink.hidden = true;
     if (mobileUser) mobileUser.hidden = true;
@@ -644,34 +643,49 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeMobileMenu();
 });
 
-// ── Sticky CTA ──────────────────────────────────────────────────────────────
-const stickyCtaEl = document.getElementById('mobile-sticky-cta');
-if (stickyCtaEl) {
-  stickyCtaEl.removeAttribute('aria-hidden');
-  const heroSection = document.querySelector('.hero');
-  const formSection = document.getElementById('scoring-form');
-  const observer = new IntersectionObserver(
-    () => {
-      const heroVisible = heroSection
-        ? [...document.querySelectorAll('.hero')].some((el) => {
-            const r = el.getBoundingClientRect();
-            return r.bottom > 0;
-          })
-        : false;
-      const formVisible = formSection
-        ? formSection.getBoundingClientRect().top < window.innerHeight
-        : false;
-      if (!heroVisible && !formVisible) {
-        stickyCtaEl.classList.add('is-visible');
-      } else {
-        stickyCtaEl.classList.remove('is-visible');
+// ── Bottom nav mobile — active section tracking + CTA ───────────────────────
+document.getElementById('btn-bnav-cta')?.addEventListener('click', () => scrollToId('scoring-form'));
+
+// Active link tracking via IntersectionObserver
+(function initBnavTracking() {
+  const links = document.querySelectorAll('.landing-bnav__link[data-section]');
+  if (!links.length) return;
+
+  const sectionMap = {
+    hero: document.querySelector('.hero'),
+    pillars: document.getElementById('pillars'),
+    investors: document.getElementById('investors'),
+  };
+
+  const setActive = (id) => {
+    links.forEach(l => l.classList.toggle('is-active', l.dataset.section === id));
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        for (const [key, el] of Object.entries(sectionMap)) {
+          if (el === entry.target) { setActive(key); break; }
+        }
       }
-    },
-    { threshold: 0 }
-  );
-  if (heroSection) observer.observe(heroSection);
-  if (formSection) observer.observe(formSection);
-}
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+
+  for (const el of Object.values(sectionMap)) {
+    if (el) observer.observe(el);
+  }
+
+  // Update auth link si connecte
+  const auth = (() => {
+    try { return JSON.parse(localStorage.getItem('flaynn_auth') || 'null'); } catch { return null; }
+  })();
+  const bnavAuth = document.getElementById('bnav-auth-link');
+  if (bnavAuth && auth) {
+    bnavAuth.href = '/dashboard/';
+    const span = bnavAuth.querySelector('span');
+    if (span) span.textContent = auth.name ? String(auth.name).split(' ')[0] : 'Compte';
+  }
+})();
 
 // ── Gestionnaire de Modales Vanilla JS ──────────────────────────────────────
 function initModals() {
@@ -783,6 +797,154 @@ function initBarReveal() {
   document.querySelectorAll('.pillar-score-bar, .bento-pillar-track, .score-ring-wrap').forEach(el => observer.observe(el));
 }
 
+/**
+ * Live Scoring — anime en permanence les donnees du bento
+ * avec des variations aleatoires pour simuler des analyses en temps reel.
+ */
+function initLiveScoring() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const circ = 2 * Math.PI * 50; // circumference du score ring (r=50)
+
+  // Refs bento
+  const scoreArc = document.querySelector('.score-ring__arc');
+  const scoreValue = document.querySelector('.score-value');
+  const tamMetric = document.querySelector('.bento-metric--blue');
+  const tractionMetric = document.querySelector('.bento-metric--emerald');
+  const sparklineSvg = document.querySelector('.bento-sparkline svg');
+  const pillarFills = document.querySelectorAll('.bento-pillar-fill');
+  const pillarScores = document.querySelectorAll('.bento-pillar-score');
+  const pillarBarFills = document.querySelectorAll('.pillar-score-bar__fill');
+
+  // Ranges par pilier: [min, max]
+  const pillarRanges = [
+    [75, 95],  // Market
+    [60, 85],  // Product
+    [78, 98],  // Traction
+    [70, 92],  // Team
+    [55, 80],  // Execution
+  ];
+
+  const tamValues = ['€1.8B', '€2.1B', '€2.4B', '€2.9B', '€3.2B', '€1.5B', '€4.1B'];
+  const tractionValues = ['+12% MoM', '+15% MoM', '+18% MoM', '+22% MoM', '+9% MoM', '+27% MoM', '+14% MoM'];
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function getScoreColor(score) {
+    if (score < 40) return 'var(--accent-rose)';
+    if (score < 70) return 'var(--accent-amber)';
+    return 'var(--accent-emerald)';
+  }
+
+  function getScoreLabel(score) {
+    if (score >= 85) return 'Tres fort potentiel';
+    if (score >= 70) return 'Potentiel eleve';
+    if (score >= 55) return 'Potentiel confirme';
+    return 'En progression';
+  }
+
+  // Anime un nombre de `from` a `to` sur `duration` ms
+  function animateNumber(el, from, to, duration) {
+    if (!el) return;
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      el.textContent = String(Math.round(from + (to - from) * ease));
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Genere des points de sparkline aleatoires
+  function randomSparkline() {
+    const pts = [];
+    let y = rand(14, 22);
+    for (let x = 0; x <= 80; x += 16) {
+      y = Math.max(2, Math.min(26, y + rand(-6, -1)));
+      pts.push(`${x},${y}`);
+    }
+    return pts.join(' ');
+  }
+
+  let currentGlobal = 92;
+  let currentPillars = [88, 76, 92, 84, 70];
+
+  function tick() {
+    // Score global
+    const newGlobal = rand(62, 97);
+    if (scoreArc) {
+      const offset = circ - (newGlobal / 100) * circ;
+      scoreArc.setAttribute('stroke-dashoffset', String(offset));
+      scoreArc.setAttribute('stroke', getScoreColor(newGlobal));
+    }
+    animateNumber(scoreValue, currentGlobal, newGlobal, 1200);
+    if (scoreValue) scoreValue.style.color = getScoreColor(newGlobal);
+    currentGlobal = newGlobal;
+
+    // Label
+    const titleEl = document.querySelector('.bento-score-title');
+    if (titleEl) titleEl.textContent = getScoreLabel(newGlobal);
+
+    // TAM
+    if (tamMetric) tamMetric.textContent = tamValues[rand(0, tamValues.length - 1)];
+
+    // Traction
+    if (tractionMetric) tractionMetric.textContent = tractionValues[rand(0, tractionValues.length - 1)];
+
+    // TAM bar
+    const tamBar = document.querySelector('.bento-bar-mini__fill');
+    if (tamBar) tamBar.style.width = `${rand(45, 88)}%`;
+
+    // Sparkline
+    if (sparklineSvg) {
+      const polyline = sparklineSvg.querySelector('polyline');
+      if (polyline) polyline.setAttribute('points', randomSparkline());
+    }
+
+    // Bento pillar bars + scores
+    pillarFills.forEach((fill, i) => {
+      const [min, max] = pillarRanges[i] || [50, 90];
+      const newScore = rand(min, max);
+      fill.style.setProperty('--w', `${newScore}%`);
+      fill.style.width = `${newScore}%`;
+      if (pillarScores[i]) {
+        animateNumber(pillarScores[i], currentPillars[i], newScore, 1000);
+        currentPillars[i] = newScore;
+      }
+    });
+
+    // Landing pillar card bars
+    pillarBarFills.forEach((fill) => {
+      const newWidth = rand(55, 96);
+      fill.style.setProperty('--bar-width', `${newWidth}%`);
+      fill.style.width = `${newWidth}%`;
+    });
+  }
+
+  // Observer: ne demarre que quand le bento est visible
+  const bentoSection = document.querySelector('.bento-section');
+  if (!bentoSection) return;
+
+  let intervalId = null;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !intervalId) {
+        tick();
+        intervalId = setInterval(tick, 3500);
+      } else if (!entry.isIntersecting && intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    });
+  }, { threshold: 0.1 });
+
+  observer.observe(bentoSection);
+}
+
 const scheduleIdle = (fn) => {
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(fn, { timeout: 2000 });
@@ -795,6 +957,7 @@ scheduleIdle(() => {
   initLiquidUX();
   initModals();
   initBarReveal();
+  initLiveScoring();
 });
 
 // PWA: Enregistrement du Service Worker

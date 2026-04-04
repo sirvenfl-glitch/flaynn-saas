@@ -71,13 +71,23 @@
                 <a href="#pillars" class="nav-link">Méthode</a>
                 <a href="#scoring-form" class="nav-link">Scoring</a>
                 <a href="#investors" class="nav-link">Investisseurs</a>
+                <a href="#faq" class="nav-link">FAQ</a>
             </nav>
             <div class="nav-actions">
-                <div class="nav-auth-guest" id="nav-auth-guest">
-                    <a href="/auth" class="btn-ghost btn-nav-auth" id="nav-auth-login">Connexion</a>
-                    <a href="/auth#register" class="btn-primary btn-nav-signup" id="nav-auth-register">S'inscrire</a>
-                </div>
-                <a href="/dashboard/" class="btn-ghost btn-nav-user" id="nav-member-link" hidden>Mon espace</a>
+                <a href="/auth/" class="btn-ghost btn-nav-member" id="nav-auth-guest">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Espace membre
+                </a>
+                <a href="/dashboard/" class="btn-ghost btn-nav-member btn-nav-member--active" id="nav-member-link" hidden>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span id="nav-member-name">Mon espace</span>
+                </a>
                 <button type="button" class="btn-primary nav-cta" id="btn-header-cta">
                     Lancer l'audit
                 </button>
@@ -98,10 +108,7 @@
                 <a href="#pillars" class="nav-mobile-link">Méthode</a>
                 <a href="#scoring-form" class="nav-mobile-link">Scoring</a>
                 <a href="#investors" class="nav-mobile-link">Investisseurs</a>
-                <div class="nav-mobile-auth" id="nav-mobile-auth-guest">
-                    <a href="/auth" class="nav-mobile-link">Connexion</a>
-                    <a href="/auth#register" class="nav-mobile-link">S'inscrire</a>
-                </div>
+                <a href="/auth/" class="nav-mobile-link" id="nav-mobile-auth-guest">Espace membre</a>
                 <a href="/dashboard/" class="nav-mobile-link nav-mobile-link--user" id="nav-mobile-member" hidden>Mon espace</a>
             </nav>
             <button type="button" class="btn-primary btn-large nav-mobile-cta" id="btn-mobile-cta">
@@ -122,7 +129,7 @@
                 </div>
                 <p class="hero-badge">
                     <span class="pulse-dot" aria-hidden="true"></span>
-                    Accès beta — places limitées
+                    Beta gratuite — places limitees
                 </p>
                 <h1 id="hero-title" class="text-display hero__title">
                     Obtenez la vérité sur votre startup,<br>
@@ -608,6 +615,106 @@
                 </div>
             </div>
         </section>
+        <!-- TRUST / SECURITE -->
+        <section class="section section--trust" aria-labelledby="trust-title" data-animate="reveal">
+            <div class="container">
+                <header class="section-header section-header--centered" data-animate-child>
+                    <p class="section-eyebrow">Confiance</p>
+                    <h2 id="trust-title" class="heading-section">Vos donnees sont sacrees</h2>
+                    <p class="section-lead section-lead--centered">Flaynn est concu pour manipuler des donnees sensibles de startups pre-levee. La securite n'est pas une option.</p>
+                </header>
+                <div class="trust-grid" data-animate-child>
+                    <div class="card-glass trust-card">
+                        <div class="trust-card__icon" aria-hidden="true">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <h3 class="trust-card__title">Chiffrement de bout en bout</h3>
+                        <p class="trust-card__desc">HTTPS strict, mots de passe haches via Argon2, tokens JWT HttpOnly. Aucune donnee sensible en clair.</p>
+                    </div>
+                    <div class="card-glass trust-card">
+                        <div class="trust-card__icon" aria-hidden="true">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        </div>
+                        <h3 class="trust-card__title">RGPD natif</h3>
+                        <p class="trust-card__desc">Hebergement UE (Render). Pas de revente de donnees. Droit d'acces, rectification et suppression a tout moment.</p>
+                    </div>
+                    <div class="card-glass trust-card">
+                        <div class="trust-card__icon" aria-hidden="true">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                        </div>
+                        <h3 class="trust-card__title">Confidentialite totale</h3>
+                        <p class="trust-card__desc">Votre pitch et vos metriques ne sont jamais partages aux investisseurs sans votre accord explicite.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="section" aria-labelledby="faq-title" data-animate="reveal">
+            <div class="container">
+                <header class="section-header section-header--centered" data-animate-child>
+                    <p class="section-eyebrow">FAQ</p>
+                    <h2 id="faq-title" class="heading-section">Questions frequentes</h2>
+                </header>
+                <div class="faq-list" data-animate-child>
+                    <details class="faq-item card-glass">
+                        <summary class="faq-item__question">
+                            <span>Combien coute le scoring ?</span>
+                            <svg class="faq-item__chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </summary>
+                        <div class="faq-item__answer">
+                            <p>Pendant la phase beta, le scoring est entierement gratuit. A terme, un modele freemium sera propose : un audit de base gratuit et des analyses approfondies en option.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item card-glass">
+                        <summary class="faq-item__question">
+                            <span>Que recois-je exactement apres le scoring ?</span>
+                            <svg class="faq-item__chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </summary>
+                        <div class="faq-item__answer">
+                            <p>Un tableau de bord interactif avec : votre score global sur 100, le detail de chaque pilier (Market, Product, Traction, Team, Execution), des recommandations priorisees, un benchmark sectoriel et une evaluation de votre investor readiness.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item card-glass">
+                        <summary class="faq-item__question">
+                            <span>Comment l'IA calcule-t-elle mon score ?</span>
+                            <svg class="faq-item__chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </summary>
+                        <div class="faq-item__answer">
+                            <p>Notre modele analyse vos donnees sur les 5 piliers en les comparant a une base de startups a stade et secteur equivalents. Chaque pilier est pondere selon les criteres reels de due diligence utilises par les fonds. L'analyse IA est validee pour garantir la pertinence.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item card-glass">
+                        <summary class="faq-item__question">
+                            <span>Mes donnees sont-elles partagees avec les investisseurs ?</span>
+                            <svg class="faq-item__chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </summary>
+                        <div class="faq-item__answer">
+                            <p>Jamais sans votre accord. Votre dossier reste strictement confidentiel. La mise en relation n'est proposee que si votre score atteint un seuil et uniquement apres votre validation explicite.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item card-glass">
+                        <summary class="faq-item__question">
+                            <span>Qui est derriere Flaynn ?</span>
+                            <svg class="faq-item__chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </summary>
+                        <div class="faq-item__answer">
+                            <p>Flaynn est porte par une equipe technique et finance basee en France, avec une experience en venture capital et en developpement produit SaaS. Notre objectif : outiller l'ecosysteme startup francais avec des outils d'analyse objectifs, sans biais.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item card-glass">
+                        <summary class="faq-item__question">
+                            <span>Puis-je refaire un scoring apres avoir ameliore ma startup ?</span>
+                            <svg class="faq-item__chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </summary>
+                        <div class="faq-item__answer">
+                            <p>Oui, vous pouvez soumettre autant d'analyses que necessaire. Le tableau de bord conserve l'historique de vos scores pour visualiser votre progression dans le temps.</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <footer class="site-footer" role="contentinfo">
@@ -628,6 +735,7 @@
                     <a href="#process" class="footer-link">Comment ça marche</a>
                     <a href="#pillars" class="footer-link">Méthode</a>
                     <a href="#scoring-form" class="footer-link">Scoring</a>
+                    <a href="#faq" class="footer-link">FAQ</a>
                     <a href="/dashboard/" class="footer-link">Espace membre</a>
                 </div>
                 <div class="footer-nav-col">
@@ -647,12 +755,30 @@
         </div>
     </footer>
 
-    <!-- Sticky mobile CTA -->
-    <div class="mobile-sticky-cta" id="mobile-sticky-cta" aria-hidden="true">
-        <button type="button" class="btn-primary btn-large btn-gradient mobile-sticky-cta__btn" id="btn-sticky-cta">
-            Lancer mon scoring gratuit
-        </button>
-    </div>
+    <!-- Bottom nav mobile (app-like) -->
+    <nav class="landing-bnav" id="landing-bnav" aria-label="Navigation mobile">
+        <div class="landing-bnav__inner">
+            <a href="#main-content" class="landing-bnav__link" data-section="hero">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                <span>Accueil</span>
+            </a>
+            <a href="#pillars" class="landing-bnav__link" data-section="pillars">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+                <span>Methode</span>
+            </a>
+            <button type="button" class="landing-bnav__cta" id="btn-bnav-cta">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </button>
+            <a href="#investors" class="landing-bnav__link" data-section="investors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                <span>Investir</span>
+            </a>
+            <a href="/auth/" class="landing-bnav__link" id="bnav-auth-link" data-section="auth">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Compte</span>
+            </a>
+        </div>
+    </nav>
 
     <div id="toast-root" class="toast-root" aria-live="assertive"></div>
 

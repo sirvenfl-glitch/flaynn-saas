@@ -10,7 +10,7 @@ function n8nConnectOrigin() {
 
 export const helmetConfig = {
   contentSecurityPolicy: {
-    directives: {
+    directives: 
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://api.fontshare.com"],

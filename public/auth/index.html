@@ -37,30 +37,45 @@
     </div>
 
     <article class="card-glass auth-card">
+      <h1 class="auth-title">Espace membre</h1>
+      <p class="auth-subtitle">Connectez-vous ou creez votre compte pour acceder a vos analyses.</p>
+
       <nav class="auth-tabs" aria-label="Authentification">
         <button type="button" class="auth-tab is-active" data-tab="login">Connexion</button>
         <button type="button" class="auth-tab" data-tab="register">Inscription</button>
       </nav>
 
       <form id="auth-form" novalidate>
+        <!-- Champs inscription (hidden par defaut) -->
         <div class="field" id="field-name" hidden>
           <label for="name" class="field__label">Nom complet</label>
-          <input type="text" id="name" name="name" class="field__input" placeholder="Votre nom">
+          <input type="text" id="name" name="name" class="field__input" autocomplete="name" placeholder="Jean Dupont" minlength="2" maxlength="100">
+          <span class="field__hint">Tel qu'il apparaitra dans votre espace</span>
         </div>
+
+        <!-- Email -->
         <div class="field">
           <label for="email" class="field__label">Email professionnel</label>
-          <input type="email" id="email" name="email" class="field__input" required placeholder="contact@startup.com">
+          <input type="email" id="email" name="email" class="field__input" required autocomplete="email" placeholder="vous@startup.com">
         </div>
+
+        <!-- Mot de passe -->
         <div class="field">
           <label for="password" class="field__label">
             Mot de passe
             <button type="button" class="auth-toggle-pw" aria-label="Afficher le mot de passe">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </label>
-          <input type="password" id="password" name="password" class="field__input" required minlength="12" placeholder="Min. 12 caracteres">
+          <div class="field__input-wrap">
+            <input type="password" id="password" name="password" class="field__input" required minlength="12" autocomplete="current-password" placeholder="Min. 12 caracteres">
+            <button type="button" class="auth-generate-pw" id="generate-pw" hidden aria-label="Generer un mot de passe fort">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            </button>
+          </div>
         </div>
 
+        <!-- Strength meter (inscription) -->
         <div class="auth-pw-strength" id="pw-strength-container" hidden>
           <div class="auth-pw-strength__track">
             <div class="auth-pw-strength__fill" id="pw-strength-fill"></div>
@@ -68,14 +83,47 @@
           <span class="auth-pw-strength__label" id="pw-strength-label"></span>
         </div>
 
+        <!-- Confirmation mot de passe (inscription) -->
+        <div class="field" id="field-confirm" hidden>
+          <label for="password-confirm" class="field__label">Confirmer le mot de passe</label>
+          <input type="password" id="password-confirm" name="password_confirm" class="field__input" autocomplete="new-password" placeholder="Retapez votre mot de passe">
+          <span class="field__error" id="confirm-error" role="alert"></span>
+        </div>
+
+        <!-- Erreur globale -->
         <div id="auth-error" class="field__error" role="alert"></div>
 
+        <!-- Mot de passe oublie (login uniquement) -->
+        <div class="auth-forgot" id="auth-forgot">
+          <button type="button" class="auth-forgot__link" id="forgot-pw-btn">Mot de passe oublie ?</button>
+        </div>
+
+        <!-- Submit -->
         <div class="form-actions">
           <button type="submit" class="btn-primary btn-gradient auth-submit" id="submit-btn">
             <span class="btn__text">Se connecter</span>
           </button>
         </div>
       </form>
+
+      <!-- Panneau mot de passe oublie -->
+      <div id="forgot-panel" class="auth-forgot-panel" hidden>
+        <h2 class="auth-forgot-panel__title">Reinitialiser le mot de passe</h2>
+        <p class="auth-forgot-panel__text">Entrez votre email. Si un compte existe, vous recevrez un lien de reinitialisation.</p>
+        <form id="forgot-form" novalidate>
+          <div class="field">
+            <label for="forgot-email" class="field__label">Email</label>
+            <input type="email" id="forgot-email" class="field__input" required placeholder="vous@startup.com">
+          </div>
+          <div id="forgot-message" class="field__error" role="alert"></div>
+          <div class="form-actions" style="gap: var(--space-3); display: flex; flex-direction: column;">
+            <button type="submit" class="btn-primary btn-gradient auth-submit" id="forgot-submit-btn">
+              <span class="btn__text">Envoyer le lien</span>
+            </button>
+            <button type="button" class="auth-forgot__link" id="forgot-back-btn">Retour a la connexion</button>
+          </div>
+        </form>
+      </div>
 
       <div class="auth-footer-link">
         <a href="/" class="auth-back-link">
