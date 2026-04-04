@@ -247,11 +247,55 @@
 
 /* Mobile adjustments */
 @media (max-width: 480px) {
+  .auth-body {
+    align-items: flex-start;
+    padding-top: calc(env(safe-area-inset-top) + var(--space-8));
+    -webkit-overflow-scrolling: touch;
+  }
+
   .auth-wrap {
     padding: var(--space-3);
   }
 
   .auth-card {
     padding: var(--space-5) var(--space-4);
+    border-radius: var(--radius-md);
+  }
+
+  .auth-wrap .logo-container {
+    margin-bottom: var(--space-4);
+  }
+
+  .auth-submit {
+    min-height: 56px;
+    font-size: 1.0625rem;
+  }
+}
+
+/* Keyboard-aware: quand le clavier virtuel est ouvert */
+@media (max-height: 500px) {
+  .auth-body {
+    align-items: flex-start;
+    padding-top: var(--space-4);
+  }
+
+  .auth-wrap .logo-container {
+    margin-bottom: var(--space-3);
+  }
+
+  .auth-card {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .auth-tabs {
+    margin-bottom: var(--space-3);
+  }
+
+  .form-actions {
+    margin-top: var(--space-3);
+  }
+
+  .auth-footer-link {
+    margin-top: var(--space-2);
   }
 }

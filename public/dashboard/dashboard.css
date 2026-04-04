@@ -210,17 +210,39 @@
   font-weight: 600;
   color: var(--text-tertiary);
   text-decoration: none;
-  min-height: 44px;
+  min-height: 48px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  gap: 2px;
+  border-radius: 10px;
   margin: 0 var(--space-1);
-  transition: color var(--duration-fast) ease;
+  transition: color var(--duration-fast) ease, background var(--duration-fast) ease;
+  position: relative;
 }
 
 .dashboard-nav-mobile__item.is-active {
   color: var(--accent-violet);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.dashboard-nav-mobile__item.is-active::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--accent-violet);
+  border-radius: 2px;
+  animation: tab-underline 0.3s var(--ease-out-expo);
+}
+
+@keyframes tab-underline {
+  from { transform: translateX(-50%) scaleX(0); }
+  to { transform: translateX(-50%) scaleX(1); }
 }
 
 .dashboard-card-title {
@@ -793,4 +815,117 @@
 
 @media (prefers-reduced-motion: reduce) {
   .polling-spinner__dot { animation: none; }
+}
+
+/* ── Mobile App-Like Enhancements ── */
+@media (max-width: 639px) {
+  .dashboard-body {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dashboard-shell {
+    padding: 0 var(--space-3);
+    padding-top: calc(4rem + env(safe-area-inset-top));
+    gap: var(--space-4);
+  }
+
+  .dashboard-app__section {
+    gap: var(--space-4);
+  }
+
+  /* Cards full-width avec radius réduit */
+  .dashboard-app__section .card-glass {
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  /* Score summary row — scroll horizontal */
+  .score-summary-row {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-3);
+    padding-bottom: var(--space-1);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .score-summary-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .score-summary-card {
+    flex: 0 0 min(70vw, 260px);
+    scroll-snap-align: center;
+  }
+
+  .score-radial-wrap {
+    flex: 0 0 auto;
+  }
+
+  /* Pillar detail grid scroll horizontal */
+  .pillar-detail-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-3);
+    padding-bottom: var(--space-1);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .pillar-detail-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pillar-detail-card {
+    flex: 0 0 min(82vw, 320px);
+    scroll-snap-align: center;
+  }
+
+  /* Market stats scroll */
+  .market-stats-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-3);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .market-stats-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .market-stat-card {
+    flex: 0 0 min(65vw, 240px);
+    scroll-snap-align: center;
+  }
+
+  /* Recommendation cards — tighter on mobile */
+  .reco-card {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  /* Bottom nav — elevated */
+  .dashboard-nav-mobile {
+    background: rgba(3, 4, 7, 0.96);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  }
+
+  /* Demo banner — stacked */
+  .demo-banner {
+    padding: var(--space-4);
+  }
+
+  .demo-banner__actions {
+    width: 100%;
+  }
+
+  .demo-banner__actions .btn-primary,
+  .demo-banner__actions .btn-ghost {
+    flex: 1;
+    justify-content: center;
+  }
 }

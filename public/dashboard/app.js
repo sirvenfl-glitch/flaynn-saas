@@ -974,4 +974,37 @@ async function main() {
 }
 
 initLiquidUX();
+
+// Swipe navigation mobile (gauche/droite entre les vues)
+function initSwipeNav() {
+  const routes = ['/dashboard/', '/dashboard/pillars', '/dashboard/network'];
+  let startX = 0, startY = 0, tracking = false;
+
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!tracking || e.changedTouches.length !== 1) return;
+    tracking = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) < 80 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
+
+    const current = routes.indexOf(normalizePath(window.location.pathname));
+    if (current === -1) return;
+
+    const next = dx < 0 ? current + 1 : current - 1;
+    if (next < 0 || next >= routes.length) return;
+
+    if (typeof navigator.vibrate === 'function') navigator.vibrate(10);
+    history.pushState(null, '', routes[next]);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, { passive: true });
+}
+initSwipeNav();
+
 main();
