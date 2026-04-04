@@ -2377,6 +2377,49 @@
    PHASE 3 — Mobile-first & app-like shell (320px+)
 ───────────────────────────────────────── */
 @media (max-width: 639px) {
+  /* Masquer les barres de défilement sur mobile pour l'illusion App Native */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Modales converties en Bottom Sheets natives */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-content {
+    max-width: 100%;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    padding-top: var(--space-8);
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform 0.5s var(--ease-out-expo);
+  }
+
+  .modal-overlay.is-active .modal-content {
+    transform: translateY(0);
+  }
+
+  .modal-header {
+    position: relative;
+  }
+
+  .modal-header::before {
+    content: '';
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+  }
+
   .bento-grid {
     gap: var(--space-3);
   }

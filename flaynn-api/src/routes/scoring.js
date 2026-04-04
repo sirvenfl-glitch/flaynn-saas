@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { claudeScoringService } from '../services/claude-scoring.js';
+import { sheetsSyncService } from '../services/sheets-sync.js';
 import { pool } from '../config/db.js';
 
 // Schéma Zod strict - Red Team Policy
@@ -72,6 +73,10 @@ export default async function scoringRoutes(fastify) {
             [reference]
           ).catch(dbErr => request.log.error(dbErr, 'Échec de la sauvegarde du statut d\'erreur'));
         });
+
+      // Synchronisation CRM (Google Sheets) en arrière-plan
+      sheetsSyncService.appendRow(payload, reference)
+        .catch(err => request.log.error(err, `Échec de la synchro Sheets pour ${reference}`));
 
       return reply.code(200).send({ success: true, reference });
     } catch (err) {

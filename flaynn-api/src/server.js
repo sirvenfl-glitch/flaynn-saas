@@ -35,6 +35,7 @@ const envSchema = z.object({
   N8N_WEBHOOK_URL: z.string().url().optional(),
   N8N_SECRET_TOKEN: z.string().min(16).optional(),
   ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
+  GOOGLE_SHEETS_WEBHOOK_URL: z.string().url().startsWith('https://script.google.com/').optional(),
   CORS_ORIGIN: z.string().optional()
 });
 
