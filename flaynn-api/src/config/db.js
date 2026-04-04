@@ -16,6 +16,8 @@ export async function initDB(logger) {
         name VARCHAR(100) NOT NULL,
         email VARCHAR(254) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        failed_login_attempts INT DEFAULT 0,
+        locked_until TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 

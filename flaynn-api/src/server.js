@@ -3,6 +3,7 @@ import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
+import fastifyRedis from '@fastify/redis';
 import fastifyJwt from '@fastify/jwt';
 import dotenv from 'dotenv';
 import { z } from 'zod';
@@ -35,6 +36,7 @@ const envSchema = z.object({
   N8N_WEBHOOK_URL: z.string().url().optional(),
   N8N_SECRET_TOKEN: z.string().min(16).optional(),
   ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
+  REDIS_URL: z.string().url().default('redis://127.0.0.1:6379'),
   GOOGLE_SHEETS_WEBHOOK_URL: z.string().url().startsWith('https://script.google.com/').optional(),
   CORS_ORIGIN: z.string().optional()
 });
@@ -63,18 +65,18 @@ const fastify = Fastify({
   bodyLimit: 1048576
 });
 
-// Système de défense active : Bannissement temporaire IP en mémoire
-const bannedIPs = new Map();
-
 // Traçage complet : injection du Request-ID (Corrélation)
 fastify.addHook('onRequest', async (request, reply) => {
-  const banExpiration = bannedIPs.get(request.ip);
-  if (banExpiration) {
-    if (Date.now() < banExpiration) {
-      request.log.warn(`[SECOPS] Blocage actif pour IP bannie: ${request.ip}`);
-      return reply.code(403).send({ error: 'FORBIDDEN', message: 'Accès bloqué temporairement pour abus.' });
-    } else {
-      bannedIPs.delete(request.ip); // Levée du ban
+  // Vérification ultra-rapide dans Redis si disponible
+  if (fastify.redis) {
+    try {
+      const isBanned = await fastify.redis.get(`ban:${request.ip}`);
+      if (isBanned) {
+        request.log.warn(`[SECOPS] Blocage actif (Redis) pour IP bannie: ${request.ip}`);
+        return reply.code(403).send({ error: 'FORBIDDEN', message: 'Accès bloqué temporairement pour abus.' });
+      }
+    } catch (err) {
+      request.log.error(err, 'Erreur lors de la vérification Redis du bannissement IP');
     }
   }
   
@@ -104,15 +106,19 @@ export const start = async () => {
       fastify.log.warn(`[ARCHITECT-PRIME] AVERTISSEMENT: DATABASE_URL manquant. Connectez PostgreSQL.`);
     }
     
+    fastify.log.info(`[ARCHITECT-PRIME] Connexion à Redis...`);
+    await fastify.register(fastifyRedis, { url: env.REDIS_URL });
+
     await fastify.register(helmet, helmetConfig);
     await fastify.register(cors, corsConfig);
     await fastify.register(rateLimit, {
       max: 100,
       timeWindow: '1 minute',
       allowList: ['127.0.0.1'], // Eviter de bannir localhost pendant les tests
-      onExceeded: function (request, key) {
-        request.log.warn(`[SECOPS] Rate Limit dépassé. Ban IP 15 minutes: ${request.ip}`);
-        bannedIPs.set(request.ip, Date.now() + 15 * 60 * 1000);
+      redis: fastify.redis, // Délégation du compteur à Redis
+      onExceeded: async function (request, key) {
+        request.log.warn(`[SECOPS] Rate Limit dépassé. Ban IP Redis 15 minutes: ${request.ip}`);
+        await fastify.redis.set(`ban:${request.ip}`, 'true', 'EX', 15 * 60);
       }
     });
     await fastify.register(fastifyJwt, {

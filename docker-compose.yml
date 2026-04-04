@@ -19,6 +19,11 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
+      
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
 
 volumes:
   pgdata:
