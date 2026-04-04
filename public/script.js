@@ -30,6 +30,28 @@ function initScoreCounter(el) {
   window.requestAnimationFrame(step);
 }
 
+/**
+ * IntersectionObserver natif pour simuler GSAP ScrollTrigger (Fade In & Slide Up)
+ */
+function initNativeScrollReveal() {
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-revealed');
+        obs.unobserve(entry.target); // Ne s'anime qu'une seule fois
+      }
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0 });
+
+  document.querySelectorAll('[data-animate="reveal"]').forEach(section => {
+    section.querySelectorAll('[data-animate-child]').forEach((child, index) => {
+      child.classList.add('reveal-native');
+      child.style.transitionDelay = `${index * 100}ms`; // Effet stagger (cascade)
+      observer.observe(child);
+    });
+  });
+}
+
 function scrollToId(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -464,6 +486,7 @@ async function bootDeferred() {
     } catch {
       if (morphEl) initMorph(morphEl);
       if (counterEl) initScoreCounter(counterEl);
+      initNativeScrollReveal(); // Fallback si GSAP échoue
     }
   } else if (counterEl) {
     const target = Number.parseInt(counterEl.dataset.score || counterEl.textContent, 10);
@@ -472,6 +495,9 @@ async function bootDeferred() {
       const r = target / 100;
       counterEl.style.color =
         r < 0.4 ? 'var(--accent-rose)' : r < 0.7 ? 'var(--accent-amber)' : 'var(--accent-emerald)';
+    }
+    if (!reduced) {
+      initNativeScrollReveal(); // Appareil bas de gamme (Tier 1) mais sans reduced-motion
     }
   }
 
@@ -638,6 +664,50 @@ if (stickyCtaEl) {
   if (formSection) observer.observe(formSection);
 }
 
+// ── Gestionnaire de Modales Vanilla JS ──────────────────────────────────────
+function initModals() {
+  const overlays = document.querySelectorAll('.modal-overlay');
+  const triggers = document.querySelectorAll('.js-modal-trigger');
+  const closes = document.querySelectorAll('.js-modal-close');
+
+  function openModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('is-active');
+    document.body.style.overflow = 'hidden'; // Bloque le scroll derrière la modale
+
+    // Relance l'animation d'apparition fluide (Liquid UX) à chaque ouverture
+    const children = modal.querySelectorAll('[data-animate-child]');
+    children.forEach(c => {
+      c.classList.remove('is-revealed');
+      c.classList.add('reveal-native');
+    });
+    void modal.offsetWidth; // Force le reflow du navigateur
+    children.forEach((c, i) => {
+      c.style.transitionDelay = `${i * 60}ms`;
+      c.classList.add('is-revealed');
+    });
+  }
+
+  function closeModal() {
+    overlays.forEach(m => {
+      m.classList.remove('is-active');
+      m.querySelectorAll('[data-animate-child]').forEach(c => c.classList.remove('is-revealed'));
+    });
+    document.body.style.overflow = '';
+  }
+
+  triggers.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal(btn.getAttribute('href').replace('#', ''));
+    });
+  });
+  closes.forEach(btn => btn.addEventListener('click', closeModal));
+  overlays.forEach(overlay => overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); }));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+}
+
 function initLiquidUX() {
   const setMouseFromEvent = (el, e) => {
     const rect = el.getBoundingClientRect();
@@ -660,6 +730,19 @@ function initLiquidUX() {
   observer.observe(document.body, { childList: true, subtree: true });
 
   // 2. Spring scale (0.97) — géré en CSS (:active + ease-out-back au relâchement). Rien ici.
+  // 2. Spring scale (0.97) pour JS dynamically injected elements
+  const interactives = 'button.modal-close, .js-modal-close';
+  document.addEventListener('pointerdown', (e) => {
+    const t = e.target.closest(interactives);
+    if (t && !t.disabled) { t.style.transform = 'scale(0.92)'; t.style.transition = 'transform 0.1s ease'; }
+  });
+  const reset = (e) => {
+    const t = e.target.closest(interactives);
+    if (t) { t.style.transform = ''; t.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)'; }
+  };
+  document.addEventListener('pointerup', reset);
+  document.addEventListener('pointercancel', reset);
+  document.addEventListener('pointerout', reset);
 
   // 3. Flash discret sur saisie (complète le focus ring CSS)
   document.addEventListener('input', (e) => {
@@ -685,4 +768,14 @@ const scheduleIdle = (fn) => {
 scheduleIdle(() => {
   void bootDeferred();
   initLiquidUX();
+  initModals();
 });
+
+// PWA: Enregistrement du Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('Service Worker non enregistré:', err);
+    });
+  });
+}

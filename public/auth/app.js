@@ -4,6 +4,34 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const initAuthReveal = (root = document) => {
+    const targets = [
+      ...root.querySelectorAll('.auth-card, .auth-copy, .auth-tab, .field, .auth-actions')
+    ];
+
+    if (!targets.length) return;
+
+    targets.forEach((node, index) => {
+      node.setAttribute('data-reveal', '');
+      node.setAttribute('data-reveal-delay', String(Math.min(index + 1, 5)));
+    });
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      targets.forEach((node) => node.classList.add('is-revealed'));
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries, currentObserver) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-revealed');
+        currentObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.15 });
+
+    targets.forEach((node) => observer.observe(node));
+  };
+
   const syncSession = async () => {
     try {
       const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
@@ -139,4 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
       el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
     });
   });
+
+  initAuthReveal(document);
 });

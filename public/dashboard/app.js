@@ -734,6 +734,7 @@ class FlaynnRouter {
     try { await match.handler(this.root, path); }
     finally { this.root.setAttribute('aria-busy', 'false'); }
     this.#syncNav(path);
+    initDashboardReveal(this.root);
     this.root.focus();
   }
 
@@ -792,6 +793,29 @@ function initTopbar(auth) {
     topbar.style.alignItems = 'center';
     topbar.style.gap = 'var(--space-3)';
   }
+}
+
+/* ── Animations d'apparition (Reveal) ──────────────────────────────────── */
+function initDashboardReveal(root) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-revealed');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -5% 0px', threshold: 0 });
+
+  // Sélection dynamique des blocs à animer lors du rendu de la vue
+  const elements = root.querySelectorAll('.heading-section, .dashboard-app__lead, .card-glass, .demo-banner');
+  
+  elements.forEach((el, index) => {
+    el.classList.add('reveal-native');
+    el.style.transitionDelay = `${Math.min(index, 12) * 60}ms`; // Stagger en cascade (max 12 éléments pour éviter d'attendre trop longtemps)
+    observer.observe(el);
+  });
 }
 
 /* ── Liquid UX ─────────────────────────────────────────────────────────── */

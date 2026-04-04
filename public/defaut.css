@@ -2310,6 +2310,21 @@
       transform 0.08s cubic-bezier(0.4, 0, 0.2, 1),
       box-shadow var(--duration-normal) ease;
   }
+
+  /* ── Native Scroll Reveal (IntersectionObserver Fallback) ── */
+  .reveal-native {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: 
+      opacity 0.75s var(--ease-out-expo), 
+      transform 0.75s var(--ease-out-expo);
+    will-change: opacity, transform;
+  }
+  
+  .reveal-native.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ─────────────────────────────────────────
