@@ -22,6 +22,7 @@ export const helmetConfig = {
         'https://fonts.googleapis.com', 
         'https://api.fontshare.com', 
         'https://fonts.gstatic.com', 
+        'https://cdn.fontshare.com',
         ...n8nConnectOrigin()
       ],
       baseUri: ["'self'"],

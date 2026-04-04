@@ -1,5 +1,4 @@
-const CACHE_NAME = 'flaynn-cache-v5';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'flaynn-cache-v
   '/',
   '/manifest.json',
   '/favicon.svg',
