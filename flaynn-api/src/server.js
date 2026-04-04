@@ -34,6 +34,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "Le JWT_SECRET doit faire au moins 32 caractères."),
   N8N_WEBHOOK_URL: z.string().url().optional(),
   N8N_SECRET_TOKEN: z.string().min(16).optional(),
+  ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
   CORS_ORIGIN: z.string().optional()
 });
 

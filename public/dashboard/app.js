@@ -505,6 +505,43 @@ function buildRoutes(data) {
           return;
         }
 
+        // ARCHITECT-PRIME : Gestion des états asynchrones (En cours / Erreur)
+        if (data.status === 'pending_analysis' || data.status === 'pending_webhook') {
+          section.appendChild(el('h2', 'heading-section', { textContent: 'Analyse en cours...' }));
+          section.appendChild(el('p', 'dashboard-app__lead', { textContent: 'Notre IA Claude 3.5 Sonnet est en train d\'évaluer vos données. Cela prend généralement moins de 15 secondes. Veuillez patienter, la page se rafraîchira automatiquement.' }));
+          root.appendChild(section);
+
+          // ARCHITECT-PRIME : Polling (Rafraîchissement automatique)
+          const pollInterval = setInterval(async () => {
+            // Si l'utilisateur change d'onglet, la section est détruite, on arrête proprement le polling
+            if (!document.body.contains(section)) {
+              clearInterval(pollInterval);
+              return;
+            }
+            try {
+              const res = await fetch(`/api/dashboard/${encodeURIComponent(data.id)}`, { credentials: 'same-origin' });
+              if (res.ok) {
+                const newData = await res.json();
+                if (newData.status !== 'pending_analysis' && newData.status !== 'pending_webhook') {
+                  clearInterval(pollInterval);
+                  window.location.reload(); // Rafraîchit l'application avec les nouvelles données IA
+                }
+              }
+            } catch (err) {}
+          }, 3000); // Vérification silencieuse toutes les 3 secondes
+
+          return;
+        }
+
+        if (data.status === 'error') {
+          section.appendChild(el('h2', 'heading-section', { textContent: 'Analyse échouée' }));
+          const errLead = el('p', 'dashboard-app__lead', { textContent: 'Un problème technique est survenu lors de l\'évaluation de votre dossier par l\'IA. Veuillez nous contacter ou relancer un audit.' });
+          errLead.style.color = 'var(--accent-rose)';
+          section.appendChild(errLead);
+          root.appendChild(section);
+          return;
+        }
+
         const d3 = await loadD3();
         /* Demo banner */
         if (data.isDemo) section.appendChild(buildDemoBanner());
@@ -567,6 +604,11 @@ function buildRoutes(data) {
         const section = el('section', 'dashboard-app__section');
         if (data.isList) {
           section.appendChild(el('p', 'dashboard-meta', { textContent: 'Veuillez sélectionner une analyse dans l\'onglet Overview.' }));
+          root.appendChild(section);
+          return;
+        }
+        if (data.status === 'pending_analysis' || data.status === 'pending_webhook' || data.status === 'error') {
+          section.appendChild(el('p', 'dashboard-meta', { textContent: 'Données indisponibles. Consultez l\'onglet Overview pour voir le statut de l\'analyse.' }));
           root.appendChild(section);
           return;
         }
@@ -634,6 +676,11 @@ function buildRoutes(data) {
         const section = el('section', 'dashboard-app__section');
         if (data.isList) {
           section.appendChild(el('p', 'dashboard-meta', { textContent: 'Veuillez sélectionner une analyse dans l\'onglet Overview.' }));
+          root.appendChild(section);
+          return;
+        }
+        if (data.status === 'pending_analysis' || data.status === 'pending_webhook' || data.status === 'error') {
+          section.appendChild(el('p', 'dashboard-meta', { textContent: 'Données indisponibles. Consultez l\'onglet Overview pour voir le statut de l\'analyse.' }));
           root.appendChild(section);
           return;
         }

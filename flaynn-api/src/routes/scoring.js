@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { n8nBridge } from '../services/n8n-bridge.js';
+import { claudeScoringService } from '../services/claude-scoring.js';
 import { pool } from '../config/db.js';
 
 // Schéma Zod strict - Red Team Policy
@@ -49,18 +49,29 @@ export default async function scoringRoutes(fastify) {
 
       const payload = { ...parsed, email: userEmail || parsed.email };
       const reference = `FLY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      const initialData = { status: 'pending_webhook', payload };
+      const initialData = { status: 'pending_analysis', payload };
       
       await pool.query(
         'INSERT INTO scores (reference_id, user_email, startup_name, data) VALUES ($1, $2, $3, $4::jsonb)',
         [reference, userEmail, payload.startup_name, JSON.stringify(initialData)]
       );
 
-      try {
-        await n8nBridge.submitScore({ ...payload, reference }, request.id);
-      } catch (err) {
-        request.log.error(err, `Échec n8n pour ${reference}, mais score persisté en attente.`);
-      }
+      // Traitement IA asynchrone (Fire-and-forget) pour ne pas bloquer le client
+      claudeScoringService.evaluateStartup(payload)
+        .then(async (aiResult) => {
+          await pool.query(
+            'UPDATE scores SET data = $1 WHERE reference_id = $2',
+            [JSON.stringify(aiResult), reference]
+          );
+        })
+        .catch(async (err) => {
+          request.log.error(err, `Échec de l'analyse IA (Claude) pour la référence ${reference}`);
+          // ARCHITECT-PRIME : On met à jour le statut en "error" dans PostgreSQL
+          await pool.query(
+            `UPDATE scores SET data = jsonb_set(data, '{status}', '"error"') WHERE reference_id = $1`,
+            [reference]
+          ).catch(dbErr => request.log.error(dbErr, 'Échec de la sauvegarde du statut d\'erreur'));
+        });
 
       return reply.code(200).send({ success: true, reference });
     } catch (err) {

@@ -729,7 +729,6 @@ function initLiquidUX() {
   const observer = new MutationObserver(() => applyGlow());
   observer.observe(document.body, { childList: true, subtree: true });
 
-  // 2. Spring scale (0.97) — géré en CSS (:active + ease-out-back au relâchement). Rien ici.
   // 2. Spring scale (0.97) pour JS dynamically injected elements
   const interactives = 'button.modal-close, .js-modal-close';
   document.addEventListener('pointerdown', (e) => {

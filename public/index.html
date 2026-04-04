@@ -27,10 +27,8 @@
     <link rel="manifest" href="manifest.json">
 
     <link rel="dns-prefetch" href="https://api.fontshare.com">
-    <link rel="dns-prefetch" href="https://cdn.fontshare.com">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -638,8 +636,8 @@
             <div class="footer-bottom">
                 <p class="footer-copy">© <span id="footer-year"></span> Flaynn. Tous droits réservés.</p>
                 <div class="footer-legal">
-                    <a href="/mentions-legales" class="footer-legal-link">Mentions légales</a>
-                    <a href="/confidentialite" class="footer-legal-link">Confidentialité</a>
+                    <a href="#modal-legal" class="footer-legal-link js-modal-trigger">Mentions légales</a>
+                    <a href="#modal-legal" class="footer-legal-link js-modal-trigger">Confidentialité</a>
                 </div>
             </div>
         </div>
@@ -660,6 +658,25 @@
             <div class="transition-spinner" aria-hidden="true"></div>
             <span class="transition-label">Chargement</span>
         </div>
+    </div>
+
+    <!-- Modal Mentions Légales (Vanilla JS) -->
+    <div id="modal-legal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-legal-title">
+        <article class="card-glass modal-content">
+            <header class="modal-header" data-animate-child>
+                <h2 id="modal-legal-title" class="heading-section" style="font-size: 1.5rem;">Mentions Légales</h2>
+                <button type="button" class="modal-close js-modal-close" aria-label="Fermer la modale">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </header>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-3);" data-animate-child>
+                <p><strong>Éditeur du site :</strong> Flaynn SAS au capital de 10 000€.<br>Siège social : 123 rue de la Tech, 75000 Paris.</p>
+                <p><strong>Hébergement :</strong> Serveurs sécurisés situés en Union Européenne via Render Inc.</p>
+                <p><strong>Propriété Intellectuelle :</strong> L'ensemble des éléments constituant ce site (textes, graphismes, logiciels, photographies, images, vidéos, sons, plans, noms, logos, marques, créations et œuvres diverses, bases de données, etc...) relèvent des législations françaises et internationales sur le droit d'auteur.</p>
+                <p><strong>Données Personnelles :</strong> Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant. Les informations de scoring restent strictement confidentielles et ne sont jamais revendues.</p>
+                <button type="button" class="btn-ghost js-modal-close" style="align-self: flex-start; margin-top: var(--space-2);">Compris</button>
+            </div>
+        </article>
     </div>
 
     <script type="module" src="/register-sw.js"></script>
