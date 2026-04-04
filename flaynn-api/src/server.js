@@ -167,6 +167,13 @@ export const start = async () => {
         const html = await readFile(join(siteRoot, 'dashboard/index.html'), 'utf-8');
         return reply.type('text/html').send(html);
       }
+      if (url === '/auth' || url.startsWith('/auth/')) {
+        const rest = url === '/auth' ? '' : url.slice('/auth/'.length);
+        if (rest && rest.includes('.')) return reply.code(404).send('Not Found');
+
+        const html = await readFile(join(siteRoot, 'auth/index.html'), 'utf-8');
+        return reply.type('text/html').send(html);
+      }
       return reply.code(404).send({ error: 'Not Found' });
     });
 

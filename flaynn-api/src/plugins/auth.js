@@ -123,7 +123,17 @@ export default async function authPlugin(fastify) {
       return reply.code(401).send({ error: 'UNAUTHORIZED', message: 'Veuillez vous reconnecter.' });
     }
 
-    const client = await pool.connect();
+    let client;
+    try {
+      client = await pool.connect();
+    } catch (err) {
+      request.log.error({ err }, 'auth_db_connect_failed');
+      return reply.code(503).send({
+        error: 'SERVICE_UNAVAILABLE',
+        message: 'Service temporairement indisponible. Réessayez dans quelques instants.'
+      });
+    }
+
     try {
       await client.query('BEGIN');
       const { rows } = await client.query(
@@ -156,8 +166,13 @@ export default async function authPlugin(fastify) {
       reply.setAuthCookies(nextTokens);
       request.user = { sub: String(user.id), email: user.email, name: user.name };
     } catch (err) {
-      await client.query('ROLLBACK');
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackErr) {
+        request.log.warn({ err: rollbackErr }, 'auth_rollback_failed');
+      }
       request.log.error(err);
+      reply.clearAuthCookies();
       return reply.code(401).send({ error: 'UNAUTHORIZED', message: 'Session invalide.' });
     } finally {
       client.release();
