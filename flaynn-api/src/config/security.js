@@ -13,10 +13,17 @@ export const helmetConfig = {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
-      styleSrc: ["'self'", "https://fonts.googleapis.com", "https://api.fontshare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://api.fontshare.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://api.fontshare.com"],
       imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'", 'https://cdn.jsdelivr.net', ...n8nConnectOrigin()],
+      connectSrc: [
+        "'self'", 
+        'https://cdn.jsdelivr.net', 
+        'https://fonts.googleapis.com', 
+        'https://api.fontshare.com', 
+        'https://fonts.gstatic.com', 
+        ...n8nConnectOrigin()
+      ],
       baseUri: ["'self'"],
       formAction: ["'self'"],
       objectSrc: ["'none'"],
