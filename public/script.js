@@ -342,11 +342,22 @@ class ScoringFormController {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg =
-          data.error === 'VALIDATION_FAILED'
-            ? 'Vérifiez les champs et réessayez.'
-            : 'Service temporairement indisponible.';
-        throw new Error(msg);
+        if (data.error === 'VALIDATION_FAILED' && data.details) {
+          // Liquid UX: Affichage dynamique des erreurs Zod (Zero innerHTML)
+          for (const [key, msgs] of Object.entries(data.details)) {
+            const input = this.form.querySelector(`[name="${key}"]`);
+            if (input) {
+              const field = input.closest('.field');
+              if (field) {
+                field.classList.add('field--error');
+                const errEl = field.querySelector('.field__error');
+                if (errEl) errEl.textContent = msgs[0];
+              }
+            }
+          }
+          throw new Error('Veuillez corriger les erreurs surlignées.');
+        }
+        throw new Error(data.message || 'Service temporairement indisponible.');
       }
 
       const ref = data.reference || '—';

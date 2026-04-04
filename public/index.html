@@ -347,17 +347,17 @@
                     </article>
                     <article class="card-glass bento-item">
                         <span class="card-label">Marché adressable</span>
-                        <p class="bento-metric" style="color: var(--accent-blue)">€2.4B</p>
+                        <p class="bento-metric bento-metric--blue">€2.4B</p>
                         <p class="bento-metric-sub">TAM indicatif — affiné après entretien</p>
                         <div class="bento-bar-mini" aria-hidden="true">
-                            <div style="height:3px;background:var(--surface-raised);border-radius:2px;overflow:hidden;">
-                                <div style="width:72%;height:100%;background:var(--accent-blue);border-radius:2px;"></div>
+                            <div class="bento-bar-mini__track">
+                                <div class="bento-bar-mini__fill bento-bar-mini__fill--blue"></div>
                             </div>
                         </div>
                     </article>
                     <article class="card-glass bento-item">
                         <span class="card-label">Traction</span>
-                        <p class="bento-metric" style="color: var(--accent-emerald)">+15% MoM</p>
+                        <p class="bento-metric bento-metric--emerald">+15% MoM</p>
                         <p class="bento-metric-sub">Croissance mensuelle — vos métriques réelles remplacent ce placeholder</p>
                         <div class="bento-sparkline" aria-hidden="true">
                             <svg viewBox="0 0 80 28" fill="none" width="80" height="28">
@@ -370,27 +370,27 @@
                         <div class="bento-pillars-mini" aria-label="Scores par pilier">
                             <div class="bento-pillar-row">
                                 <span class="bento-pillar-name">Market</span>
-                                <div class="bento-pillar-track"><div class="bento-pillar-fill" style="--w:88%;--c:var(--accent-violet)"></div></div>
+                                <div class="bento-pillar-track"><div class="bento-pillar-fill bento-pillar-fill--market"></div></div>
                                 <span class="bento-pillar-score">88</span>
                             </div>
                             <div class="bento-pillar-row">
                                 <span class="bento-pillar-name">Product</span>
-                                <div class="bento-pillar-track"><div class="bento-pillar-fill" style="--w:76%;--c:var(--accent-blue)"></div></div>
+                                <div class="bento-pillar-track"><div class="bento-pillar-fill bento-pillar-fill--product"></div></div>
                                 <span class="bento-pillar-score">76</span>
                             </div>
                             <div class="bento-pillar-row">
                                 <span class="bento-pillar-name">Traction</span>
-                                <div class="bento-pillar-track"><div class="bento-pillar-fill" style="--w:92%;--c:var(--accent-emerald)"></div></div>
+                                <div class="bento-pillar-track"><div class="bento-pillar-fill bento-pillar-fill--traction"></div></div>
                                 <span class="bento-pillar-score">92</span>
                             </div>
                             <div class="bento-pillar-row">
                                 <span class="bento-pillar-name">Team</span>
-                                <div class="bento-pillar-track"><div class="bento-pillar-fill" style="--w:84%;--c:var(--accent-violet)"></div></div>
+                                <div class="bento-pillar-track"><div class="bento-pillar-fill bento-pillar-fill--team"></div></div>
                                 <span class="bento-pillar-score">84</span>
                             </div>
                             <div class="bento-pillar-row">
                                 <span class="bento-pillar-name">Execution</span>
-                                <div class="bento-pillar-track"><div class="bento-pillar-fill" style="--w:70%;--c:var(--accent-amber)"></div></div>
+                                <div class="bento-pillar-track"><div class="bento-pillar-fill bento-pillar-fill--execution"></div></div>
                                 <span class="bento-pillar-score">70</span>
                             </div>
                         </div>
@@ -660,17 +660,7 @@
         </div>
     </div>
 
-    <script type="module" src="register-sw.js"></script>
-    <script type="module">
-        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
-        window.__FLAYNN_DEVICE__ = {
-            memory: typeof navigator.deviceMemory === 'number' ? navigator.deviceMemory : null,
-            effectiveType: connection?.effectiveType || '4g',
-            saveData: Boolean(connection?.saveData),
-            reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        };
-
-        await import('./script.js');
-    </script>
+    <script type="module" src="/register-sw.js"></script>
+    <script type="module" src="/script.js"></script>
 </body>
 </html>
