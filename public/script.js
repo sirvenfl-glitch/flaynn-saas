@@ -3,13 +3,11 @@
  */
 
 const MORPH_PHRASES = [
-  'avant la diligence.',
-  'avec des données.',
-  'sans storytelling creux.',
-  'en toute objectivité.',
-  'avec un vrai benchmark.',
-  'sans lever le doute.',
-  'pour convaincre.',
+  'Start Proving.',
+  'Prouvez avec des données.',
+  'Obtenez votre verdict.',
+  'Passez le filtre.',
+  'Start Proving.',
 ];
 
 function initMorph(el) {
