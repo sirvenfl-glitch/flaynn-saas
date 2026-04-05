@@ -53,7 +53,7 @@ const ScoreSubmissionSchema = z.object({
   // Étape 7 : Documents (URLs après upload)
   pitch_deck_url: z.string().url().max(500).optional(),
   doc_supplementaire_url: z.string().url().max(500).optional(),
-}).strict();
+}).strip();
 
 export default async function scoringRoutes(fastify) {
   fastify.post('/api/score', {
