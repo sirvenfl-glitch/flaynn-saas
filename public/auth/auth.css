@@ -339,6 +339,19 @@
   .auth-submit { min-height: 52px; font-size: 1rem; }
 }
 
+/* Touch active states auth */
+@media (hover: none) {
+  .auth-tab:active { color: var(--text-primary); background: rgba(255,255,255,0.04); transition: all 0.1s ease; }
+  .auth-forgot__link:active { color: var(--accent-violet); transition: color 0.1s ease; }
+  .auth-back-link:active { color: var(--text-secondary); transition: color 0.1s ease; }
+  .auth-toggle-pw:active { color: var(--text-primary); transition: color 0.1s ease; }
+  .auth-generate-pw:active {
+    transform: scale(0.92);
+    background: rgba(139, 92, 246, 0.2);
+    transition: all 0.1s ease;
+  }
+}
+
 @media (max-height: 600px) {
   .auth-body {
     align-items: flex-start;

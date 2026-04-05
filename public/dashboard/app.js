@@ -924,9 +924,25 @@ async function main() {
   clearEl(app);
   app.setAttribute('aria-busy', 'true');
 
-  const loading = el('p', 'dashboard-loading', { textContent: 'Chargement de votre espace…' });
-  loading.setAttribute('role', 'status');
-  app.appendChild(loading);
+  // Skeleton loading 2026
+  const skeleton = el('div', 'dashboard-skeleton');
+  skeleton.setAttribute('role', 'status');
+  skeleton.setAttribute('aria-label', 'Chargement');
+  for (let i = 0; i < 3; i++) {
+    const card = el('div', 'card-glass skeleton-card');
+    card.style.padding = 'var(--space-5)';
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
+    card.style.gap = 'var(--space-3)';
+    card.appendChild(el('div', 'skeleton skeleton-title'));
+    card.appendChild(el('div', 'skeleton skeleton-text'));
+    card.appendChild(el('div', 'skeleton skeleton-text'));
+    const bar = el('div', 'skeleton skeleton-bar');
+    bar.style.width = `${50 + i * 15}%`;
+    card.appendChild(bar);
+    skeleton.appendChild(card);
+  }
+  app.appendChild(skeleton);
 
   let data;
 

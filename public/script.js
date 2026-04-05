@@ -472,6 +472,11 @@ async function bootDeferred() {
   const morphEl = document.querySelector('.js-morph-text');
   const counterEl = document.querySelector('[data-score]');
 
+  // CSS scroll reveal fonctionne sur TOUS les tiers (pas besoin de GSAP)
+  if (!reduced) {
+    initNativeScrollReveal();
+  }
+
   if (reduced) {
     if (counterEl) {
       const t = Number.parseInt(counterEl.dataset.score || counterEl.textContent, 10);
@@ -497,14 +502,10 @@ async function bootDeferred() {
       if (counterEl) initScoreCounter(counterEl);
       initNativeScrollReveal(); // Fallback si GSAP échoue
     }
-  } else if (counterEl) {
-    const target = Number.parseInt(counterEl.dataset.score || counterEl.textContent, 10);
-    if (!Number.isNaN(target)) {
-      counterEl.textContent = String(target);
-      const r = target / 100;
-      counterEl.style.color =
-        r < 0.4 ? 'var(--accent-rose)' : r < 0.7 ? 'var(--accent-amber)' : 'var(--accent-emerald)';
-    }
+  } else {
+    // Tier 1 : animations legeres CSS-only (pas de GSAP, pas de Three.js)
+    if (morphEl) initMorph(morphEl);
+    if (counterEl) initScoreCounter(counterEl);
     if (!reduced) {
       initNativeScrollReveal(); // Appareil bas de gamme (Tier 1) mais sans reduced-motion
     }
@@ -607,6 +608,33 @@ document.getElementById('btn-sticky-cta')?.addEventListener('click', () => scrol
 document.getElementById('btn-mobile-cta')?.addEventListener('click', () => {
   closeMobileMenu();
   scrollToId('scoring-form');
+});
+
+// ── Collapsing header on scroll ──────────────────────────────────────────────
+const navGlass = document.querySelector('.nav-glass');
+if (navGlass) {
+  let lastScroll = 0;
+  const onScroll = () => {
+    const y = window.scrollY;
+    navGlass.classList.toggle('is-scrolled', y > 60);
+    lastScroll = y;
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+
+// ── View Transition API — smooth page transitions ──────────────────────────
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[href]');
+  if (!link || !link.href) return;
+  const url = new URL(link.href, location.origin);
+  if (url.origin !== location.origin || url.pathname === location.pathname) return;
+  if (link.getAttribute('href').startsWith('#')) return;
+  if (!document.startViewTransition) return;
+  e.preventDefault();
+  document.startViewTransition(() => {
+    window.location.href = link.href;
+  });
 });
 
 // ── Nav mobile ──────────────────────────────────────────────────────────────
