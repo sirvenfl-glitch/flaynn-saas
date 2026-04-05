@@ -2865,7 +2865,7 @@
     min-height: min(90vh, 880px);
     min-height: min(90svh, 880px);
     gap: var(--space-5);
-    padding-top: calc(6rem + env(safe-area-inset-top));
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
   }
 
   /* Container : padding mobile confortable */
