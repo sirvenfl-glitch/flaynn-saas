@@ -27,14 +27,11 @@ export default async function webhookRoutes(fastify) {
 
     // Mise à jour de la base de données avec le résultat de l'IA
     const { rowCount } = await pool.query(
-      'UPDATE scores SET data = $1 WHERE reference_id = $2',
-      [JSON.stringify(parsed.data), parsed.reference]
-    );
+  'INSERT INTO scores (reference_id, data) VALUES ($1, $2) ON CONFLICT (reference_id) DO UPDATE SET data = $2',
+  [parsed.reference, JSON.stringify(parsed.data)]
+);
 
-    if (rowCount === 0) {
-      request.log.error(`Réception n8n: Référence ${parsed.reference} introuvable en DB.`);
-      throw new FlaynnError('Référence introuvable', 404, 'NOT_FOUND');
-    }
+  
 
     return reply.code(200).send({ success: true, message: 'Score mis à jour avec succès.' });
   });
