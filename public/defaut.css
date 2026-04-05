@@ -2860,11 +2860,12 @@
   .section--process { padding: var(--space-8) 0; }
   .section-header { margin-bottom: var(--space-6); }
 
-  /* Hero : centré, même structure */
+  /* Hero : centré, même structure — padding-top augmenté pour ne pas être coupé par la nav */
   .hero-layout {
     min-height: min(90vh, 880px);
     min-height: min(90svh, 880px);
     gap: var(--space-5);
+    padding-top: calc(6rem + env(safe-area-inset-top));
   }
 
   /* Container : padding mobile confortable */
