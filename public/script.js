@@ -213,8 +213,8 @@ function buildSuccessView(reference) {
 class ScoringFormController {
   constructor(form) {
     this.form = form;
-    this.currentStep = 1;
-    this.totalSteps = 3;
+    this.currentStep = 0;
+    this.totalSteps = 8;
     this.toastRoot = document.getElementById('toast-root');
     this.successEl = document.getElementById('form-success');
     this.progressFill = document.getElementById('progress-fill');
@@ -231,15 +231,24 @@ class ScoringFormController {
       input.addEventListener('blur', () => this.#validateField(input, true));
     });
 
-    this.form.querySelector('#stage')?.addEventListener('input', () => {
-      const h = this.form.querySelector('#stage');
-      if (h) this.#validateField(h, false);
+    // Tous les hidden inputs (chips) déclenchent la validation au changement
+    this.form.querySelectorAll('input[type="hidden"]').forEach((h) => {
+      h.addEventListener('input', () => this.#validateField(h, false));
     });
 
-    this.form.querySelector('#sector')?.addEventListener('change', () => {
-      const s = this.form.querySelector('#sector');
-      if (s) this.#validateField(s, false);
+    // Tous les selects déclenchent la validation au changement
+    this.form.querySelectorAll('select').forEach((s) => {
+      s.addEventListener('change', () => this.#validateField(s, false));
     });
+
+    // Toggle revenus oui/non → affiche/masque MRR + clients payants
+    const revenusInput = this.form.querySelector('#revenus');
+    if (revenusInput) {
+      revenusInput.addEventListener('input', () => {
+        const details = this.form.querySelector('#revenus-details');
+        if (details) details.hidden = revenusInput.value !== 'oui';
+      });
+    }
 
     this.form.querySelectorAll('.btn-form--next').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -273,7 +282,8 @@ class ScoringFormController {
 
           group.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-checked', 'false'));
           chip.setAttribute('aria-checked', 'true');
-          const hidden = group.parentElement.querySelector('input[type="hidden"][name="stage"]');
+          // Trouve le hidden input associé au radiogroup (stage, revenus, equipe_temps_plein)
+          const hidden = group.parentElement.querySelector('input[type="hidden"]');
           if (hidden) {
             hidden.value = chip.dataset.value || '';
             hidden.dispatchEvent(new Event('input', { bubbles: true }));
@@ -341,14 +351,14 @@ class ScoringFormController {
     if (!container) return false;
     let ok = true;
     container.querySelectorAll('.field__input, input[type="hidden"]').forEach((input) => {
-      if (input.type === 'hidden' && input.name === 'stage') {
+      if (input.type === 'hidden') {
         const field = input.closest('.field');
         if (field && field.dataset.validate?.includes('required') && !input.value.trim()) {
           ok = false;
           if (showError) {
             field.classList.add('field--error');
             const errEl = field.querySelector('.field__error');
-            if (errEl) errEl.textContent = 'Sélectionnez un stade.';
+            if (errEl) errEl.textContent = 'Sélectionnez une option.';
           }
         }
         return;
@@ -362,12 +372,10 @@ class ScoringFormController {
     const step = this.form.querySelector(`.form-step[data-step="${this.currentStep}"]`);
     if (!step) return;
 
-    if (this.currentStep === 3) {
-      const email = this.form.querySelector('#email');
+    if (this.currentStep === this.totalSteps) {
       const submitBtn = this.form.querySelector('#btn-submit');
-      if (email && submitBtn) {
-        const ok = this.#validateField(email, false, true);
-        submitBtn.disabled = !ok;
+      if (submitBtn) {
+        submitBtn.disabled = false; // Dernière étape = documents optionnels
       }
       return;
     }
@@ -379,7 +387,7 @@ class ScoringFormController {
   }
 
   #goToStep(target) {
-    if (target < 1 || target > this.totalSteps) return;
+    if (target < 0 || target > this.totalSteps) return;
     const currentEl = this.form.querySelector(`.form-step[data-step="${this.currentStep}"]`);
     const nextEl = this.form.querySelector(`.form-step[data-step="${target}"]`);
     if (!currentEl || !nextEl) return;
@@ -441,6 +449,9 @@ class ScoringFormController {
     this.currentStep = target;
     this.#updateProgress();
     this.#updateStepButtons();
+
+    // Générer le récapitulatif quand on arrive à l'étape 8
+    if (target === 8) this.#buildRecap();
   }
 
   #updateProgress() {
@@ -459,30 +470,67 @@ class ScoringFormController {
     }
   }
 
+  #buildRecap() {
+    const container = document.getElementById('recap-content');
+    if (!container) return;
+    container.replaceChildren();
+
+    const labels = {
+      previous_ref: 'Référence précédente',
+      nom_fondateur: 'Fondateur', email: 'Email', pays: 'Pays', ville: 'Ville',
+      nom_startup: 'Startup', pitch_une_phrase: 'Pitch', probleme: 'Problème',
+      solution: 'Solution', secteur: 'Secteur', type_client: 'Client cible',
+      tam_usd: 'TAM', estimation_tam: 'Estimation TAM',
+      acquisition_clients: 'Acquisition', concurrents: 'Concurrents',
+      stade: 'Stade', revenus: 'Revenus', mrr: 'MRR', clients_payants: 'Clients payants',
+      pourquoi_vous: 'Pourquoi vous', equipe_temps_plein: 'Temps plein',
+      priorite_6_mois: 'Priorité 6 mois', montant_leve: 'Montant levée',
+      jalons_18_mois: 'Jalons 18 mois', utilisation_fonds: 'Utilisation fonds',
+      vision_5_ans: 'Vision 5 ans',
+      pitch_deck_url: 'Pitch deck', doc_supplementaire_url: 'Document supp.'
+    };
+
+    const formData = new FormData(this.form);
+    for (const [key, value] of formData.entries()) {
+      const val = typeof value === 'string' ? value.trim() : '';
+      if (!val) continue;
+
+      const row = document.createElement('div');
+      row.className = 'recap-row';
+
+      const labelEl = document.createElement('span');
+      labelEl.className = 'recap-row__label';
+      labelEl.textContent = labels[key] || key;
+
+      const valueEl = document.createElement('span');
+      valueEl.className = 'recap-row__value';
+      valueEl.textContent = val.length > 120 ? val.slice(0, 120) + '…' : val;
+
+      row.appendChild(labelEl);
+      row.appendChild(valueEl);
+      container.appendChild(row);
+    }
+  }
+
   async #submit() {
-    if (!this.#validateStep(3, true)) return;
+    if (!this.#validateStep(this.totalSteps, true)) return;
 
     const btn = this.form.querySelector('#btn-submit');
     const label = btn?.querySelector('.btn-form__text');
     if (btn) btn.disabled = true;
     if (label) label.textContent = 'Envoi…';
 
-    const payload = {
-      startup_name: this.form.querySelector('#startup-name')?.value.trim() ?? '',
-      sector: this.form.querySelector('#sector')?.value ?? '',
-      stage: this.form.querySelector('#stage')?.value ?? '',
-      pitch: this.form.querySelector('#pitch')?.value.trim() ?? '',
-      email: this.form.querySelector('#email')?.value.trim() ?? ''
-    };
+    // Collecte automatique de tous les champs par leur name
+    const formData = new FormData(this.form);
+    const payload = {};
+    for (const [key, value] of formData.entries()) {
+      const trimmed = typeof value === 'string' ? value.trim() : value;
+      if (trimmed !== '') payload[key] = trimmed;
+    }
 
-    const urlVal = this.form.querySelector('#url')?.value.trim() ?? '';
-    if (urlVal) payload.url = urlVal;
-
-    const rev = this.form.querySelector('#revenue_monthly')?.value.trim() ?? '';
-    if (rev !== '') payload.revenue_monthly = Number(rev);
-
-    const team = this.form.querySelector('#team_size')?.value.trim() ?? '';
-    if (team !== '') payload.team_size = Number(team);
+    // Conversion des champs numériques
+    if (payload.mrr) payload.mrr = Number(payload.mrr);
+    if (payload.clients_payants) payload.clients_payants = Number(payload.clients_payants);
 
     try {
       const res = await fetch('/api/score', {

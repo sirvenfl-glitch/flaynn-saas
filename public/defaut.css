@@ -2245,6 +2245,55 @@
 
   .form-success.is-hidden { display: none; }
 
+  /* Intro texte dans les étapes du formulaire */
+  .form-step__intro {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-4);
+  }
+
+  /* Récapitulatif (étape 8) */
+  .recap-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .recap-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .recap-row:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .recap-row__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    min-width: 100px;
+  }
+
+  .recap-row__value {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    text-align: right;
+    word-break: break-word;
+    flex: 1;
+  }
+
   .form-success__icon {
     width: 68px;
     height: 68px;

@@ -3,16 +3,56 @@ import { randomBytes } from 'node:crypto';
 import { n8nBridge } from '../services/n8n-bridge.js';
 import { pool } from '../config/db.js';
 
-// Schéma Zod strict - Red Team Policy
+// Schéma Zod strict — aligné sur les champs attendus par n8n
 const ScoreSubmissionSchema = z.object({
-  startup_name: z.string().trim().min(2).max(100).regex(/^[\p{L}\p{N}\s\-'.&]+$/u),
-  url: z.union([z.string().trim().url().max(500), z.literal('').transform(() => undefined)]).optional(),
+  // Référence précédente (optionnel)
+  previous_ref: z.string().trim().max(50).optional(),
+
+  // Étape 1 : Identité
+  nom_fondateur: z.string().trim().min(2).max(100),
   email: z.string().email().max(254),
-  sector: z.enum(['fintech','healthtech','saas','marketplace','deeptech','greentech','other']),
-  stage: z.enum(['idea','mvp','seed','serieA','serieB_plus']),
-  pitch: z.string().trim().min(50).max(2000),
-  revenue_monthly: z.number().nonnegative().max(100_000_000).optional(),
-  team_size: z.number().int().min(1).max(10000).optional()
+  pays: z.string().trim().min(2).max(100),
+  ville: z.string().trim().min(2).max(100),
+  nom_startup: z.string().trim().min(2).max(100).regex(/^[\p{L}\p{N}\s\-'.&]+$/u),
+
+  // Étape 2 : Problème & Solution
+  pitch_une_phrase: z.string().trim().min(10).max(300),
+  probleme: z.string().trim().min(30).max(2000),
+  solution: z.string().trim().min(30).max(2000),
+  secteur: z.enum([
+    'fintech', 'healthtech', 'saas', 'marketplace', 'deeptech',
+    'greentech', 'edtech', 'proptech', 'legaltech', 'foodtech', 'other'
+  ]),
+  type_client: z.enum(['b2b', 'b2c', 'b2b2c', 'b2g', 'other']),
+
+  // Étape 3 : Marché & Concurrence
+  tam_usd: z.enum(['<1M', '1M-10M', '10M-100M', '100M-1B', '>1B']),
+  estimation_tam: z.string().trim().min(5).max(500),
+  acquisition_clients: z.string().trim().min(20).max(2000),
+  concurrents: z.string().trim().min(20).max(2000),
+
+  // Étape 4 : Traction
+  stade: z.enum(['idea', 'mvp', 'seed', 'serieA', 'serieB_plus']),
+  revenus: z.enum(['oui', 'non']),
+  mrr: z.number().nonnegative().max(100_000_000).optional(),
+  clients_payants: z.number().int().nonnegative().max(1_000_000).optional(),
+
+  // Étape 5 : Équipe
+  pourquoi_vous: z.string().trim().min(20).max(2000),
+  equipe_temps_plein: z.enum(['oui', 'non']),
+
+  // Étape 6 : Vision & Levée
+  priorite_6_mois: z.enum([
+    'produit', 'croissance', 'recrutement', 'levee', 'rentabilite', 'international', 'other'
+  ]),
+  montant_leve: z.string().trim().min(1).max(100),
+  jalons_18_mois: z.string().trim().min(20).max(2000),
+  utilisation_fonds: z.string().trim().min(20).max(2000),
+  vision_5_ans: z.string().trim().min(20).max(2000),
+
+  // Étape 7 : Documents (URLs après upload)
+  pitch_deck_url: z.string().url().max(500).optional(),
+  doc_supplementaire_url: z.string().url().max(500).optional(),
 }).strict();
 
 export default async function scoringRoutes(fastify) {
@@ -25,42 +65,37 @@ export default async function scoringRoutes(fastify) {
       const parsed = ScoreSubmissionSchema.parse(request.body);
       let userEmail = null;
 
-      // 1. Tente de récupérer l'email depuis le cookie JWT s'il est présent
+      // Tente de récupérer l'email depuis le cookie JWT
       const accessToken = request.cookies?.flaynn_at;
       if (accessToken) {
         try {
           const decoded = fastify.jwt.verify(accessToken);
           userEmail = decoded.email;
-        } catch (err) {
+        } catch {
           request.log.warn('Token invalide ou expiré lors du scoring, passage en mode invité.');
         }
       }
 
-      // 2. Si non connecté, vérifie si l'email du formulaire existe déjà en base
+      // Si non connecté, vérifie si l'email existe déjà
       if (!userEmail) {
         try {
           const userCheck = await pool.query('SELECT email FROM users WHERE email = $1', [parsed.email]);
-          if (userCheck.rowCount > 0) {
-            userEmail = userCheck.rows[0].email;
-          }
-        } catch (err) {
+          if (userCheck.rowCount > 0) userEmail = userCheck.rows[0].email;
+        } catch {
           request.log.warn('Erreur lors de la vérification de l\'utilisateur existant.');
         }
       }
 
-      const payload = { ...parsed, email: userEmail || parsed.email };
-      // ARCHITECT-PRIME: randomBytes CSPRNG au lieu de Math.random() (prédictible)
       const reference = `FLY-${randomBytes(4).toString('hex').toUpperCase()}`;
-      const initialData = { status: 'pending_analysis', payload };
-      
+      const initialData = { status: 'pending_analysis', payload: parsed };
+
       await pool.query(
         'INSERT INTO scores (reference_id, user_email, startup_name, data) VALUES ($1, $2, $3, $4::jsonb)',
-        [reference, userEmail, payload.startup_name, JSON.stringify(initialData)]
+        [reference, userEmail || parsed.email, parsed.nom_startup, JSON.stringify(initialData)]
       );
 
-      // ARCHITECT-PRIME: n8n orchestre tout (Claude IA + Google Sheets + callback webhook)
-      // Fire-and-forget — n8n rappellera POST /api/webhooks/n8n/score avec le résultat
-      n8nBridge.submitScore({ ...payload, reference }, request.id)
+      // n8n orchestre tout — fire-and-forget
+      n8nBridge.submitScore({ ...parsed, reference }, request.id)
         .catch(async (err) => {
           request.log.error(err, `Échec de l'envoi à n8n pour la référence ${reference}`);
           await pool.query(
