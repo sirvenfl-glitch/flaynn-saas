@@ -16,9 +16,9 @@ const ScoreSubmissionSchema = z.object({
   nom_startup: z.string().trim().min(2).max(100).regex(/^[\p{L}\p{N}\s\-'.&]+$/u),
 
   // Étape 2 : Problème & Solution
-  pitch_une_phrase: z.string().trim().min(10).max(300),
-  probleme: z.string().trim().min(30).max(2000),
-  solution: z.string().trim().min(30).max(2000),
+  pitch_une_phrase: z.string().trim().min(5).max(300),
+  probleme: z.string().trim().min(10).max(2000),
+  solution: z.string().trim().min(10).max(2000),
   secteur: z.enum([
     'fintech', 'healthtech', 'saas', 'marketplace', 'deeptech',
     'greentech', 'edtech', 'proptech', 'legaltech', 'foodtech', 'other'
@@ -28,8 +28,8 @@ const ScoreSubmissionSchema = z.object({
   // Étape 3 : Marché & Concurrence
   tam_usd: z.enum(['<1M', '1M-10M', '10M-100M', '100M-1B', '>1B']),
   estimation_tam: z.string().trim().min(5).max(500),
-  acquisition_clients: z.string().trim().min(20).max(2000),
-  concurrents: z.string().trim().min(20).max(2000),
+  acquisition_clients: z.string().trim().min(10).max(2000),
+  concurrents: z.string().trim().min(10).max(2000),
 
   // Étape 4 : Traction
   stade: z.enum(['idea', 'mvp', 'seed', 'serieA', 'serieB_plus']),
@@ -38,7 +38,7 @@ const ScoreSubmissionSchema = z.object({
   clients_payants: z.number().int().nonnegative().max(1_000_000).optional(),
 
   // Étape 5 : Équipe
-  pourquoi_vous: z.string().trim().min(20).max(2000),
+  pourquoi_vous: z.string().trim().min(10).max(2000),
   equipe_temps_plein: z.enum(['oui', 'non']),
 
   // Étape 6 : Vision & Levée
@@ -46,9 +46,9 @@ const ScoreSubmissionSchema = z.object({
     'produit', 'croissance', 'recrutement', 'levee', 'rentabilite', 'international', 'other'
   ]),
   montant_leve: z.string().trim().min(1).max(100),
-  jalons_18_mois: z.string().trim().min(20).max(2000),
-  utilisation_fonds: z.string().trim().min(20).max(2000),
-  vision_5_ans: z.string().trim().min(20).max(2000),
+  jalons_18_mois: z.string().trim().min(10).max(2000),
+  utilisation_fonds: z.string().trim().min(10).max(2000),
+  vision_5_ans: z.string().trim().min(10).max(2000),
 
   // Étape 7 : Documents (URLs après upload)
   pitch_deck_url: z.string().url().max(500).optional(),

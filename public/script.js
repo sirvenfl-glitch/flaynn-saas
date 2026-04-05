@@ -219,24 +219,77 @@ class ScoringFormController {
     this.stepLabel = document.getElementById('step-current');
     this.#bind();
     this.#initChips();
+    this.#restoreDraft();
     this.#updateProgress();
     this.#updateStepButtons();
   }
 
+  // ── Sauvegarde brouillon localStorage ──
+  #saveDraft() {
+    const data = {};
+    const formData = new FormData(this.form);
+    for (const [k, v] of formData.entries()) {
+      if (typeof v === 'string' && v.trim()) data[k] = v.trim();
+    }
+    data._step = this.currentStep;
+    try { localStorage.setItem('flaynn_draft', JSON.stringify(data)); } catch {}
+  }
+
+  #restoreDraft() {
+    try {
+      const raw = localStorage.getItem('flaynn_draft');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      for (const [k, v] of Object.entries(data)) {
+        if (k === '_step') continue;
+        const input = this.form.querySelector(`[name="${k}"]`);
+        if (!input) continue;
+        if (input.type === 'hidden') {
+          input.value = v;
+          // Activer le chip correspondant
+          const group = input.closest('.field')?.querySelector('.field__chips');
+          if (group) {
+            group.querySelectorAll('.chip').forEach(c => {
+              c.setAttribute('aria-checked', c.dataset.value === v ? 'true' : 'false');
+            });
+          }
+        } else if (input.tagName === 'SELECT') {
+          input.value = v;
+        } else {
+          input.value = v;
+        }
+      }
+      // Restaurer l'étape
+      const step = Number(data._step);
+      if (step > 0 && step <= this.totalSteps) {
+        this.#swapStepDom(step,
+          this.form.querySelector('.form-step.is-active'),
+          this.form.querySelector(`.form-step[data-step="${step}"]`)
+        );
+      }
+      // Toggle revenus si nécessaire
+      const rev = this.form.querySelector('#revenus');
+      const details = this.form.querySelector('#revenus-details');
+      if (rev && details) details.hidden = rev.value !== 'oui';
+    } catch {}
+  }
+
+  #clearDraft() {
+    try { localStorage.removeItem('flaynn_draft'); } catch {}
+  }
+
   #bind() {
     this.form.querySelectorAll('.field__input').forEach((input) => {
-      input.addEventListener('input', () => this.#validateField(input, false));
+      input.addEventListener('input', () => { this.#validateField(input, false); this.#saveDraft(); });
       input.addEventListener('blur', () => this.#validateField(input, true));
     });
 
-    // Tous les hidden inputs (chips) déclenchent la validation au changement
     this.form.querySelectorAll('input[type="hidden"]').forEach((h) => {
-      h.addEventListener('input', () => this.#validateField(h, false));
+      h.addEventListener('input', () => { this.#validateField(h, false); this.#saveDraft(); });
     });
 
-    // Tous les selects déclenchent la validation au changement
     this.form.querySelectorAll('select').forEach((s) => {
-      s.addEventListener('change', () => this.#validateField(s, false));
+      s.addEventListener('change', () => { this.#validateField(s, false); this.#saveDraft(); });
     });
 
     // Toggle revenus oui/non → affiche/masque MRR + clients payants
@@ -459,12 +512,20 @@ class ScoringFormController {
     if (this.stepLabel) {
       this.stepLabel.textContent = String(this.currentStep);
     }
-    const dots = this.form.closest('.scoring-form-wrap')
-      ?.querySelectorAll('.progress-dot');
-    if (dots) {
-      dots.forEach((dot, i) => {
-        dot.classList.toggle('progress-dot--active', i < this.currentStep);
+    const dots = this.form.closest('.scoring-form-wrap')?.querySelectorAll('.progress-dot');
+    if (dots) dots.forEach((dot, i) => dot.classList.toggle('progress-dot--active', i < this.currentStep));
+
+    // Labels de progression
+    const labels = this.form.closest('.scoring-form-wrap')?.querySelectorAll('.progress-label');
+    if (labels) {
+      labels.forEach((label) => {
+        const s = Number(label.dataset.step);
+        label.classList.toggle('progress-label--active', s === this.currentStep);
+        label.classList.toggle('progress-label--done', s < this.currentStep);
       });
+      // Scroll le label actif en vue
+      const active = this.form.closest('.scoring-form-wrap')?.querySelector('.progress-label--active');
+      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
   }
 
@@ -569,6 +630,7 @@ class ScoringFormController {
         this.successEl.hidden = false;
         this.successEl.classList.remove('is-hidden');
         this.successEl.focus();
+        this.#clearDraft();
       }
     } catch (err) {
       showToast(this.toastRoot, err.message || 'Erreur réseau.', 'error');

@@ -1881,6 +1881,37 @@
     box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
   }
 
+  .form-progress__steps-labels {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .form-progress__steps-labels::-webkit-scrollbar { display: none; }
+
+  .progress-label {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    padding: 3px 6px;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+    transition: color 0.2s ease, background 0.2s ease;
+    cursor: default;
+  }
+
+  .progress-label--active {
+    color: var(--accent-violet);
+    background: rgba(139, 92, 246, 0.1);
+  }
+
+  .progress-label--done {
+    color: var(--text-secondary);
+  }
+
   .form-progress__track {
     height: 6px;
     background: rgba(255,255,255,0.06);
@@ -3058,6 +3089,58 @@
 /* ─────────────────────────────────────────
    REDUCED MOTION
 ───────────────────────────────────────── */
+/* ── PWA install banner ── */
+.pwa-install-banner {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevated);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s var(--ease-out-expo);
+}
+
+.pwa-install-banner.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.pwa-install-banner__text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pwa-install-banner__btn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--gradient-hero);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pwa-install-banner__close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: var(--space-1);
+  line-height: 1;
+}
+
 /* ARCHITECT-PRIME v3: reduced-motion spécifique (le master reset
    est dans @layer reset L.112-118 avec !important) */
 @media (prefers-reduced-motion: reduce) {

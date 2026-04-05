@@ -17,7 +17,7 @@
     <meta property="og:url" content="https://flaynn.tech/">
     <meta property="og:title" content="Flaynn · Scoring startup &amp; mise en relation investisseur">
     <meta property="og:description" content="Votre dossier passé au crible par un comité d'analyse propriétaire. Score sur 5 piliers, benchmark marché et verdict en 24h.">
-    <meta property="og:image" content="https://flaynn.tech/favicon.svg">
+    <meta property="og:image" content="https://flaynn-saas.onrender.com/icons/logo.png">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Flaynn · Scoring startup &amp; mise en relation investisseur">
@@ -58,7 +58,7 @@
     <header class="nav-glass" role="banner">
         <div class="container nav-content">
             <a href="/" class="logo-container" aria-label="Flaynn — Accueil">
-                <img src="/icons/logo.png" alt="" width="95" height="95" class="logo-img" aria-hidden="true">
+                <img src="/icons/logo.png" alt="" width="95" height="114" class="logo-img" aria-hidden="true">
             </a>
             <nav role="navigation" aria-label="Menu principal" class="nav-links-desktop">
                 <a href="#process" class="nav-link">Comment ça marche</a>
@@ -415,12 +415,16 @@
                         <div class="form-progress" role="status" aria-live="polite" aria-atomic="true">
                             <div class="form-progress__header">
                                 <span class="form-progress__label">Étape <span id="step-current">0</span> sur 8</span>
-                                <div class="form-progress__steps-dots" aria-hidden="true">
-                                    <span class="progress-dot progress-dot--active"></span>
-                                    <span class="progress-dot"></span><span class="progress-dot"></span>
-                                    <span class="progress-dot"></span><span class="progress-dot"></span>
-                                    <span class="progress-dot"></span><span class="progress-dot"></span>
-                                    <span class="progress-dot"></span><span class="progress-dot"></span>
+                                <div class="form-progress__steps-labels" aria-hidden="true">
+                                    <span class="progress-label progress-label--active" data-step="0">Ref</span>
+                                    <span class="progress-label" data-step="1">ID</span>
+                                    <span class="progress-label" data-step="2">Problème</span>
+                                    <span class="progress-label" data-step="3">Marché</span>
+                                    <span class="progress-label" data-step="4">Traction</span>
+                                    <span class="progress-label" data-step="5">Équipe</span>
+                                    <span class="progress-label" data-step="6">Vision</span>
+                                    <span class="progress-label" data-step="7">Docs</span>
+                                    <span class="progress-label" data-step="8">Recap</span>
                                 </div>
                             </div>
                             <div class="form-progress__track" aria-hidden="true">
@@ -483,12 +487,12 @@
                                 <input type="text" id="pitch_une_phrase" name="pitch_une_phrase" class="field__input" required placeholder="Nous aidons les X à faire Y grâce à Z.">
                                 <span class="field__error" role="alert"></span>
                             </div>
-                            <div class="field" data-validate="required|min:30|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="probleme" class="field__label">Le problème <span class="field__label-hint">(point de douleur)</span></label>
                                 <textarea id="probleme" name="probleme" class="field__input field__input--textarea" rows="4" required placeholder="Quel problème résolvez-vous ? Pour qui ?"></textarea>
                                 <span class="field__error" role="alert"></span>
                             </div>
-                            <div class="field" data-validate="required|min:30|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="solution" class="field__label">Comment résolvez-vous ce problème ?</label>
                                 <textarea id="solution" name="solution" class="field__input field__input--textarea" rows="4" required placeholder="Votre approche, votre technologie, votre différence."></textarea>
                                 <span class="field__error" role="alert"></span>
@@ -557,12 +561,12 @@
                                 <input type="text" id="estimation_tam" name="estimation_tam" class="field__input" required placeholder="Sources, méthodologie...">
                                 <span class="field__error" role="alert"></span>
                             </div>
-                            <div class="field" data-validate="required|min:20|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="acquisition_clients" class="field__label">Comment acquérez-vous vos clients ?</label>
                                 <textarea id="acquisition_clients" name="acquisition_clients" class="field__input field__input--textarea" rows="3" required placeholder="Canaux d'acquisition, stratégie go-to-market..."></textarea>
                                 <span class="field__error" role="alert"></span>
                             </div>
-                            <div class="field" data-validate="required|min:20|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="concurrents" class="field__label">Concurrents et pourquoi vous gagnez</label>
                                 <textarea id="concurrents" name="concurrents" class="field__input field__input--textarea" rows="3" required placeholder="Qui sont vos concurrents ? Quel est votre avantage ?"></textarea>
                                 <span class="field__error" role="alert"></span>
@@ -620,7 +624,7 @@
                         <!-- ÉTAPE 5 : Équipe -->
                         <fieldset class="form-step is-hidden" data-step="5" id="form-step-5" hidden>
                             <legend class="fieldset-legend">Équipe</legend>
-                            <div class="field" data-validate="required|min:20|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="pourquoi_vous" class="field__label">Pourquoi vous ? <span class="field__label-hint">(fondateurs + avantage)</span></label>
                                 <textarea id="pourquoi_vous" name="pourquoi_vous" class="field__input field__input--textarea" rows="4" required placeholder="Parcours des fondateurs, expertise unique, avantage compétitif de l'équipe..."></textarea>
                                 <span class="field__error" role="alert"></span>
@@ -664,17 +668,17 @@
                                 <input type="text" id="montant_leve" name="montant_leve" class="field__input" required placeholder="ex. 500K€, 2M€...">
                                 <span class="field__error" role="alert"></span>
                             </div>
-                            <div class="field" data-validate="required|min:20|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="jalons_18_mois" class="field__label">Jalons des 18 prochains mois</label>
                                 <textarea id="jalons_18_mois" name="jalons_18_mois" class="field__input field__input--textarea" rows="3" required placeholder="Objectifs clés à atteindre..."></textarea>
                                 <span class="field__error" role="alert"></span>
                             </div>
-                            <div class="field" data-validate="required|min:20|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="utilisation_fonds" class="field__label">Utilisation des fonds</label>
                                 <textarea id="utilisation_fonds" name="utilisation_fonds" class="field__input field__input--textarea" rows="3" required placeholder="Répartition prévue des fonds levés..."></textarea>
                                 <span class="field__error" role="alert"></span>
                             </div>
-                            <div class="field" data-validate="required|min:20|max:2000">
+                            <div class="field" data-validate="required|min:10|max:2000">
                                 <label for="vision_5_ans" class="field__label">Vision à 5 ans</label>
                                 <textarea id="vision_5_ans" name="vision_5_ans" class="field__input field__input--textarea" rows="3" required placeholder="Où voyez-vous votre startup dans 5 ans ?"></textarea>
                                 <span class="field__error" role="alert"></span>
@@ -897,7 +901,7 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a href="/" class="logo-container footer-logo" aria-label="Flaynn — Accueil">
-                        <img src="/icons/logo.png" alt="" width="82" height="82" class="logo-img" aria-hidden="true">
+                        <img src="/icons/logo.png" alt="" width="82" height="98" class="logo-img" aria-hidden="true">
                             </a>
                     <p class="footer-tagline">Stop Pitching. Start Proving.</p>
                 </div>
