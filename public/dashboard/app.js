@@ -607,6 +607,21 @@ function buildRoutes(data) {
         recoCard.appendChild(buildRecommendations(data.recommendations));
         section.appendChild(recoCard);
 
+        /* Bouton téléchargement PDF */
+        if (data.has_pdf) {
+          const pdfRow = el('div', 'dashboard-pdf-row');
+          const pdfBtn = el('a', 'btn-primary btn-large');
+          pdfBtn.href = `/api/dashboard/${encodeURIComponent(data.id)}/pdf`;
+          pdfBtn.setAttribute('download', '');
+          pdfBtn.textContent = 'Télécharger mon rapport PDF';
+          pdfBtn.style.display = 'inline-flex';
+          pdfBtn.style.gap = '10px';
+          pdfBtn.style.alignItems = 'center';
+          pdfBtn.style.marginTop = 'var(--space-6)';
+          pdfRow.appendChild(pdfBtn);
+          section.appendChild(pdfRow);
+        }
+
         root.appendChild(section);
 
         /* D3 renders */
