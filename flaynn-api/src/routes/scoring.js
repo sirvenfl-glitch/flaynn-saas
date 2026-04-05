@@ -89,9 +89,11 @@ export default async function scoringRoutes(fastify) {
       const reference = `FLY-${randomBytes(4).toString('hex').toUpperCase()}`;
       const initialData = { status: 'pending_analysis', payload: parsed };
 
+      // ARCHITECT-PRIME: user_email = null si le fondateur n'est pas inscrit
+      // (la contrainte FK REFERENCES users(email) interdit un email inexistant)
       await pool.query(
         'INSERT INTO scores (reference_id, user_email, startup_name, data) VALUES ($1, $2, $3, $4::jsonb)',
-        [reference, userEmail || parsed.email, parsed.nom_startup, JSON.stringify(initialData)]
+        [reference, userEmail, parsed.nom_startup, JSON.stringify(initialData)]
       );
 
       // n8n orchestre tout — fire-and-forget
@@ -107,9 +109,10 @@ export default async function scoringRoutes(fastify) {
       return reply.code(200).send({ success: true, reference });
     } catch (err) {
       if (err instanceof z.ZodError) {
+        request.log.warn({ zodErrors: err.flatten().fieldErrors }, 'Validation Zod échouée sur /api/score');
         return reply.code(422).send({ error: 'VALIDATION_FAILED', details: err.flatten().fieldErrors });
       }
-      request.log.error(err);
+      request.log.error({ err, body: request.body }, 'Erreur lors du scoring');
       return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur interne lors du scoring.' });
     }
   });
