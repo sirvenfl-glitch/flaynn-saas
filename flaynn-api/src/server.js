@@ -200,13 +200,19 @@ export const start = async () => {
       index: ['index.html']
     });
 
-    // Gestion du Dashboard SPA
+    // Gestion du Dashboard SPA + pages statiques
     fastify.get('/dashboard', async (_request, reply) => reply.code(302).redirect('/dashboard/'));
     fastify.get('/auth', async (_request, reply) => reply.code(302).redirect('/auth/'));
+    fastify.get('/scoring/succes', async (request, reply) => {
+      // ARCHITECT-PRIME: préserve les query params (?session_id=...) lors de la redirection
+      const qs = request.url.includes('?') ? request.url.slice(request.url.indexOf('?')) : '';
+      return reply.code(302).redirect(`/scoring/succes/${qs}`);
+    });
 
     // ARCHITECT-PRIME: cache les HTML SPA en mémoire au boot (pas de readFile à chaque requête)
     const dashboardHtml = await readFile(join(siteRoot, 'dashboard/index.html'), 'utf-8');
     const authHtml = await readFile(join(siteRoot, 'auth/index.html'), 'utf-8');
+    const scoringSuccesHtml = await readFile(join(siteRoot, 'scoring/succes/index.html'), 'utf-8');
 
     fastify.setNotFoundHandler(async (request, reply) => {
       if (request.method !== 'GET') return reply.code(404).send({ error: 'Not Found' });
@@ -221,6 +227,11 @@ export const start = async () => {
         const rest = url === '/auth' ? '' : url.slice('/auth/'.length);
         if (rest && rest.includes('.')) return reply.code(404).send('Not Found');
         return reply.type('text/html').send(authHtml);
+      }
+      if (url === '/scoring/succes' || url.startsWith('/scoring/succes/')) {
+        const rest = url === '/scoring/succes' ? '' : url.slice('/scoring/succes/'.length);
+        if (rest && rest.includes('.')) return reply.code(404).send('Not Found');
+        return reply.type('text/html').send(scoringSuccesHtml);
       }
       return reply.code(404).send({ error: 'Not Found' });
     });

@@ -32,9 +32,15 @@ export default async function webhookRoutes(fastify) {
 
     const parsed = WebhookPayloadSchema.parse(request.body);
 
+    // ARCHITECT-PRIME: force un statut "completed" si n8n n'en fournit pas
+    const scoringData = { ...parsed.data, status: parsed.data.status || 'completed' };
+
+    // ARCHITECT-PRIME: || fusionne le JSONB au lieu d'écraser — préserve payload (réconciliation auth)
+    // et pitch_deck_base64 (endpoint /api/decks/:ref) tout en ajoutant les résultats du scoring
     await pool.query(
-      'INSERT INTO scores (reference_id, data) VALUES ($1, $2) ON CONFLICT (reference_id) DO UPDATE SET data = $2',
-      [parsed.reference, JSON.stringify(parsed.data)]
+      `INSERT INTO scores (reference_id, data) VALUES ($1, $2::jsonb)
+       ON CONFLICT (reference_id) DO UPDATE SET data = scores.data || $2::jsonb`,
+      [parsed.reference, JSON.stringify(scoringData)]
     );
 
     return reply.code(200).send({ success: true, message: 'Score mis a jour avec succes.' });
