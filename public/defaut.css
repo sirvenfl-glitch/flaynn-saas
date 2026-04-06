@@ -1007,6 +1007,7 @@
     text-decoration: none;
     min-height: 44px;
     min-width: 44px;
+    flex: 1;
     padding: var(--space-1) var(--space-2);
     margin: calc(var(--space-1) * -1) calc(var(--space-2) * -1);
     border-radius: var(--radius-sm);
@@ -1019,7 +1020,7 @@
   /* ARCHITECT-PRIME: contraint le logo PNG dans la nav — l'attribut HTML width/height
      sert de ratio hint, le CSS pilote la taille réelle */
   .logo-img {
-    width: 38px;
+    width: 52px;
     height: auto;
     object-fit: contain;
     display: block;
@@ -1065,8 +1066,9 @@
   .nav-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--space-2);
-    flex-shrink: 0;
+    flex: 1;
   }
 
   /* Ghost button */
@@ -2868,7 +2870,7 @@
     transition: all 0.3s var(--ease-out-expo);
   }
   .nav-glass.is-scrolled .logo-img {
-    width: 28px;
+    width: 36px;
   }
   .nav-glass.is-scrolled .logo-text {
     font-size: 0.95rem;
