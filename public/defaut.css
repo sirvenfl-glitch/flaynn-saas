@@ -210,7 +210,7 @@
   .text-display {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(2.25rem, 5vw + 1rem, 4.5rem);
+    font-size: clamp(1.75rem, 3.5vw + 0.75rem, 4.5rem);
     line-height: 1.05;
     letter-spacing: -0.03em;
   }
@@ -350,7 +350,11 @@
   }
 
   @media (max-width: 639px) {
-    .hero-badge { display: none; }
+    .hero-badge {
+      font-size: 0.6875rem;
+      padding: 0.25rem 0.625rem;
+      max-width: 100%;
+    }
     .hero-scroll-indicator { display: none; }
   }
 
@@ -2748,6 +2752,15 @@
     transition: transform 0.1s ease;
   }
 
+  /* ARCHITECT-PRIME: nav CTA compact between 768-899px to avoid cramping logo */
+  @media (min-width: 768px) and (max-width: 899px) {
+    .nav-cta {
+      padding: var(--space-2) var(--space-3);
+      font-size: 0.8125rem;
+    }
+    .nav-actions { gap: var(--space-2); }
+  }
+
   @media (max-width: 767px) {
     .landing-bnav { display: block; }
 
@@ -2904,8 +2917,21 @@
     padding-top: calc(9rem + env(safe-area-inset-top));
   }
 
-  /* Container : padding mobile confortable */
-  .container { padding: 0 var(--space-4); }
+  /* ARCHITECT-PRIME: hero actions wrap + CTA sizing on mobile */
+  .hero-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .hero-actions .btn-large {
+    padding: var(--space-3) var(--space-5);
+    font-size: 0.9375rem;
+    min-height: 48px;
+    white-space: nowrap;
+  }
+
+  /* Container : padding mobile confortable — min 24px (--space-5 = 1.5rem) */
+  .container { padding: 0 var(--space-5); }
 
   /* Process : grille verticale (comme desktop mais 1 col) — PAS de carousel */
   .process-grid {
@@ -3021,7 +3047,7 @@
 
 /* Petit mobile (< 400px) — compacter sans casser le layout */
 @media (max-width: 399px) {
-  .container { padding: 0 var(--space-3); }
+  .container { padding: 0 var(--space-4); }
   .section { padding: var(--space-8) 0; }
 
   /* Pillars : 1 colonne sur très petit écran */
