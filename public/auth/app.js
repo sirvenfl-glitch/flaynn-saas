@@ -72,6 +72,51 @@ document.addEventListener('DOMContentLoaded', () => {
     window.history.replaceState(null, '', '/auth/');
   }
 
+  // ── Scoring post-paiement : email + ref pré-remplis ──
+  const scoringEmail = params.get('email');
+  const scoringRef   = params.get('ref');
+  if (scoringEmail || scoringRef) {
+    // Forcer l'onglet inscription
+    const regTab = document.querySelector('.auth-tab[data-tab="register"]');
+    if (regTab) regTab.click();
+
+    // Pré-remplir l'email
+    if (scoringEmail) {
+      const emailInput = document.getElementById('email') || form.querySelector('input[type="email"]');
+      if (emailInput) emailInput.value = decodeURIComponent(scoringEmail);
+    }
+
+    // Bannière contextuelle au-dessus du formulaire
+    const banner = document.createElement('div');
+    Object.assign(banner.style, {
+      background: 'rgba(123,45,142,0.10)',
+      border: '1px solid rgba(123,45,142,0.25)',
+      borderRadius: '10px',
+      padding: '14px 18px',
+      marginBottom: '20px',
+      fontSize: '13px',
+      lineHeight: '1.6',
+      color: '#F0F0F3',
+    });
+
+    const icon = document.createElement('span');
+    icon.textContent = '✦ ';
+    icon.style.color = '#7B2D8E';
+
+    const text = document.createTextNode(
+      scoringRef
+        ? `Votre scoring Flaynn est prêt (réf. ${decodeURIComponent(scoringRef)}). Créez votre compte pour y accéder.`
+        : 'Créez votre compte pour accéder à votre scoring Flaynn.'
+    );
+
+    banner.appendChild(icon);
+    banner.appendChild(text);
+
+    // Insérer avant le formulaire
+    const authCard = document.querySelector('.auth-card, .card-glass, form');
+    if (authCard) authCard.prepend(banner);
+  }
+
   // ── Tab switching ──
   document.querySelectorAll('.auth-tab').forEach(tab => {
     tab.addEventListener('click', (e) => {
