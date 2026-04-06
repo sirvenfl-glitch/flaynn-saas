@@ -144,6 +144,17 @@ export default async function authRoutes(fastify) {
         [parsed.name, parsed.email, passwordHash]
       );
       const user = insert.rows[0];
+
+      // 👇 AJOUT DE LA RÉCONCILIATION DE COMPTE ICI 👇
+      // Rattache les scorings soumis avant la création du compte (user_email = NULL, email dans le payload)
+      await pool.query(
+        `UPDATE scores SET user_email = $1
+         WHERE user_email IS NULL
+         AND data->'payload'->>'email' = $1`,
+        [user.email]
+      ).catch(err => request.log.warn(err, 'Rattachement scores orphelins échoué (non bloquant)'));
+      // 👆 FIN DE L'AJOUT 👆
+
       const tokens = await fastify.createSessionTokens(user);
       reply.setAuthCookies(tokens);
 
