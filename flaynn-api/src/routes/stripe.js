@@ -112,7 +112,7 @@ export default async function stripeRoutes(fastify) {
           },
         ],
         mode: 'payment',
-        success_url: `${baseUrl}/scoring/succes?ref=${reference}&email=${encodeURIComponent(parsed.email)}`, // Redirection après succès
+        success_url: `${baseUrl}/scoring/succes?session_id={CHECKOUT_SESSION_ID}`, // Redirection après succès
         cancel_url: `${baseUrl}/#scoring-form`, // Redirection si annulation
         customer_email: parsed.email,
         metadata: {
@@ -133,7 +133,15 @@ export default async function stripeRoutes(fastify) {
   });
 
 
-  // 2. ENDPOINT WEBHOOK : Écoute Stripe en arrière-plan pour valider le paiement
+  // 2. ENDPOINT SESSION : Récupère référence et email depuis une session Stripe
+  fastify.get('/api/checkout/session/:sessionId', async (request, reply) => {
+    const session = await stripe.checkout.sessions.retrieve(request.params.sessionId);
+    const reference = session.metadata?.reference || '';
+    const email = session.customer_email || '';
+    return reply.send({ reference, email });
+  });
+
+  // 3. ENDPOINT WEBHOOK : Écoute Stripe en arrière-plan pour valider le paiement
   fastify.post('/api/webhooks/stripe', {
     config: { rateLimit: { max: 100, timeWindow: '1 minute' } }
   }, async (request, reply) => {

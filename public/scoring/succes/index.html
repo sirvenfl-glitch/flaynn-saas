@@ -28,19 +28,21 @@
     </main>
     <script>
         const params = new URLSearchParams(window.location.search);
-        const ref = params.get('ref') || localStorage.getItem('flaynn_pending_ref') || '';
-        const email = params.get('email') || localStorage.getItem('flaynn_pending_email') || '';
-        if (ref) localStorage.removeItem('flaynn_pending_ref');
-        if (email) localStorage.removeItem('flaynn_pending_email');
+        const sessionId = params.get('session_id');
 
-        document.getElementById('ref-display').textContent = ref ? ref : 'Non spécifiée';
-
-        const emailEl = document.getElementById('email-display');
-        if (emailEl && email) emailEl.textContent = decodeURIComponent(email);
-
-        const ctaBtn = document.querySelector('.btn-primary');
-        if (ctaBtn && ref) {
-            ctaBtn.href = `/auth/?email=${encodeURIComponent(email)}&ref=${encodeURIComponent(ref)}`;
+        if (sessionId) {
+            fetch(`/api/checkout/session/${sessionId}`)
+                .then(r => r.json())
+                .then(data => {
+                    const ref = data.reference || '';
+                    const email = data.email || '';
+                    document.querySelectorAll('#ref-display, #ref-inline').forEach(el => el.textContent = ref);
+                    document.title = `${ref} — Scoring confirmé · Flaynn`;
+                    const emailEl = document.getElementById('email-display');
+                    if (emailEl && email) emailEl.textContent = email;
+                    const ctaBtn = document.querySelector('.btn-primary');
+                    if (ctaBtn && ref) ctaBtn.href = `/auth/?email=${encodeURIComponent(email)}&ref=${encodeURIComponent(ref)}`;
+                });
         }
     </script>
 </body>
