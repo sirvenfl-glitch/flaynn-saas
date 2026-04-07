@@ -725,7 +725,32 @@ document.getElementById('footer-year').textContent = String(new Date().getFullYe
   }
 })();
 
-/* ARCHITECT-PRIME: warpNavigate removed — global transition handled by js/transition.js */
+/* ── Warp navigation : intercepte les liens vers /dashboard/ ───────────── */
+function warpNavigate(targetUrl, e) {
+  e.preventDefault();
+
+  const overlay = document.getElementById('page-transition-overlay');
+  if (overlay) {
+    overlay.style.clipPath = 'circle(120% at 50% 50%)';
+    overlay.classList.add('is-active');
+  }
+
+  const bg = /** @type {any} */ (window).globalBg;
+  if (bg && typeof bg.triggerWarpTransition === 'function') {
+    bg.triggerWarpTransition(targetUrl);
+  } else {
+    window.setTimeout(() => { window.location.href = targetUrl; }, 300);
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[href]');
+  if (!link) return;
+  const href = link.getAttribute('href');
+  if (href && (href.startsWith('/dashboard') || href === '/dashboard/')) {
+    warpNavigate(href, e);
+  }
+});
 
 document.getElementById('btn-header-cta')?.addEventListener('click', () => scrollToId('scoring-form'));
 document.getElementById('btn-hero-cta')?.addEventListener('click', () => scrollToId('scoring-form'));

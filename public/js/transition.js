@@ -156,8 +156,10 @@ document.addEventListener('click', (e) => {
   const link = e.target.closest('a[href]');
   if (!isInternalLink(link)) return;
 
-  // Ne pas intercepter les liens geres par le SPA dashboard router
+  // Ne pas intercepter les liens /dashboard/ (geres par warpNavigate dans script.js)
+  // ni les liens SPA dashboard router
   const href = link.getAttribute('href');
+  if (href && href.startsWith('/dashboard')) return;
   if (link.hasAttribute('data-route')) return;
 
   e.preventDefault();
