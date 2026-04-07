@@ -20,6 +20,7 @@ import webhookRoutes from './routes/webhooks.js';
 // 👇 AJOUT STRIPE ÉTAPE 3 👇
 import stripeRoutes from './routes/stripe.js';
 // 👆 FIN AJOUT 👆
+import decksRoutes from './routes/decks.js';
 import { initDB, pool } from './config/db.js';
 import authPlugin from './plugins/auth.js';
 import deviceDetect from './plugins/device-detect.js';
@@ -192,6 +193,7 @@ export const start = async () => {
     // 👇 AJOUT STRIPE ÉTAPE 3 👇
     await fastify.register(stripeRoutes);
     // 👆 FIN AJOUT 👆
+    await fastify.register(decksRoutes);
 
     fastify.log.info(`[ARCHITECT-PRIME] Montage du dossier statique : ${siteRoot}`);
     await fastify.register(fastifyStatic, {
