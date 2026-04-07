@@ -428,17 +428,20 @@
     height: 100%;
     display: block;
     pointer-events: none;
-    opacity: 0.88;
+    /* ARCHITECT-PRIME: opacity relevee pour que les nebulas et etoiles
+       soient clairement visibles tout en laissant le void #030407 transparaitre */
+    opacity: 0.92;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .ambient-bg .three-canvas { display: none; }
   }
 
+  /* ARCHITECT-PRIME: quand le canvas est actif, le gradient CSS de fond
+     devient minimal — le canvas fournit toute la profondeur nebulaire */
   html.has-three-bg .ambient-bg {
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.06), transparent 55%),
-      radial-gradient(circle at top center, var(--surface-base), var(--surface-void));
+    background: var(--surface-void);
+    animation: none;
   }
 
   /* Container */

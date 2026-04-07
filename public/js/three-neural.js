@@ -1,13 +1,13 @@
 /**
  * Flaynn Starfield — Canvas 2D cinematic background
  *
- * Replaces the Three.js FBM aurora shader with a multi-layer starfield
- * + organic nebula glows. Pure Canvas 2D — no external dependency.
+ * Multi-layer starfield + organic nebula glows. Pure Canvas 2D.
  *
- * - 3 depth layers (far / mid / near) with seeded star placement
- * - Z-parallax on scroll via GSAP ScrollTrigger (fallback: passive scroll)
- * - Organic nebula glows with breathing animation + inverse mouse tracking
- * - Warp transition (hyperspace streaks) for navigation — same API
+ * - 4 depth layers (dust / far / mid / near) with seeded star placement
+ * - Visceral Z-parallax on scroll: near stars zoom 6x faster than dust
+ * - Organic nebula glows with slow breathing + inverse mouse tracking
+ * - Scroll-velocity warp with inertia (friction asymmetrique)
+ * - Warp transition (hyperspace streaks) for navigation
  *
  * Exported class: FlaynnNeuralBackground (same name for drop-in compat)
  * Used by: script.js → bootDeferred() → window.globalBg
@@ -25,16 +25,21 @@ function mulberry32(seed) {
 }
 
 /* ── Star layer definitions ─────────────────────────────────────────────── */
+/* ARCHITECT-PRIME: 4 couches avec ecart de speedZ massivement amplifie
+   pour une sensation de voyage en profondeur (ratio near/dust = 12x) */
 const LAYER_DEFS = [
-  // Layer 0 — Far (background dust)
-  { count: 140, rMin: 0.3, rMax: 0.7, aMin: 0.10, aMax: 0.28,
-    twinkleMin: 0.2, twinkleMax: 0.7, speedZ: 0.12, mousePx: 0.006, halos: 0 },
-  // Layer 1 — Mid
-  { count: 80,  rMin: 0.6, rMax: 1.2, aMin: 0.18, aMax: 0.40,
-    twinkleMin: 0.3, twinkleMax: 1.0, speedZ: 0.30, mousePx: 0.018, halos: 0 },
-  // Layer 2 — Near (foreground, includes 5 halo stars)
-  { count: 30,  rMin: 1.0, rMax: 2.2, aMin: 0.40, aMax: 0.75,
-    twinkleMin: 0.5, twinkleMax: 1.5, speedZ: 0.55, mousePx: 0.035, halos: 5 },
+  // Layer 0 — Cosmic dust (barely moves, creates depth anchor)
+  { count: 200, rMin: 0.2, rMax: 0.5, aMin: 0.06, aMax: 0.18,
+    twinkleMin: 0.15, twinkleMax: 0.5, speedZ: 0.08, mousePx: 0.003, halos: 0 },
+  // Layer 1 — Far stars
+  { count: 160, rMin: 0.4, rMax: 0.9, aMin: 0.12, aMax: 0.32,
+    twinkleMin: 0.25, twinkleMax: 0.8, speedZ: 0.25, mousePx: 0.010, halos: 0 },
+  // Layer 2 — Mid stars
+  { count: 90,  rMin: 0.7, rMax: 1.5, aMin: 0.22, aMax: 0.52,
+    twinkleMin: 0.4, twinkleMax: 1.2, speedZ: 0.65, mousePx: 0.028, halos: 3 },
+  // Layer 3 — Near stars (foreground — zoom hard on scroll)
+  { count: 35,  rMin: 1.2, rMax: 2.8, aMin: 0.45, aMax: 0.85,
+    twinkleMin: 0.6, twinkleMax: 1.8, speedZ: 1.0, mousePx: 0.050, halos: 6 },
 ];
 
 function generateLayers(seed) {
@@ -50,6 +55,8 @@ function generateLayers(seed) {
         tw: def.twinkleMin + rand() * (def.twinkleMax - def.twinkleMin),
         tp: rand() * Math.PI * 2,
         halo: i < def.halos,
+        // ARCHITECT-PRIME: couleur teintee pour les etoiles de fond (bleu/violet subtle)
+        tint: i < def.halos ? (rand() > 0.5 ? 1 : 2) : 0, // 0=white, 1=violet-tint, 2=warm-tint
       });
     }
     return { stars, speedZ: def.speedZ, mousePx: def.mousePx };
@@ -84,12 +91,12 @@ export class FlaynnNeuralBackground {
     this.scrollProgress = 0;
     this._gsapConnected = false;
 
-    // ARCHITECT-PRIME: Scroll velocity + inertie pour warp luxueux
+    // Scroll velocity + inertie
     this.scrollVelocity = 0;
     this._lastScrollY = 0;
-    this._scrollWarp = 0; // 0..1, driven by velocity with friction
+    this._scrollWarp = 0;
 
-    // Mouse (lerped)
+    // Mouse (lerped — heavy inertia for cinematic feel)
     this.mx = 0;
     this.my = 0;
     this._mtx = 0;
@@ -110,14 +117,11 @@ export class FlaynnNeuralBackground {
     };
     this._onScroll = () => {
       const top = window.scrollY;
-
-      // ARCHITECT-PRIME: Mesure la velocite de scroll pour l'effet warp inertiel
       const delta = Math.abs(top - this._lastScrollY);
       this._lastScrollY = top;
-      // Accumule la velocite (clamped) — sera lissee dans _frame via friction
-      this.scrollVelocity = Math.min(delta / 12, 1);
+      this.scrollVelocity = Math.min(delta / 10, 1);
 
-      if (this._gsapConnected) return; // GSAP drives scrollProgress
+      if (this._gsapConnected) return;
       const max = document.documentElement.scrollHeight - window.innerHeight;
       this.scrollProgress = max > 0 ? Math.min(top / max, 1) : 0;
     };
@@ -180,14 +184,13 @@ export class FlaynnNeuralBackground {
           trigger: document.documentElement,
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 1.5,
+          scrub: 1.2,
         },
       });
       this._gsapConnected = true;
       return true;
     };
     if (connect()) return;
-    // Poll until GSAP loads (max 8s)
     let tries = 0;
     const id = setInterval(() => {
       if (connect() || ++tries > 16) clearInterval(id);
@@ -202,30 +205,28 @@ export class FlaynnNeuralBackground {
 
     ctx.clearRect(0, 0, w, h);
 
-    // Lerp mouse
-    const lr = Math.min(dt * 2.5, 1) || 0.04;
+    // ARCHITECT-PRIME: Mouse lerp — slow (1.5/s) pour inertie cinematique lourde
+    const lr = Math.min(dt * 1.5, 1) || 0.03;
     this.mx += (this._mtx - this.mx) * lr;
     this.my += (this._mty - this.my) * lr;
 
-    // ARCHITECT-PRIME: Scroll warp avec friction (inertie luxueuse)
-    // _scrollWarp lerp vers scrollVelocity, puis decay naturel (friction)
+    // Scroll warp avec friction (inertie luxueuse)
     const targetWarp = this.scrollVelocity;
-    const friction = targetWarp > this._scrollWarp ? 0.12 : 0.04; // Monte vite, redescend lentement
+    const friction = targetWarp > this._scrollWarp ? 0.10 : 0.03;
     this._scrollWarp += (targetWarp - this._scrollWarp) * Math.min(dt * (1 / friction), 1);
     if (this._scrollWarp < 0.001) this._scrollWarp = 0;
-    // Decay la velocite source pour l'inertie
-    this.scrollVelocity *= Math.max(1 - dt * 3.5, 0);
+    this.scrollVelocity *= Math.max(1 - dt * 2.8, 0);
 
     const scroll = this.scrollProgress;
     const warp = this.warpProgress;
     const scrollWarp = this._scrollWarp;
 
-    this._drawNebulas(ctx, w, h, warp, scrollWarp);
+    this._drawNebulas(ctx, w, h, scroll, warp, scrollWarp);
     this._drawStars(ctx, w, h, scroll, warp, scrollWarp);
 
     // Warp white-out veil (last 30% of transition)
     if (warp > 0.7) {
-      const veil = (warp - 0.7) / 0.3; // 0 → 1
+      const veil = (warp - 0.7) / 0.3;
       ctx.globalAlpha = veil * veil * 0.95;
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, w, h);
@@ -235,61 +236,76 @@ export class FlaynnNeuralBackground {
 
   /* ── Nebula glows ────────────────────────────────────────────────────── */
 
-  _drawNebulas(ctx, w, h, warp, scrollWarp = 0) {
+  _drawNebulas(ctx, w, h, scroll, warp, scrollWarp) {
     const t = this.time;
     const mx = this.mx;
     const my = this.my;
-
-    // Breathing oscillators (very slow, out-of-phase)
-    const b1 = Math.sin(t * 0.12) * 0.5 + 0.5;
-    const b2 = Math.sin(t * 0.09 + 1.8) * 0.5 + 0.5;
-    const b3 = Math.sin(t * 0.15 + 3.2) * 0.5 + 0.5;
-
     const dim = Math.max(w, h);
+    const sw = scrollWarp * 0.25;
 
-    // ARCHITECT-PRIME: scrollWarp amplifie subtilement les nebuleuses
-    const sw = scrollWarp * 0.15;
+    // ARCHITECT-PRIME: oscillateurs lents, dephasés, amplitudes profondes
+    const b1 = Math.sin(t * 0.08) * 0.5 + 0.5;             // ~12.5s cycle
+    const b2 = Math.sin(t * 0.06 + 2.1) * 0.5 + 0.5;       // ~16.7s cycle
+    const b3 = Math.sin(t * 0.10 + 4.0) * 0.5 + 0.5;       // ~10s cycle
+    const b4 = Math.sin(t * 0.045 + 0.8) * 0.5 + 0.5;      // ~22s ultra-lent
 
-    // 1 — Violet glow (bottom-left)
-    const vx = w * 0.15 - mx * 25;
-    const vy = h * 0.82 + my * 25;
-    const vr = dim * (0.52 + b1 * 0.06 + warp * 0.35 + sw);
-    const va = 0.10 + b1 * 0.04 + warp * 0.18 + sw * 0.3;
+    // ARCHITECT-PRIME: les nebulas se deplacent avec le scroll (parallax propre)
+    const scrollShift = scroll * h * 0.15;
+
+    // 1 — Violet principal (bottom-left, large, dominant)
+    const vx = w * 0.12 - mx * 50 + b4 * w * 0.03;
+    const vy = h * 0.78 + my * 40 - scrollShift * 0.5;
+    const vr = dim * (0.60 + b1 * 0.10 + warp * 0.40 + sw * 1.5);
+    const va = 0.16 + b1 * 0.07 + warp * 0.20 + sw * 0.4;
     const gv = ctx.createRadialGradient(vx, vy, 0, vx, vy, vr);
     gv.addColorStop(0, `rgba(123,45,142,${va})`);
-    gv.addColorStop(0.55, `rgba(123,45,142,${va * 0.25})`);
+    gv.addColorStop(0.35, `rgba(123,45,142,${va * 0.40})`);
+    gv.addColorStop(0.65, `rgba(123,45,142,${va * 0.10})`);
     gv.addColorStop(1, 'rgba(123,45,142,0)');
     ctx.fillStyle = gv;
     ctx.fillRect(0, 0, w, h);
 
-    // 2 — Orange glow (top-right)
-    const ox = w * 0.85 + mx * 18;
-    const oy = h * 0.15 - my * 18;
-    const or2 = dim * (0.38 + b2 * 0.05 + warp * 0.28);
-    const oa = 0.05 + b2 * 0.02 + warp * 0.12;
+    // 2 — Orange chaud (top-right, medium)
+    const ox = w * 0.88 + mx * 40 - b4 * w * 0.02;
+    const oy = h * 0.10 - my * 35 - scrollShift * 0.3;
+    const or2 = dim * (0.48 + b2 * 0.08 + warp * 0.30 + sw);
+    const oa = 0.09 + b2 * 0.05 + warp * 0.15 + sw * 0.3;
     const go = ctx.createRadialGradient(ox, oy, 0, ox, oy, or2);
     go.addColorStop(0, `rgba(232,101,26,${oa})`);
-    go.addColorStop(0.5, `rgba(232,101,26,${oa * 0.22})`);
+    go.addColorStop(0.40, `rgba(232,101,26,${oa * 0.30})`);
+    go.addColorStop(0.70, `rgba(232,101,26,${oa * 0.06})`);
     go.addColorStop(1, 'rgba(232,101,26,0)');
     ctx.fillStyle = go;
     ctx.fillRect(0, 0, w, h);
 
-    // 3 — Rose glow (center-bottom, very subtle depth layer)
-    const rx = w * 0.5 - mx * 12;
-    const ry = h * 0.65 + my * 12;
-    const rr = dim * (0.30 + b3 * 0.04 + warp * 0.2);
-    const ra = 0.03 + b3 * 0.015 + warp * 0.08;
+    // 3 — Rose profond (center, tres subtil — couche de profondeur)
+    const rx = w * 0.48 - mx * 25 + b3 * w * 0.02;
+    const ry = h * 0.60 + my * 20 - scrollShift * 0.4;
+    const rr = dim * (0.42 + b3 * 0.06 + warp * 0.25);
+    const ra = 0.05 + b3 * 0.03 + warp * 0.10;
     const gr = ctx.createRadialGradient(rx, ry, 0, rx, ry, rr);
     gr.addColorStop(0, `rgba(193,53,132,${ra})`);
-    gr.addColorStop(0.6, `rgba(193,53,132,${ra * 0.18})`);
+    gr.addColorStop(0.50, `rgba(193,53,132,${ra * 0.20})`);
     gr.addColorStop(1, 'rgba(193,53,132,0)');
     ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, w, h);
+
+    // 4 — Bleu froid (bottom-right, nouveau — contre-point froid)
+    const bx = w * 0.75 + mx * 20;
+    const by = h * 0.85 - my * 15 - scrollShift * 0.2;
+    const br = dim * (0.30 + b4 * 0.05);
+    const ba = 0.03 + b4 * 0.02;
+    const gb = ctx.createRadialGradient(bx, by, 0, bx, by, br);
+    gb.addColorStop(0, `rgba(59,130,246,${ba})`);
+    gb.addColorStop(0.50, `rgba(59,130,246,${ba * 0.15})`);
+    gb.addColorStop(1, 'rgba(59,130,246,0)');
+    ctx.fillStyle = gb;
     ctx.fillRect(0, 0, w, h);
   }
 
   /* ── Starfield ───────────────────────────────────────────────────────── */
 
-  _drawStars(ctx, w, h, scroll, warp, scrollWarp = 0) {
+  _drawStars(ctx, w, h, scroll, warp, scrollWarp) {
     const t = this.time;
     const mx = this.mx;
     const my = this.my;
@@ -299,20 +315,22 @@ export class FlaynnNeuralBackground {
     for (const layer of this.layers) {
       const { stars, speedZ, mousePx } = layer;
 
-      // Z-parallax: scale outward from center on scroll
+      // ARCHITECT-PRIME: Z-parallax massivement amplifie
+      // Dust (speedZ 0.08) → +8% zoom total
+      // Near (speedZ 1.0)  → +100% zoom total (2x scale at bottom)
       const zScale = 1 + scroll * speedZ;
       // Warp: explosive zoom
-      const wScale = 1 + warp * warp * speedZ * 14;
-      // ARCHITECT-PRIME: scrollWarp — boost subtil au scroll rapide (inertie)
-      const sWarpScale = 1 + scrollWarp * speedZ * 1.8;
+      const wScale = 1 + warp * warp * speedZ * 18;
+      // Scroll velocity warp (inertie)
+      const sWarpScale = 1 + scrollWarp * speedZ * 2.5;
       const totalScale = zScale * wScale * sWarpScale;
 
-      // Mouse parallax offset
-      const px = -mx * mousePx * w;
-      const py = -my * mousePx * h;
+      // ARCHITECT-PRIME: Mouse parallax amplifie (facteur 2.5x)
+      const px = -mx * mousePx * w * 2.5;
+      const py = -my * mousePx * h * 2.5;
 
-      // Subtle vertical drift on scroll (near layers drift more)
-      const yDrift = -scroll * speedZ * h * 0.04;
+      // Vertical drift on scroll (near layers drift more dramatically)
+      const yDrift = -scroll * speedZ * h * 0.08;
 
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
@@ -322,28 +340,28 @@ export class FlaynnNeuralBackground {
         let sy = (s.y * h - cy) * totalScale + cy + py + yDrift;
 
         // Wrap during normal scroll (not during warp — let them fly out)
-        if (warp < 0.05) {
+        if (warp < 0.05 && scrollWarp < 0.3) {
           sx = ((sx % w) + w) % w;
           sy = ((sy % h) + h) % h;
         }
 
-        // Twinkle
-        const twinkle = 0.7 + 0.3 * Math.sin(t * s.tw + s.tp);
+        // ARCHITECT-PRIME: Twinkle amplifie — oscillation 0.5 ± 0.5 (variation totale)
+        const twinkle = 0.5 + 0.5 * Math.sin(t * s.tw + s.tp);
 
         // Radius + alpha
         let r = s.r * totalScale;
         let alpha = s.a * twinkle;
 
         // Warp intensity + scroll warp glow
-        alpha = Math.min(alpha + warp * 0.5 + scrollWarp * 0.15, 1);
-        r = Math.min(r + warp * speedZ * 4 + scrollWarp * speedZ * 0.8, 10);
+        alpha = Math.min(alpha + warp * 0.5 + scrollWarp * 0.20, 1);
+        r = Math.min(r + warp * speedZ * 5 + scrollWarp * speedZ * 1.2, 12);
 
         if (r < 0.1 || alpha < 0.01) continue;
 
         // Warp streak direction (from center outward)
         const dx = sx - cx;
         const dy = sy - cy;
-        const warpStretch = warp * warp * speedZ * 3;
+        const warpStretch = warp * warp * speedZ * 4;
 
         ctx.globalAlpha = alpha;
 
@@ -352,7 +370,7 @@ export class FlaynnNeuralBackground {
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
           const ndx = dx / dist;
           const ndy = dy / dist;
-          const len = warpStretch * 20 * (0.5 + r);
+          const len = warpStretch * 24 * (0.5 + r);
 
           ctx.beginPath();
           ctx.moveTo(sx - ndx * len * 0.3, sy - ndy * len * 0.3);
@@ -362,14 +380,20 @@ export class FlaynnNeuralBackground {
           ctx.lineCap = 'round';
           ctx.stroke();
         } else {
-          // ── Halo stars ──
+          // ── Halo stars (tinted) ──
           if (s.halo) {
-            const hr = r * 5;
+            const hr = r * 6;
             const hg = ctx.createRadialGradient(sx, sy, 0, sx, sy, hr);
-            hg.addColorStop(0, `rgba(255,255,255,${alpha * 0.6})`);
-            hg.addColorStop(0.12, `rgba(255,255,255,${alpha * 0.12})`);
-            hg.addColorStop(0.35, `rgba(255,255,255,${alpha * 0.03})`);
-            hg.addColorStop(1, 'rgba(255,255,255,0)');
+            // ARCHITECT-PRIME: teinte subtile violet ou chaude sur les halos
+            const hCol = s.tint === 1
+              ? `180,130,255`   // violet pale
+              : s.tint === 2
+                ? `255,200,150` // chaud pale
+                : `255,255,255`;
+            hg.addColorStop(0, `rgba(${hCol},${alpha * 0.7})`);
+            hg.addColorStop(0.10, `rgba(${hCol},${alpha * 0.15})`);
+            hg.addColorStop(0.30, `rgba(${hCol},${alpha * 0.04})`);
+            hg.addColorStop(1, `rgba(${hCol},0)`);
             ctx.fillStyle = hg;
             ctx.beginPath();
             ctx.arc(sx, sy, hr, 0, Math.PI * 2);
@@ -417,7 +441,7 @@ export class FlaynnNeuralBackground {
     const ms = duration * 1000;
     const tick = (now) => {
       const raw = Math.min((now - start) / ms, 1);
-      this.warpProgress = raw * raw * raw; // power3.in approx
+      this.warpProgress = raw * raw * raw;
       if (raw < 1) {
         requestAnimationFrame(tick);
       } else {
