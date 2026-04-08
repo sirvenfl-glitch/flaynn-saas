@@ -935,7 +935,7 @@ function initTopbar(auth) {
   topbar.replaceChildren();
 
   if (auth) {
-    const userBtn = el('div', '', { style: 'display:flex;align-items:center;gap:var(--space-3)' });
+    const userBtn = el('div', 'dashboard-topbar-actions');
 
     const avatar = el('div', 'dashboard-avatar');
     avatar.textContent = auth.name ? auth.name.charAt(0).toUpperCase() : '?';

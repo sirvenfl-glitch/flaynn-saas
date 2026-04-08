@@ -896,6 +896,17 @@
     max-width: calc(100vw - 100px);
   }
 
+  /* Topbar actions : compact sur mobile */
+  .dashboard-topbar-actions {
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .dashboard-logout-btn {
+    font-size: 0.6875rem;
+    padding: var(--space-1) var(--space-2);
+  }
+
   /* Score summary : grille 2 colonnes (comme desktop 4 cols mais adapté) */
   .score-summary-row {
     display: grid;
