@@ -118,7 +118,7 @@
 
 .dashboard-main {
   min-height: 60vh;
-  padding-bottom: var(--space-6);
+  padding-bottom: 80px;
 }
 
 .dashboard-app {
