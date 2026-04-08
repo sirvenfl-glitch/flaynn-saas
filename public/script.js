@@ -695,6 +695,11 @@ async function bootDeferred() {
 
 document.getElementById('footer-year').textContent = String(new Date().getFullYear());
 
+// ARCHITECT-PRIME: Reset overflow au chargement — évite le blocage scroll en navigation privée
+// ou après fermeture incorrecte de modale/menu mobile
+document.documentElement.style.overflow = '';
+document.body.style.overflow = '';
+
 /* ── Nav auth state : Espace membre (invité) ou Prénom (connecté) ─ */
 (function updateNavAuth() {
   const auth = (() => {
