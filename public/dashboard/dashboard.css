@@ -872,6 +872,11 @@
 @media (max-width: 639px) {
   .dashboard-body { -webkit-overflow-scrolling: touch; }
 
+  /* Padding bottom pour ne pas cacher le contenu derrière la nav mobile */
+  .dashboard-main {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
   .dashboard-shell {
     padding: 0 var(--space-5);
     padding-top: calc(4.5rem + max(0px, env(safe-area-inset-top)));
