@@ -9,6 +9,11 @@
   }
 }
 
+.dashboard-topbar .nav-content {
+  overflow: hidden;
+  max-width: 100%;
+}
+
 .dashboard-topbar .logo-container {
   flex: 0 0 auto;
 }
@@ -23,6 +28,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: calc(100vw - 120px);
 }
 
 @media (min-width: 768px) {
@@ -101,6 +107,7 @@
 
 .dashboard-main {
   min-height: 60vh;
+  padding-bottom: var(--space-6);
 }
 
 .dashboard-app {
@@ -202,7 +209,7 @@
   bottom: calc(12px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100;
+  z-index: 250;
   width: min(90vw, 340px);
   justify-content: space-around;
   align-items: center;
@@ -853,7 +860,7 @@
 
   .dashboard-shell {
     padding: 0 var(--space-5);
-    padding-top: calc(4rem + max(0px, env(safe-area-inset-top)));
+    padding-top: calc(4.5rem + max(0px, env(safe-area-inset-top)));
     gap: var(--space-5);
   }
 
@@ -865,10 +872,9 @@
     padding: var(--space-5);
   }
 
-  /* Topbar : laisser les éléments flex respirer en mode démo */
+  /* Topbar : titre tronqué sur mobile pour éviter le débordement */
   .dashboard-topbar__title {
-    overflow: visible;
-    white-space: normal;
+    max-width: calc(100vw - 100px);
   }
 
   /* Score summary : grille 2 colonnes (comme desktop 4 cols mais adapté) */
