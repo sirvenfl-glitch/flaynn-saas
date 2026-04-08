@@ -387,10 +387,12 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-4);
+  width: 100%;
 }
 
 .score-radial-wrap .dashboard-viz {
   min-height: 200px;
+  width: 100%;
 }
 
 /* ── Trend chip ── */
