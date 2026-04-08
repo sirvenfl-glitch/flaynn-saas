@@ -170,7 +170,7 @@ function renderPillarRadar(container, pillars, d3) {
   /* Grilles concentriques */
   for (let i = 1; i <= 5; i++) {
     svg.append('circle').attr('cx', center).attr('cy', center).attr('r', (maxR/5)*i)
-      .attr('fill', 'none').attr('stroke', 'var(--border-subtle)').attr('stroke-dasharray', '3 3');
+      .attr('fill', 'none').attr('stroke', 'rgba(255,255,255,0.08)').attr('stroke-dasharray', '3 3');
   }
 
   /* Axes + labels */
@@ -178,7 +178,7 @@ function renderPillarRadar(container, pillars, d3) {
     const a = angle(i);
     const x = center + maxR * Math.cos(a), y = center + maxR * Math.sin(a);
     svg.append('line').attr('x1', center).attr('y1', center).attr('x2', x).attr('y2', y)
-      .attr('stroke', 'var(--border-subtle)');
+      .attr('stroke', 'rgba(255,255,255,0.08)');
     svg.append('text')
       .attr('x', center + (maxR + 22) * Math.cos(a))
       .attr('y', center + (maxR + 22) * Math.sin(a))
