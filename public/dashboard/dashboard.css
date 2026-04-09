@@ -62,7 +62,7 @@
   .dashboard-shell {
     grid-template-columns: 220px 1fr;
     align-items: start;
-    padding-top: calc(7rem + max(0px, env(safe-area-inset-top)));
+    padding-top: calc(8rem + max(0px, env(safe-area-inset-top)));
   }
 }
 
@@ -935,7 +935,7 @@
 
   .dashboard-shell {
     padding: 0 var(--space-5);
-    padding-top: calc(7rem + max(0px, env(safe-area-inset-top)));
+    padding-top: calc(8rem + max(0px, env(safe-area-inset-top)));
     gap: var(--space-5);
   }
 

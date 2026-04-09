@@ -514,7 +514,7 @@
     justify-content: center;
     text-align: center;
     min-height: min(90vh, 920px);
-    padding-top: calc(6.5rem + env(safe-area-inset-top));
+    padding-top: calc(8rem + env(safe-area-inset-top));
     padding-bottom: var(--space-6);
     gap: var(--space-6);
     position: relative;
@@ -2955,7 +2955,7 @@
   .hero-layout {
     min-height: auto;
     gap: var(--space-4);
-    padding-top: calc(7rem + env(safe-area-inset-top));
+    padding-top: calc(8rem + env(safe-area-inset-top));
     padding-bottom: var(--space-4);
     justify-content: flex-start;
   }

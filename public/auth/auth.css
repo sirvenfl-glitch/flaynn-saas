@@ -323,7 +323,7 @@
 @media (max-width: 480px) {
   .auth-body {
     align-items: flex-start;
-    padding-top: calc(env(safe-area-inset-top) + var(--space-6));
+    padding-top: calc(8rem + env(safe-area-inset-top));
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
   }
