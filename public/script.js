@@ -700,6 +700,13 @@ document.getElementById('footer-year').textContent = String(new Date().getFullYe
 document.documentElement.style.overflow = '';
 document.body.style.overflow = '';
 
+// ARCHITECT-PRIME: Reset overlay si bloqué d'une navigation précédente
+const _overlay = document.getElementById('page-transition-overlay');
+if (_overlay && _overlay.classList.contains('is-active')) {
+  _overlay.classList.remove('is-active');
+  _overlay.style.clipPath = 'circle(0% at 50% 50%)';
+}
+
 /* ── Nav auth state : Espace membre (invité) ou Prénom (connecté) ─ */
 (function updateNavAuth() {
   const auth = (() => {
@@ -740,10 +747,14 @@ function warpNavigate(targetUrl, e) {
     overlay.classList.add('is-active');
   }
 
+  // ARCHITECT-PRIME: failsafe — si la navigation ne se fait pas en 3s, on force la redirection
+  const failsafe = window.setTimeout(() => { window.location.href = targetUrl; }, 3000);
+
   const bg = /** @type {any} */ (window).globalBg;
   if (bg && typeof bg.triggerWarpTransition === 'function') {
     bg.triggerWarpTransition(targetUrl);
   } else {
+    clearTimeout(failsafe);
     window.setTimeout(() => { window.location.href = targetUrl; }, 300);
   }
 }

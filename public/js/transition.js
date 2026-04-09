@@ -226,6 +226,31 @@ if (sessionStorage.getItem('flaynn_transition')) {
   animateIn();
 }
 
+// ARCHITECT-PRIME: failsafe — si l'overlay reste bloqué plus de 4s, on force le nettoyage
+// Empêche le scroll/navigation d'être bloqué par une transition ratée
+function clearOverlayFailsafe() {
+  if (!overlay) return;
+  if (overlay.classList.contains('is-active')) {
+    overlay.classList.remove('is-active');
+    overlay.style.clipPath = 'circle(0% at 50% 50%)';
+    if (wing) { wing.style.opacity = '0'; wing.style.transform = 'scale(0.7)'; wing.style.filter = ''; }
+  }
+  const content = getPageContent();
+  if (content) {
+    content.style.transform = '';
+    content.style.opacity = '';
+    content.style.filter = '';
+    content.style.willChange = '';
+  }
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+}
+
+// Nettoyage au chargement — garantit qu'aucune transition precedente ne reste
+window.addEventListener('load', () => {
+  setTimeout(clearOverlayFailsafe, 2000);
+});
+
 // ARCHITECT-PRIME: set sessionStorage flag in capture phase (before preventDefault)
 document.addEventListener('click', (e) => {
   const link = e.target.closest('a[href]');
