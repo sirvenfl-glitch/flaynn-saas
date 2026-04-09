@@ -119,7 +119,7 @@ export class FlaynnNeuralBackground {
       const top = window.scrollY;
       const delta = Math.abs(top - this._lastScrollY);
       this._lastScrollY = top;
-      this.scrollVelocity = Math.min(delta / 15, 0.6);
+      this.scrollVelocity = Math.min(delta / 25, 0.3);
 
       if (this._gsapConnected) return;
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -215,7 +215,7 @@ export class FlaynnNeuralBackground {
     const friction = targetWarp > this._scrollWarp ? 0.15 : 0.03;
     this._scrollWarp += (targetWarp - this._scrollWarp) * Math.min(dt * (1 / friction), 1);
     if (this._scrollWarp < 0.001) this._scrollWarp = 0;
-    this.scrollVelocity *= Math.max(1 - dt * 5, 0);
+    this.scrollVelocity *= Math.max(1 - dt * 8, 0);
 
     const scroll = this.scrollProgress;
     const warp = this.warpProgress;

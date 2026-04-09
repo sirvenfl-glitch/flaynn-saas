@@ -680,8 +680,8 @@ async function bootDeferred() {
            @type {any} — cast intentionnel, propriété custom sur window */
         /** @type {any} */ (window).globalBg = new FlaynnNeuralBackground(canvas, { particles });
       }
-    } catch {
-      /* WebGL / module indisponible : fond CSS (.ambient-bg) */
+    } catch (err) {
+      console.error('[STARFIELD] init failed:', err);
     }
   }
 

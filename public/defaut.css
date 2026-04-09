@@ -435,6 +435,17 @@
     .ambient-bg .three-canvas { display: none; }
   }
 
+  /* ARCHITECT-PRIME: canvas off sur mobile — fallback gradient CSS plus propre */
+  @media (max-width: 768px) {
+    .ambient-bg .three-canvas { display: none; }
+    html.has-three-bg .ambient-bg {
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.12), transparent 50%),
+        radial-gradient(circle at top center, var(--surface-base), var(--surface-void));
+      animation: ambient-drift 12s ease-in-out infinite;
+    }
+  }
+
   /* ARCHITECT-PRIME: quand le canvas est actif, le gradient CSS de fond
      devient minimal — le canvas fournit toute la profondeur nebulaire */
   html.has-three-bg .ambient-bg {
@@ -498,7 +509,7 @@
     justify-content: center;
     text-align: center;
     min-height: min(90vh, 920px);
-    padding-top: calc(5rem + env(safe-area-inset-top));
+    padding-top: calc(6.5rem + env(safe-area-inset-top));
     padding-bottom: var(--space-6);
     gap: var(--space-6);
     position: relative;

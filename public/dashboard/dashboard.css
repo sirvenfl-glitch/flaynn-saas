@@ -29,7 +29,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100vw - 120px);
+  max-width: calc(100vw - 200px);
 }
 
 /* Conteneur des boutons topbar — empêche le débordement sur mobile */
@@ -37,9 +37,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex-shrink: 1;
+  flex-shrink: 0;
   min-width: 0;
-  overflow: hidden;
 }
 
 @media (min-width: 768px) {
@@ -54,7 +53,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--space-5);
-  padding-top: calc(5.5rem + max(0px, env(safe-area-inset-top)));
+  padding-top: calc(7rem + max(0px, env(safe-area-inset-top)));
   gap: var(--space-6);
   letter-spacing: 0.01em;
 }
@@ -63,7 +62,7 @@
   .dashboard-shell {
     grid-template-columns: 220px 1fr;
     align-items: start;
-    padding-top: calc(5.5rem + max(0px, env(safe-area-inset-top)));
+    padding-top: calc(7rem + max(0px, env(safe-area-inset-top)));
   }
 }
 
@@ -936,7 +935,7 @@
 
   .dashboard-shell {
     padding: 0 var(--space-5);
-    padding-top: calc(5.5rem + max(0px, env(safe-area-inset-top)));
+    padding-top: calc(7rem + max(0px, env(safe-area-inset-top)));
     gap: var(--space-5);
   }
 
