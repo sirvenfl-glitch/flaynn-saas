@@ -123,7 +123,7 @@
   }
 
   body {
-    background-color: var(--surface-void);
+    background-color: transparent;
     color: var(--text-secondary);
     font-family: var(--font-body);
     font-size: clamp(0.9375rem, 1vw + 0.5rem, 1.125rem);
@@ -398,9 +398,20 @@
   #canvas-bg {
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     pointer-events: none;
     opacity: 0.55;
+  }
+
+  body > main,
+  body > header,
+  body > footer,
+  body > nav,
+  body > .skip-link,
+  body > #toast-root,
+  body > #page-transition-overlay {
+    position: relative;
+    z-index: 1;
   }
 
   /* Container */
@@ -2812,6 +2823,123 @@
 }
 
 /* ─────────────────────────────────────────
+   MINI SCORING HERO WIDGET
+───────────────────────────────────────── */
+@layer components {
+  .mini-scoring {
+    max-width: 560px;
+    margin-top: var(--space-6);
+  }
+
+  .mini-scoring__input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(8px);
+  }
+
+  .mini-scoring__input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    padding: 10px 14px;
+    font-family: var(--font-body);
+  }
+
+  .mini-scoring__input::placeholder { color: rgba(255,255,255,0.25); }
+
+  .mini-scoring__btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mini-scoring__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .mini-scoring__spinner { animation: spin-fast 0.8s linear infinite; }
+  @keyframes spin-fast { to { transform: rotate(360deg); } }
+
+  .mini-scoring__result {
+    margin-top: 16px;
+    padding: 20px 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(8px);
+    animation: mini-result-in 0.5s ease-out;
+  }
+
+  @keyframes mini-result-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .mini-scoring__result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .mini-scoring__label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+  }
+
+  .mini-scoring__score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .mini-scoring__bar-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .mini-scoring__bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, #7B2D8E, #E8651A);
+    width: 0%;
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mini-scoring__advice {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .mini-scoring__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .mini-scoring__cta-secondary { font-size: 0.8125rem; }
+  .mini-scoring__cta-primary { font-size: 0.8125rem; display: inline-flex; align-items: center; gap: 6px; }
+  .mini-scoring__score--high { color: #E8651A; }
+  .mini-scoring__score--mid  { color: #FACC15; }
+  .mini-scoring__score--low  { color: var(--text-tertiary); }
+}
+
+/* ─────────────────────────────────────────
    INVESTOR PRICING CARD
 ───────────────────────────────────────── */
 @layer components {
@@ -2819,6 +2947,7 @@
     padding: var(--space-6);
     border-radius: 24px;
     position: relative;
+    overflow: visible;
   }
 
   .investor-badge {
@@ -2912,6 +3041,7 @@
     border: 2px solid #7B2D8E;
     background: rgba(123, 45, 142, 0.05);
     position: relative;
+    overflow: visible;
   }
 
   .pricing-badge {

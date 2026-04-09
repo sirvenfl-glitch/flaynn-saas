@@ -57,7 +57,7 @@
     <!-- NAV -->
     <header class="nav-glass" role="banner">
         <div class="container nav-content">
-            <a href="/" class="logo-container" aria-label="Flaynn — Accueil">
+            <a href="/" class="logo-container" aria-label="Flaynn - Accueil">
                 <img src="/icons/logo.png" alt="" width="95" height="95" class="logo-img" aria-hidden="true">
             </a>
             <nav role="navigation" aria-label="Menu principal" class="nav-links-desktop">
@@ -138,6 +138,41 @@
                     <a href="#process" class="btn-ghost btn-ghost--hero">
                         Voir comment ça marche
                     </a>
+                </div>
+                <div class="mini-scoring" id="mini-scoring" data-animate-child>
+                    <div class="mini-scoring__input-wrap">
+                        <input type="text" id="mini-scoring-input" class="mini-scoring__input"
+                               placeholder="Décrivez votre idée en une phrase..."
+                               maxlength="200" autocomplete="off">
+                        <button type="button" id="mini-scoring-btn" class="btn-primary mini-scoring__btn" disabled>
+                            <span class="mini-scoring__btn-text">Quick Score</span>
+                            <span class="mini-scoring__btn-loader" hidden>
+                                <svg class="mini-scoring__spinner" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" stroke-dasharray="28" stroke-dashoffset="8" stroke-linecap="round"/>
+                                </svg>
+                                Analyse...
+                            </span>
+                        </button>
+                    </div>
+                    <div class="mini-scoring__result" id="mini-scoring-result" hidden>
+                        <div class="mini-scoring__result-header">
+                            <span class="mini-scoring__label">Pré-score Flaynn</span>
+                            <span class="mini-scoring__score" id="mini-score-value">--</span>
+                        </div>
+                        <div class="mini-scoring__bar-track">
+                            <div class="mini-scoring__bar-fill" id="mini-score-bar"></div>
+                        </div>
+                        <p class="mini-scoring__advice" id="mini-score-advice"></p>
+                        <div class="mini-scoring__actions">
+                            <a href="#process" class="btn-ghost mini-scoring__cta-secondary">Comment ça marche</a>
+                            <a href="/scoring/" class="btn-primary btn-gradient mini-scoring__cta-primary">
+                                <span>Scoring complet (29€)</span>
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 <div class="hero-proof" aria-label="Preuves de valeur">
                     <div class="hero-proof__item">
@@ -402,11 +437,11 @@
             <div class="container" style="text-align: center;">
                 <header class="section-header section-header--centered" data-animate-child>
                     <p class="section-eyebrow">Commencer</p>
-                    <h2 class="heading-section">Pret a connaitre la verite ?</h2>
-                    <p class="section-lead section-lead--centered">7 etapes, 10 minutes. Votre scoring complet en 24h.</p>
+                    <h2 class="heading-section">Prêt à connaître la vérité ?</h2>
+                    <p class="section-lead section-lead--centered">7 étapes, 10 minutes. Votre scoring complet en 24h.</p>
                 </header>
                 <a href="/scoring/" class="btn-primary btn-large btn-gradient" data-animate-child>
-                    <span>Demarrer mon scoring</span>
+                    <span>Démarrer mon scoring</span>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -463,11 +498,11 @@
                             <span class="investor-price__period">/mois</span>
                         </div>
                         <ul class="investor-features">
-                            <li><span class="check-icon">&#10003;</span> Deal flow filtre et score</li>
+                            <li><span class="check-icon">&#10003;</span> Deal flow filtré et scoré</li>
                             <li><span class="check-icon">&#10003;</span> Matching par these</li>
                             <li><span class="check-icon">&#10003;</span> Acces aux rapports complets</li>
                             <li><span class="check-icon">&#10003;</span> Intelligence sectorielle</li>
-                            <li><span class="check-icon">&#10003;</span> Support dedie</li>
+                            <li><span class="check-icon">&#10003;</span> Support dédié</li>
                         </ul>
                         <a href="mailto:investors@flaynn.fr" class="btn-primary btn-large" style="width: 100%; text-align: center;">Rejoindre le reseau</a>
                     </div>
@@ -481,7 +516,7 @@
                 <header class="section-header section-header--centered" data-animate-child>
                     <p class="section-eyebrow" style="color: #E8651A;">Tarifs Fondateurs</p>
                     <h2 id="pricing-title" class="heading-section">Transparent. Sans abonnement.</h2>
-                    <p class="section-lead section-lead--centered">Payez pour la valeur, pas pour l'acces.</p>
+                    <p class="section-lead section-lead--centered">Payez pour la valeur, pas pour l'accès.</p>
                 </header>
                 <div class="pricing-grid" data-animate-child>
                     <div class="card-glass pricing-card">
@@ -490,7 +525,7 @@
                             <span class="pricing-price__amount">29&#8364;</span>
                             <span class="pricing-price__period">unique</span>
                         </div>
-                        <p class="card-body">Rapport complet sur 5 piliers + recommandations actionnables + verification marche.</p>
+                        <p class="card-body">Rapport complet sur 5 piliers + recommandations actionnables + vérification marché.</p>
                         <a href="/scoring/" class="btn-ghost btn-large" style="width:100%; text-align:center; margin-top: auto;">Commencer le scoring</a>
                     </div>
                     <div class="card-glass pricing-card pricing-card--featured">
@@ -500,7 +535,7 @@
                             <span class="pricing-price__amount">29&#8364;</span>
                             <span class="pricing-price__period">+ 150&#8364;</span>
                         </div>
-                        <p class="card-body">Scoring complet + mise en relation avec investisseurs qualifies alignes a votre profil.</p>
+                        <p class="card-body">Scoring complet + mise en relation avec investisseurs qualifiés alignés à votre profil.</p>
                         <p class="pricing-guarantee">Flaynn's Guarantee : pas de meeting investisseur en 6 mois = remboursement + recherche continue.</p>
                         <a href="/scoring/" class="btn-primary btn-large btn-gradient" style="width:100%; text-align:center; margin-top: auto;">
                             <span>Obtenir le matching &rarr;</span>
@@ -617,7 +652,7 @@
             <div class="footer-newsletter" data-animate="reveal">
                 <div class="footer-newsletter__text" data-animate-child>
                     <h2 class="heading-section" style="font-size: 1.75rem;">Restez dans la boucle<span style="color:#E8651A">.</span></h2>
-                    <p style="color: var(--text-tertiary); margin-top: 8px; max-width: 400px;">Tendances deal flow, insights investisseurs, et nouvelles du Capital Selectif. Pas de spam. Un email par semaine max.</p>
+                    <p style="color: var(--text-tertiary); margin-top: 8px; max-width: 400px;">Tendances deal flow, insights investisseurs, et nouvelles du Capital Sélectif. Pas de spam. Un email par semaine max.</p>
                 </div>
                 <div class="footer-newsletter__form" data-animate-child>
                     <div class="newsletter-input-wrap">
@@ -632,12 +667,12 @@
                         <img src="/icons/logo.png" alt="" width="32" height="32" class="logo-img" aria-hidden="true">
                     </a>
                     <span style="font-weight: 600; font-size: 0.875rem;">Flaynn</span>
-                    <span style="color: var(--text-tertiary); font-size: 0.75rem; margin-left: 8px;">L'Ere du Capital Selectif</span>
+                    <span style="color: var(--text-tertiary); font-size: 0.75rem; margin-left: 8px;">L'Ère du Capital Sélectif</span>
                 </div>
                 <div class="footer-legal">
-                    <a href="#modal-legal" class="footer-legal-link js-modal-trigger">Mentions legales</a>
+                    <a href="#modal-legal" class="footer-legal-link js-modal-trigger">Mentions légales</a>
                     <a href="#modal-legal" class="footer-legal-link js-modal-trigger">CGV</a>
-                    <a href="#modal-legal" class="footer-legal-link js-modal-trigger">Confidentialite</a>
+                    <a href="#modal-legal" class="footer-legal-link js-modal-trigger">Confidentialité</a>
                     <span class="footer-copy">&copy; <span id="footer-year"></span> Flaynn SAS</span>
                 </div>
             </div>
@@ -673,7 +708,7 @@
 
     <!-- ARCHITECT-PRIME: "The Void Shutter" — page transition overlay -->
     <div id="page-transition-overlay" role="status" aria-live="assertive" aria-label="Chargement en cours">
-        <img class="transition-wing" src="/icons/logo.png" alt="" width="48" height="48" aria-hidden="true">
+        <img class="transition-wing" src="/icons/logo.png" alt="" width="80" height="80" style="width:80px;height:auto;" aria-hidden="true">
     </div>
 
     <!-- Modal Mentions Légales (Vanilla JS) -->
@@ -699,5 +734,6 @@
     <script type="module" src="/script.js"></script>
     <script type="module" src="/js/transition.js"></script>
     <script src="/js/starfield.js" defer></script>
+    <script src="/js/mini-score.js" defer></script>
 </body>
 </html>

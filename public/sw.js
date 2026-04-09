@@ -2,7 +2,7 @@
 // HTML → Network First (toujours chercher la version fraîche, cache = fallback offline).
 // Assets (CSS/JS/images) → Stale-While-Revalidate (réponse instantanée depuis le cache,
 // mise à jour en arrière-plan pour la prochaine visite).
-const CACHE_VERSION = 17;
+const CACHE_VERSION = 18;
 const CACHE_NAME = `flaynn-v${CACHE_VERSION}`;
 
 const PRECACHE_URLS = [
@@ -14,6 +14,7 @@ const PRECACHE_URLS = [
   '/js/transition.js',
   '/js/landing-motion.js',
   '/js/starfield.js',
+  '/js/mini-score.js',
   '/scoring/',
   '/auth/',
   '/auth/app.js',

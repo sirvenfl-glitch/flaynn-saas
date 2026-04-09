@@ -65,14 +65,14 @@ const DEMO_DATA = {
   ],
   recommendations: [
     { priority: 'high',   pillar: 'Execution', title: 'Structurer la cadence opérationnelle',       desc: 'Mettre en place des OKRs trimestriels et un reporting hebdomadaire. Les investisseurs Série A exigent une rigueur process démontrée.' },
-    { priority: 'high',   pillar: 'Traction',  title: 'Réduire le churn mensuel',                   desc: 'Churn actuel : 8% — objectif : < 3%. Identifier et adresser les 3 principales causes de résiliation en priorité.' },
+    { priority: 'high',   pillar: 'Traction',  title: 'Réduire le churn mensuel',                   desc: 'Churn actuel : 8% - objectif : < 3%. Identifier et adresser les 3 principales causes de résiliation en priorité.' },
     { priority: 'medium', pillar: 'Product',   title: 'Documenter la roadmap 12 mois',              desc: 'Manque de visibilité sur les prochaines releases. Ce point freine la confiance des investisseurs lors du premier call.' },
     { priority: 'low',    pillar: 'Team',      title: 'Structurer un advisory board',               desc: 'Ajouter 2–3 advisors sectoriels reconnus. Signal fort de crédibilité pour les investisseurs institutionnels.' },
   ],
   investorReadiness: [
     { status: 'ok',      label: 'Pitch deck à jour' },
     { status: 'ok',      label: 'Métriques financières documentées' },
-    { status: 'warn',    label: 'Data room partielle — compléter' },
+    { status: 'warn',    label: 'Data room partielle - compléter' },
     { status: 'warn',    label: 'Prévisions 3 ans à affiner' },
     { status: 'missing', label: 'Cap table non communiquée' },
   ],
@@ -337,7 +337,7 @@ function buildDemoBanner() {
   const wrap = el('div', 'demo-banner');
 
   const text = el('div', 'demo-banner__text');
-  const title = el('p', 'demo-banner__title', { textContent: 'Mode démo — données illustratives' });
+  const title = el('p', 'demo-banner__title', { textContent: 'Mode démo - données illustratives' });
   const sub = el('p', 'demo-banner__sub', {
     textContent: 'Connectez-vous ou créez un compte pour accéder à votre analyse personnalisée, basée sur vos données réelles.'
   });
@@ -561,7 +561,7 @@ function buildRoutes(data) {
                 const newData = await res.json();
                 if (newData.status !== 'pending_analysis' && newData.status !== 'pending_webhook') {
                   clearInterval(pollInterval);
-                  spinnerLabel.textContent = 'Analyse terminée — chargement des résultats...';
+                  spinnerLabel.textContent = 'Analyse terminée - chargement des résultats...';
                   spinnerDot.classList.add('polling-spinner__dot--done');
                   window.setTimeout(() => window.location.reload(), 800);
                 }
@@ -631,7 +631,7 @@ function buildRoutes(data) {
 
         /* Pillar rows */
         const pillarCard = el('article', 'card-glass');
-        pillarCard.appendChild(el('h3', 'dashboard-card-title', { textContent: 'Cinq piliers — synthèse' }));
+        pillarCard.appendChild(el('h3', 'dashboard-card-title', { textContent: 'Cinq piliers - synthèse' }));
         pillarCard.appendChild(buildPillarRows(data.pillars));
         section.appendChild(pillarCard);
 

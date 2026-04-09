@@ -40,6 +40,7 @@ function getPageContent() {
 function animateOut(targetUrl) {
   if (!overlay) { window.location.href = targetUrl; return; }
 
+  window.starfieldWarp?.(600);
   overlay.classList.add('is-active');
   const content = getPageContent();
 

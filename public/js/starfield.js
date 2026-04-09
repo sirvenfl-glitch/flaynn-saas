@@ -76,4 +76,24 @@
   window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
   window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
   resize(); init(); draw();
+
+  window.starfieldWarp = function(duration) {
+    if (!particles || !particles.length) return;
+    var dur = duration || 600;
+    var cx = W / 2, cy = H / 2;
+    particles.forEach(function(p) {
+      var dx = p.x - cx, dy = p.y - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      p.vx = (dx / dist) * 8;
+      p.vy = (dy / dist) * 8;
+      p.op = Math.min(1, p.op * 3);
+    });
+    setTimeout(function() {
+      particles.forEach(function(p) {
+        p.vx = (Math.random() - 0.5) * 0.3;
+        p.vy = (Math.random() - 0.5) * 0.3;
+        p.op = Math.random() * 0.5 + 0.15;
+      });
+    }, dur);
+  };
 })();

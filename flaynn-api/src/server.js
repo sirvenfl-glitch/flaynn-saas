@@ -18,6 +18,7 @@ import dashboardApiRoutes from './routes/dashboard-api.js';
 import authRoutes from './routes/auth.js';
 import webhookRoutes from './routes/webhooks.js';
 import stripeRoutes from './routes/stripe.js';
+import miniScoreRoute from './routes/mini-score.js';
 import { initDB, pool } from './config/db.js';
 import authPlugin from './plugins/auth.js';
 import deviceDetect from './plugins/device-detect.js';
@@ -40,6 +41,7 @@ const envSchema = z.object({
   REDIS_URL: z.string().url().optional(),
   LOAD_TEST: z.enum(['true', 'false']).default('false'),
   GOOGLE_SHEETS_WEBHOOK_URL: z.string().url().startsWith('https://script.google.com/').optional(),
+  GEMINI_API_KEY: z.string().min(10).optional(),
   CORS_ORIGIN: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().startsWith('sk_').min(20).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_').optional(),
@@ -169,6 +171,7 @@ export const start = async () => {
     await fastify.register(authRoutes);
     await fastify.register(webhookRoutes);
     await fastify.register(stripeRoutes);
+    await fastify.register(miniScoreRoute);
 
     fastify.log.info(`[ARCHITECT-PRIME] Montage du dossier statique : ${siteRoot}`);
     await fastify.register(fastifyStatic, {
