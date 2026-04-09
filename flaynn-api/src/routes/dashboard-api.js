@@ -16,9 +16,9 @@ function adaptN8nToDashboard(raw, startupName, referenceId, createdAt, previousD
     return raw;
   }
 
-  const score = Number(raw.overall_score) || 0;
+  const score = Number(raw.score) || Number(raw.overall_score) || 0;
   const prev = previousData || {};
-  const prevScore = Number(prev.overall_score) || score;
+  const prevScore = Number(prev.score) || Number(prev.overall_score) || score;
   const pa = raw.pillar_analysis || {};
 
   // Insight par pilier depuis pillar_analysis.strengths[0] + improvements[0]
@@ -32,11 +32,11 @@ function adaptN8nToDashboard(raw, startupName, referenceId, createdAt, previousD
   }
 
   const pillars = [
-    { name: 'Market',    score: Number(raw.market_score) || 0,          prev: Number(prev.market_score || raw.market_score) || 0,          color: 'var(--accent-violet)',  insight: pillarInsight('market') },
-    { name: 'Product',   score: Number(raw.venture_score) || 0,         prev: Number(prev.venture_score || raw.venture_score) || 0,         color: 'var(--accent-blue)',    insight: pillarInsight('solution_product') },
-    { name: 'Traction',  score: Number(raw.traction_signal_score) || 0, prev: Number(prev.traction_signal_score || raw.traction_signal_score) || 0, color: 'var(--accent-emerald)', insight: pillarInsight('traction') },
-    { name: 'Team',      score: Number(raw.team_score) || 0,            prev: Number(prev.team_score || raw.team_score) || 0,              color: 'var(--accent-violet)',  insight: pillarInsight('team') },
-    { name: 'Execution', score: Number(raw.execution_score) || 0,       prev: Number(prev.execution_score || raw.execution_score) || 0,    color: 'var(--accent-amber)',   insight: pillarInsight('execution_ask') },
+    { name: 'Market',    score: Number(raw.score_breakdown?.market)           || Number(raw.market_score) || 0,           prev: Number(prev.score_breakdown?.market)           || Number(prev.market_score)           || 0, color: 'var(--accent-violet)',  insight: pillarInsight('market') },
+    { name: 'Product',   score: Number(raw.score_breakdown?.solution_product) || Number(raw.venture_score) || 0,          prev: Number(prev.score_breakdown?.solution_product) || Number(prev.venture_score)          || 0, color: 'var(--accent-blue)',    insight: pillarInsight('solution_product') },
+    { name: 'Traction',  score: Number(raw.score_breakdown?.traction)         || Number(raw.traction_signal_score) || 0,  prev: Number(prev.score_breakdown?.traction)         || Number(prev.traction_signal_score)  || 0, color: 'var(--accent-emerald)', insight: pillarInsight('traction') },
+    { name: 'Team',      score: Number(raw.score_breakdown?.team)             || Number(raw.team_score) || 0,             prev: Number(prev.score_breakdown?.team)             || Number(prev.team_score)             || 0, color: 'var(--accent-violet)',  insight: pillarInsight('team') },
+    { name: 'Execution', score: Number(raw.score_breakdown?.execution_ask)    || Number(raw.execution_score) || 0,        prev: Number(prev.score_breakdown?.execution_ask)    || Number(prev.execution_score)        || 0, color: 'var(--accent-amber)',   insight: pillarInsight('execution_ask') },
   ];
 
   // Verdict → level
