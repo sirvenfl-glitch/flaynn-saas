@@ -39,7 +39,7 @@ export default async function miniScoreRoute(fastify) {
 }
 
 // ── Gemini AI call with model cascade ──────────────────────────
-const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash-001'];
 
 async function callAI(idea, request) {
   const apiKey = process.env.GEMINI_API_KEY;
