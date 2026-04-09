@@ -10,8 +10,15 @@
   var btnText = btn.querySelector('.mini-scoring__btn-text');
   var btnLoader = btn.querySelector('.mini-scoring__btn-loader');
 
+  function isValidIdea(text) {
+    var t = text.trim();
+    if (t.length < 15) return false;
+    var words = t.split(/\s+/).filter(function(w) { return w.length > 0; });
+    return words.length >= 2;
+  }
+
   input.addEventListener('input', function() {
-    btn.disabled = input.value.trim().length < 10;
+    btn.disabled = !isValidIdea(input.value);
   });
 
   input.addEventListener('keydown', function(e) {
@@ -20,7 +27,7 @@
 
   btn.addEventListener('click', async function() {
     var idea = input.value.trim();
-    if (idea.length < 10) return;
+    if (!isValidIdea(idea)) return;
 
     btnText.hidden = true;
     btnLoader.hidden = false;
@@ -58,7 +65,7 @@
     } finally {
       btnText.hidden = false;
       btnLoader.hidden = true;
-      btn.disabled = input.value.trim().length < 10;
+      btn.disabled = !isValidIdea(input.value);
     }
   });
 })();

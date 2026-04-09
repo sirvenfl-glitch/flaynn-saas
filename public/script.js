@@ -1162,7 +1162,7 @@ scheduleIdle(() => {
     entries.forEach(function(e) {
       if (e.isIntersecting) {
         e.target.classList.add('visible');
-        e.target.querySelectorAll('.pillar-fill').forEach(function(b) { b.classList.add('animate'); });
+        e.target.querySelectorAll('.pillar-fill, .showcase-pillar-fill').forEach(function(b) { b.classList.add('animate'); });
       }
     });
   }, { threshold: 0.13, rootMargin: '0px 0px -40px 0px' });
