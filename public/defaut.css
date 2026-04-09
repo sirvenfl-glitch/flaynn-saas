@@ -453,17 +453,30 @@
   }
 
   .hero-layout {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
     align-items: center;
-    justify-content: center;
-    text-align: center;
     min-height: min(90vh, 920px);
     padding-top: calc(8rem + env(safe-area-inset-top));
     padding-bottom: var(--space-6);
-    gap: var(--space-6);
     position: relative;
     isolation: isolate;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  @media (max-width: 900px) {
+    .hero-layout {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: var(--space-6);
+    }
+    .hero-copy { align-items: center; }
   }
 
   .hero-layout > :not(.hero-orbit) {
@@ -1375,8 +1388,8 @@
   }
   .btn-gradient:hover {
     background: var(--gradient-hero);
-    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.45);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    transform: translateY(-1px);
     border: none;
   }
   .btn-primary.btn-gradient:active {
@@ -1446,10 +1459,9 @@
   }
 
   .card-glass:hover {
-    transform: translateY(-3px);
+    transform: translateY(-1px);
     box-shadow:
       var(--shadow-glow),
-      var(--shadow-elevated),
       var(--shadow-card),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
     border-color: var(--border-default);
@@ -1488,8 +1500,8 @@
 
   .process-step:hover {
     border-color: rgba(139, 92, 246, 0.25);
-    transform: translateY(-3px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 40px rgba(139, 92, 246, 0.06);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 20px rgba(139, 92, 246, 0.04);
   }
   .process-step:hover::before {
     transform: scaleX(1);
@@ -2823,94 +2835,266 @@
 }
 
 /* ─────────────────────────────────────────
-   WHY FLAYNN SECTION
+   FADE-UP SCROLL ANIMATIONS (Apple-style)
 ───────────────────────────────────────── */
 @layer components {
-  .section--why {
-    padding-top: var(--space-10, 80px);
-    padding-bottom: var(--space-10, 80px);
+  .fade-up {
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+    transition: opacity 1s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 1s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .fade-up-delay-1 { transition-delay: 0.05s; }
+  .fade-up-delay-2 { transition-delay: 0.1s; }
+  .fade-up-delay-3 { transition-delay: 0.15s; }
+  .fade-up-delay-4 { transition-delay: 0.2s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fade-up { opacity: 1; transform: none; transition: none; }
+  }
+}
+
+/* ─────────────────────────────────────────
+   HERO VISUAL (mockup card 3D)
+───────────────────────────────────────── */
+@layer components {
+  .hero-visual { position: relative; perspective: 800px; }
+
+  .mockup-card {
+    background: rgba(255,255,255,.038);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 28px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    transform: rotateY(-8deg) rotateX(4deg);
+    transition: transform 0.5s ease;
+    box-shadow: 0 40px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05), inset 0 1px 0 rgba(255,255,255,.08);
   }
 
-  .why-grid {
+  .mockup-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 22px; padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .mockup-company { font-weight: 700; font-size: .95rem; }
+  .mockup-card .score-ring { width: 52px; height: 52px; position: relative; }
+  .mockup-card .score-ring svg { transform: rotate(-90deg); }
+  .mockup-card .score-ring-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .88rem;
+  }
+  .mockup-pillars { display: flex; flex-direction: column; gap: 11px; }
+  .pillar-row { display: flex; align-items: center; gap: 12px; font-size: .8rem; }
+  .pillar-label { width: 76px; color: var(--text-secondary, #94a3b8); font-weight: 500; flex-shrink: 0; }
+  .pillar-bar { flex: 1; height: 5px; background: rgba(255,255,255,.07); border-radius: 100px; overflow: hidden; }
+  .pillar-fill {
+    height: 100%; border-radius: 100px;
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 1.2s cubic-bezier(.16,1,.3,1);
+  }
+  .pillar-fill.animate { transform: scaleX(1); }
+  .pillar-score { width: 30px; text-align: right; font-weight: 600; font-size: .78rem; }
+  .mockup-verdict {
+    margin-top: 18px; padding: 12px 14px;
+    background: rgba(249,115,22,.08); border: 1px solid rgba(249,115,22,.22);
+    border-radius: 10px; font-size: .78rem; color: #F97316; font-weight: 500; line-height: 1.55;
+  }
+  .mockup-glow {
+    position: absolute; width: 200px; height: 200px;
+    background: #7B2D8E; border-radius: 50%;
+    filter: blur(80px); opacity: .13;
+    bottom: -80px; right: -60px; pointer-events: none;
+  }
+  .mockup-glow-2 {
+    position: absolute; width: 120px; height: 120px;
+    background: #E8651A; border-radius: 50%;
+    filter: blur(60px); opacity: .1;
+    top: -40px; left: -30px; pointer-events: none;
+  }
+
+  @media (max-width: 900px) {
+    .hero-visual { display: none; }
+  }
+}
+
+/* ─────────────────────────────────────────
+   PAIN GRID (Why Flaynn)
+───────────────────────────────────────── */
+@layer components {
+  .pain-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-8, 64px);
-    margin-bottom: var(--space-8, 64px);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
 
   @media (max-width: 768px) {
-    .why-grid { grid-template-columns: 1fr; gap: var(--space-6, 48px); }
+    .pain-grid { grid-template-columns: 1fr; }
   }
 
-  .why-block__eyebrow {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    display: block;
+  .pain-card {
+    padding: 32px 26px;
+    border-radius: 16px;
+    text-align: left;
+  }
+
+  .pain-stat {
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1;
     margin-bottom: 12px;
+    letter-spacing: -0.04em;
   }
 
-  .why-list {
-    list-style: none;
-    padding: 0;
-    margin-top: var(--space-4, 24px);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  .pain-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 10px;
   }
 
-  .why-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    font-size: 0.9375rem;
+  .pain-desc {
+    font-size: 0.88rem;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.65;
+  }
+}
+
+/* ─────────────────────────────────────────
+   SHOWCASE DASHBOARD DEMO
+───────────────────────────────────────── */
+@layer components {
+  .showcase-frame {
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
   }
 
-  .why-list__icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    flex-shrink: 0;
-    margin-top: 2px;
-    background: rgba(232, 101, 26, 0.1);
-    color: #E8651A;
+  .showcase-toolbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
 
-  .why-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-4, 24px);
-    padding: var(--space-5, 32px);
-    border-radius: 20px;
+  .showcase-dots { display: flex; gap: 6px; }
+  .showcase-dots span { width: 10px; height: 10px; border-radius: 50%; }
+
+  .showcase-url {
+    font-size: 0.7rem; color: var(--text-tertiary); font-family: monospace;
+  }
+
+  .showcase-content { padding: 32px; }
+
+  .showcase-dash-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px; padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .showcase-score-big { display: flex; align-items: baseline; }
+
+  .showcase-score-num {
+    font-size: 2.5rem; font-weight: 700; color: #E8651A;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .showcase-score-max {
+    font-size: 1rem; color: var(--text-tertiary); margin-left: 2px;
+  }
+
+  .showcase-pillars {
+    display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;
+  }
+
+  .showcase-pillar-row { display: flex; align-items: center; gap: 12px; }
+
+  .showcase-pillar-name {
+    width: 80px; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;
+  }
+
+  .showcase-pillar-track {
+    flex: 1; height: 6px;
+    background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden;
+  }
+
+  .showcase-pillar-fill {
+    height: 100%; border-radius: 100px;
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 1.2s cubic-bezier(.16,1,.3,1);
+  }
+  .showcase-pillar-fill.animate { transform: scaleX(1); }
+
+  .showcase-pillar-val {
+    width: 30px; text-align: right; font-weight: 700; font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .showcase-verdict {
+    padding: 16px;
+    background: rgba(123,45,142,0.06); border: 1px solid rgba(123,45,142,0.15);
+    border-radius: 12px; margin-bottom: 16px;
+  }
+
+  .showcase-demo-badge {
+    text-align: center; font-size: 0.7rem; color: var(--text-tertiary);
+    padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px;
+    border: 1px dashed rgba(255,255,255,0.08);
+  }
+
+  @media (max-width: 600px) {
+    .showcase-content { padding: 20px 16px; }
+    .showcase-score-num { font-size: 2rem; }
+  }
+}
+
+/* ─────────────────────────────────────────
+   PRICING MAIN (single card + matching)
+───────────────────────────────────────── */
+@layer components {
+  .pricing-card-main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: var(--space-6);
+    border-radius: 24px;
+    text-align: center;
+    border: 2px solid rgba(123,45,142,0.3);
+  }
+
+  .pricing-matching {
+    max-width: 640px;
+    margin: var(--space-6) auto 0;
+  }
+
+  .pricing-matching__inner {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 20px 24px; border-radius: 16px;
     border: 1px solid rgba(255,255,255,0.06);
     background: rgba(255,255,255,0.02);
   }
 
+  .pricing-matching__icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+
+  .pricing-matching__title {
+    font-weight: 600; font-size: 0.9375rem;
+    color: var(--text-primary); margin-bottom: 4px;
+  }
+
+  .pricing-matching__desc {
+    font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6;
+  }
+
   @media (max-width: 640px) {
-    .why-stats { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  .why-stat { text-align: center; }
-
-  .why-stat__value {
-    display: block;
-    font-size: 2rem;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-  }
-
-  .why-stat__label {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
+    .pricing-card-main { max-width: 100%; }
   }
 }
 
@@ -3378,14 +3562,17 @@
   .section--process { padding: var(--space-8) 0; }
   .section-header { margin-bottom: var(--space-6); }
 
-  /* ARCHITECT-PRIME: hero mobile — flex-start évite que le contenu déborde sous la nav */
   .hero-layout {
     min-height: auto;
+    grid-template-columns: 1fr;
     gap: var(--space-4);
     padding-top: calc(8rem + env(safe-area-inset-top));
     padding-bottom: var(--space-4);
-    justify-content: flex-start;
+    text-align: center;
   }
+  .hero-copy { align-items: center; }
+
+  .section { padding: 60px 0; }
 
   /* ARCHITECT-PRIME: hero actions wrap + CTA sizing on mobile */
   .hero-actions {

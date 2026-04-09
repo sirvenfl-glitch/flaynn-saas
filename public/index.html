@@ -116,159 +116,133 @@
         <!-- HERO -->
         <section class="hero section" aria-labelledby="hero-title">
             <div class="container hero-layout">
-                <div class="hero-orbit" aria-hidden="true">
-                    <span class="hero-orbit__ring hero-orbit__ring--outer"></span>
-                    <span class="hero-orbit__ring hero-orbit__ring--inner"></span>
-                    <span class="hero-orbit__core"></span>
-                </div>
-                <h1 id="hero-title" class="text-display hero__title">
-                    Stop Pitching.<br>
-                    <span class="gradient-text js-morph-text">Start Proving.</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Votre dossier passé au crible par un comité d'analyse propriétaire. Score sur 5 piliers, benchmark marché et verdict en 24h.
-                </p>
-                <div class="hero-actions">
-                    <button type="button" class="btn-primary btn-large btn-gradient" id="btn-hero-cta">
-                        <span>Démarrer mon scoring</span>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <a href="#process" class="btn-ghost btn-ghost--hero">
-                        Voir comment ça marche
-                    </a>
-                </div>
-                <div class="mini-scoring" id="mini-scoring" data-animate-child>
-                    <p class="mini-scoring__hint">&#10022; Testez votre idée gratuitement</p>
-                    <div class="mini-scoring__input-wrap">
-                        <input type="text" id="mini-scoring-input" class="mini-scoring__input"
-                               placeholder="Décrivez votre idée en une phrase..."
-                               maxlength="200" autocomplete="off">
-                        <button type="button" id="mini-scoring-btn" class="btn-primary mini-scoring__btn" disabled>
-                            <span class="mini-scoring__btn-text">Quick Score</span>
-                            <span class="mini-scoring__btn-loader" hidden>
-                                <svg class="mini-scoring__spinner" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" stroke-dasharray="28" stroke-dashoffset="8" stroke-linecap="round"/>
-                                </svg>
-                                Analyse...
-                            </span>
+                <div class="hero-copy">
+                    <h1 id="hero-title" class="text-display hero__title">
+                        Stop Pitching.<br>
+                        <span class="gradient-text js-morph-text">Start Proving.</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Votre dossier passé au crible par un comité d'analyse propriétaire. Score sur 5 piliers, benchmark marché et verdict en 24h.
+                    </p>
+                    <div class="hero-actions">
+                        <button type="button" class="btn-primary btn-large btn-gradient" id="btn-hero-cta">
+                            <span>Démarrer mon scoring</span>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </button>
+                        <a href="#process" class="btn-ghost btn-ghost--hero">
+                            Voir comment ça marche
+                        </a>
                     </div>
-                    <div class="mini-scoring__result" id="mini-scoring-result" hidden>
-                        <div class="mini-scoring__result-header">
-                            <span class="mini-scoring__label">Pré-score Flaynn</span>
-                            <span class="mini-scoring__score" id="mini-score-value">--</span>
+                    <div class="hero-proof" aria-label="Preuves de valeur">
+                        <div class="hero-proof__item">
+                            <span class="hero-proof__kicker">Lecture</span>
+                            <span class="hero-proof__value">Investor-grade</span>
                         </div>
-                        <div class="mini-scoring__bar-track">
-                            <div class="mini-scoring__bar-fill" id="mini-score-bar"></div>
+                        <div class="hero-proof__item">
+                            <span class="hero-proof__kicker">Sortie</span>
+                            <span class="hero-proof__value">Score + synthèse</span>
                         </div>
-                        <p class="mini-scoring__advice" id="mini-score-advice"></p>
-                        <div class="mini-scoring__actions">
-                            <a href="#process" class="btn-ghost mini-scoring__cta-secondary">Comment ça marche</a>
-                            <a href="/scoring/" class="btn-primary btn-gradient mini-scoring__cta-primary">
-                                <span>Scoring complet (29€)</span>
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <div class="hero-proof__item">
+                            <span class="hero-proof__kicker">Signal</span>
+                            <span class="hero-proof__value">Benchmark sectoriel</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="mockup-glow-2"></div>
+                    <div class="mockup-card fade-up" id="mockup">
+                        <div class="mockup-header">
+                            <div>
+                                <div class="mockup-company">Flaynn Technologies</div>
+                                <div style="font-size:.72rem;color:var(--text-tertiary);margin-top:3px">Rapport de scoring - Pré-seed - Beta</div>
+                            </div>
+                            <div class="score-ring">
+                                <svg width="52" height="52" viewBox="0 0 52 52">
+                                    <circle cx="26" cy="26" r="21" stroke="rgba(255,255,255,.07)" stroke-width="4" fill="none"/>
+                                    <circle cx="26" cy="26" r="21" stroke="url(#rg)" stroke-width="4" fill="none" stroke-dasharray="131.9" stroke-dashoffset="84.4" stroke-linecap="round"/>
+                                    <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F97316"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs>
                                 </svg>
-                            </a>
+                                <div class="score-ring-text" style="color:#F97316">36</div>
+                            </div>
                         </div>
+                        <div class="mockup-pillars">
+                            <div class="pillar-row"><span class="pillar-label">Market</span><div class="pillar-bar"><div class="pillar-fill" style="width:72%;background:linear-gradient(90deg,#6B21A8,#9333ea)"></div></div><span class="pillar-score" style="color:#9333ea">7.2</span></div>
+                            <div class="pillar-row"><span class="pillar-label">Product</span><div class="pillar-bar"><div class="pillar-fill" style="width:58%;background:linear-gradient(90deg,#EC4899,#f472b6)"></div></div><span class="pillar-score" style="color:#EC4899">5.8</span></div>
+                            <div class="pillar-row"><span class="pillar-label">Traction</span><div class="pillar-bar"><div class="pillar-fill" style="width:30%;background:linear-gradient(90deg,#F97316,#fb923c)"></div></div><span class="pillar-score" style="color:#F97316">3.0</span></div>
+                            <div class="pillar-row"><span class="pillar-label">Team</span><div class="pillar-bar"><div class="pillar-fill" style="width:65%;background:linear-gradient(90deg,#FACC15,#fde047)"></div></div><span class="pillar-score" style="color:#FACC15">6.5</span></div>
+                            <div class="pillar-row"><span class="pillar-label">Execution</span><div class="pillar-bar"><div class="pillar-fill" style="width:45%;background:linear-gradient(90deg,#06b6d4,#67e8f9)"></div></div><span class="pillar-score" style="color:#67e8f9">4.5</span></div>
+                        </div>
+                        <div class="mockup-verdict">&#9889; Verdict - Traction insuffisante pour le stade déclaré. Market fort. Reformuler l'ask. Potentiel réel : seed 18 mois.</div>
                     </div>
-                </div>
-                <div class="hero-proof" aria-label="Preuves de valeur">
-                    <div class="hero-proof__item">
-                        <span class="hero-proof__kicker">Lecture</span>
-                        <span class="hero-proof__value">Investor-grade</span>
-                    </div>
-                    <div class="hero-proof__item">
-                        <span class="hero-proof__kicker">Sortie</span>
-                        <span class="hero-proof__value">Score + synthèse</span>
-                    </div>
-                    <div class="hero-proof__item">
-                        <span class="hero-proof__kicker">Signal</span>
-                        <span class="hero-proof__value">Benchmark sectoriel</span>
-                    </div>
-                </div>
-                <div class="hero-stats" aria-label="Statistiques clés">
-                    <div class="hero-stat">
-                        <span class="hero-stat__value">5</span>
-                        <span class="hero-stat__label">Piliers d'analyse</span>
-                    </div>
-                    <div class="hero-stat-divider" aria-hidden="true"></div>
-                    <div class="hero-stat">
-                        <span class="hero-stat__value">24h</span>
-                        <span class="hero-stat__label">Délai de réponse</span>
-                    </div>
-                    <div class="hero-stat-divider" aria-hidden="true"></div>
-                    <div class="hero-stat">
-                        <span class="hero-stat__value">&lt; 15%</span>
-                        <span class="hero-stat__label">Taux d'accès réseau</span>
-                    </div>
+                    <div class="mockup-glow"></div>
                 </div>
             </div>
         </section>
 
-        <!-- POURQUOI FLAYNN -->
-        <section class="section section--why" aria-labelledby="why-title" data-animate="reveal">
-            <div class="container">
-                <div class="why-grid" data-animate-child>
-                    <div class="why-block why-block--problem">
-                        <span class="why-block__eyebrow" style="color: #E8651A;">Le problème</span>
-                        <h2 id="why-title" class="heading-section" style="font-size: 1.75rem; max-width: 480px;">
-                            95% des fondateurs lèvent sans savoir s'ils sont prêts.
-                        </h2>
-                        <ul class="why-list">
-                            <li>
-                                <span class="why-list__icon">&#10060;</span>
-                                <span>Vous pitchez à l'aveugle, sans savoir ce que les investisseurs cherchent vraiment</span>
-                            </li>
-                            <li>
-                                <span class="why-list__icon">&#10060;</span>
-                                <span>Votre deck est relu par des proches, pas par un regard objectif de type due diligence</span>
-                            </li>
-                            <li>
-                                <span class="why-list__icon">&#10060;</span>
-                                <span>Vous perdez des mois à courir après des investisseurs qui ne matchent pas votre profil</span>
-                            </li>
-                        </ul>
+        <!-- QUICK SCORING (between hero and sections) -->
+        <div class="container" style="text-align:center; padding: var(--space-8) 0;">
+            <div class="mini-scoring" id="mini-scoring" style="margin: 0 auto;">
+                <p class="mini-scoring__hint">&#10022; Testez votre idée gratuitement</p>
+                <div class="mini-scoring__input-wrap">
+                    <input type="text" id="mini-scoring-input" class="mini-scoring__input"
+                           placeholder="Décrivez votre idée en une phrase..."
+                           maxlength="200" autocomplete="off">
+                    <button type="button" id="mini-scoring-btn" class="btn-primary mini-scoring__btn" disabled>
+                        <span class="mini-scoring__btn-text">Quick Score</span>
+                        <span class="mini-scoring__btn-loader" hidden>
+                            <svg class="mini-scoring__spinner" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" stroke-dasharray="28" stroke-dashoffset="8" stroke-linecap="round"/>
+                            </svg>
+                            Analyse...
+                        </span>
+                    </button>
+                </div>
+                <div class="mini-scoring__result" id="mini-scoring-result" hidden>
+                    <div class="mini-scoring__result-header">
+                        <span class="mini-scoring__label">Pré-score Flaynn</span>
+                        <span class="mini-scoring__score" id="mini-score-value">--</span>
                     </div>
-                    <div class="why-block why-block--solution">
-                        <span class="why-block__eyebrow" style="color: #7B2D8E;">La solution Flaynn</span>
-                        <h3 class="heading-section" style="font-size: 1.75rem; max-width: 480px;">
-                            Un verdict investisseur en 24h. Objectif. Chiffré. Actionnable.
-                        </h3>
-                        <ul class="why-list">
-                            <li>
-                                <span class="why-list__icon" style="background: rgba(123,45,142,0.15); color: #7B2D8E;">&#10003;</span>
-                                <span>Flaynn Intelligence analyse votre startup sur 5 piliers, comme un vrai comité d'investissement</span>
-                            </li>
-                            <li>
-                                <span class="why-list__icon" style="background: rgba(123,45,142,0.15); color: #7B2D8E;">&#10003;</span>
-                                <span>Score /100, benchmark sectoriel, points forts et faiblesses identifiés avant de parler à un investisseur</span>
-                            </li>
-                            <li>
-                                <span class="why-list__icon" style="background: rgba(123,45,142,0.15); color: #7B2D8E;">&#10003;</span>
-                                <span>Si vous passez le filtre (top 15%), on vous connecte directement aux bons investisseurs</span>
-                            </li>
-                        </ul>
+                    <div class="mini-scoring__bar-track">
+                        <div class="mini-scoring__bar-fill" id="mini-score-bar"></div>
+                    </div>
+                    <p class="mini-scoring__advice" id="mini-score-advice"></p>
+                    <div class="mini-scoring__actions">
+                        <a href="#process" class="btn-ghost mini-scoring__cta-secondary">Comment ça marche</a>
+                        <a href="/scoring/" class="btn-primary btn-gradient mini-scoring__cta-primary">
+                            <span>Scoring complet (29€)</span>
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
-                <div class="why-stats" data-animate-child>
-                    <div class="why-stat">
-                        <span class="why-stat__value">&lt; 15%</span>
-                        <span class="why-stat__label">Taux d'acceptation</span>
+            </div>
+        </div>
+
+        <!-- POURQUOI FLAYNN (pain-grid) -->
+        <section class="section section--why" data-animate="reveal">
+            <div class="container">
+                <div class="fade-up" style="text-align: center; max-width: 580px; margin: 0 auto 56px;">
+                    <p class="section-eyebrow" style="color: #E8651A;">Le problème</p>
+                    <h2 class="heading-section">Vous levez dans le noir.</h2>
+                </div>
+                <div class="pain-grid">
+                    <div class="card-glass pain-card fade-up fade-up-delay-1">
+                        <div class="pain-stat" style="color: #E8651A;">80%</div>
+                        <h3 class="pain-title">des decks rejetés en 5 min</h3>
+                        <p class="pain-desc">Sans feedback. Sans explication.</p>
                     </div>
-                    <div class="why-stat">
-                        <span class="why-stat__value">24h</span>
-                        <span class="why-stat__label">Délai de scoring</span>
+                    <div class="card-glass pain-card fade-up fade-up-delay-2">
+                        <div class="pain-stat" style="color: #EC4899;">6-18</div>
+                        <h3 class="pain-title">mois perdus sur une levée bancale</h3>
+                        <p class="pain-desc">Vous découvrez les failles pendant les meetings.</p>
                     </div>
-                    <div class="why-stat">
-                        <span class="why-stat__value">5</span>
-                        <span class="why-stat__label">Piliers d'analyse</span>
-                    </div>
-                    <div class="why-stat">
-                        <span class="why-stat__value">29&#8364;</span>
-                        <span class="why-stat__label">Prix unique, pas d'abonnement</span>
+                    <div class="card-glass pain-card fade-up fade-up-delay-3">
+                        <div class="pain-stat" style="color: #FACC15;">0</div>
+                        <h3 class="pain-title">retour objectif avant de pitcher</h3>
+                        <p class="pain-desc">Votre deck est relu par des proches, pas par un investisseur.</p>
                     </div>
                 </div>
             </div>
@@ -499,6 +473,51 @@
             </div>
         </section>
 
+        <!-- SHOWCASE DASHBOARD DEMO -->
+        <section class="section section--showcase" data-animate="reveal">
+            <div class="container">
+                <header class="section-header section-header--centered fade-up">
+                    <p class="section-eyebrow" style="color: #7B2D8E;">Aperçu du produit</p>
+                    <h2 class="heading-section">Votre scoring, en un coup d'oeil.</h2>
+                    <p class="section-lead section-lead--centered">Chaque fondateur reçoit un tableau de bord complet. Voici ce que ça donne.</p>
+                </header>
+                <div class="showcase-frame fade-up fade-up-delay-1">
+                    <div class="showcase-toolbar">
+                        <div class="showcase-dots">
+                            <span style="background:#ff5f57"></span>
+                            <span style="background:#ffbd2e"></span>
+                            <span style="background:#28c840"></span>
+                        </div>
+                        <span class="showcase-url">flaynn.tech/dashboard</span>
+                    </div>
+                    <div class="showcase-content">
+                        <div class="showcase-dash-header">
+                            <div>
+                                <div style="font-weight:700; font-size:1.1rem;">Bienvenue, Marie</div>
+                                <div style="font-size:0.75rem; color:var(--text-tertiary);">Votre dernier scoring - il y a 2 jours</div>
+                            </div>
+                            <div class="showcase-score-big">
+                                <span class="showcase-score-num">74</span>
+                                <span class="showcase-score-max">/100</span>
+                            </div>
+                        </div>
+                        <div class="showcase-pillars">
+                            <div class="showcase-pillar-row"><span class="showcase-pillar-name">Market</span><div class="showcase-pillar-track"><div class="showcase-pillar-fill pillar-fill" style="width:82%; background:linear-gradient(90deg,#7B2D8E,#9333ea)"></div></div><span class="showcase-pillar-val" style="color:#9333ea">82</span></div>
+                            <div class="showcase-pillar-row"><span class="showcase-pillar-name">Product</span><div class="showcase-pillar-track"><div class="showcase-pillar-fill pillar-fill" style="width:71%; background:linear-gradient(90deg,#EC4899,#f472b6)"></div></div><span class="showcase-pillar-val" style="color:#EC4899">71</span></div>
+                            <div class="showcase-pillar-row"><span class="showcase-pillar-name">Traction</span><div class="showcase-pillar-track"><div class="showcase-pillar-fill pillar-fill" style="width:65%; background:linear-gradient(90deg,#F97316,#fb923c)"></div></div><span class="showcase-pillar-val" style="color:#F97316">65</span></div>
+                            <div class="showcase-pillar-row"><span class="showcase-pillar-name">Team</span><div class="showcase-pillar-track"><div class="showcase-pillar-fill pillar-fill" style="width:88%; background:linear-gradient(90deg,#FACC15,#fde047)"></div></div><span class="showcase-pillar-val" style="color:#FACC15">88</span></div>
+                            <div class="showcase-pillar-row"><span class="showcase-pillar-name">Execution</span><div class="showcase-pillar-track"><div class="showcase-pillar-fill pillar-fill" style="width:60%; background:linear-gradient(90deg,#06b6d4,#67e8f9)"></div></div><span class="showcase-pillar-val" style="color:#67e8f9">60</span></div>
+                        </div>
+                        <div class="showcase-verdict">
+                            <div style="font-weight:600; font-size:0.875rem; margin-bottom:6px;">&#10022; Verdict : Fort potentiel</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary); line-height:1.6;">Équipe solide et marché validé. Renforcer la traction (MRR + clients payants) avant de pitcher. Éligible matching investisseur après re-scoring.</div>
+                        </div>
+                        <div class="showcase-demo-badge">Mode démo - données illustratives</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- SCORING CTA -->
         <section id="scoring-cta" class="section" data-animate="reveal">
             <div class="container" style="text-align: center;">
@@ -577,36 +596,34 @@
             </div>
         </section>
 
-        <!-- PRICING FONDATEURS -->
+        <!-- PRICING -->
         <section id="pricing" class="section" aria-labelledby="pricing-title" data-animate="reveal">
             <div class="container">
-                <header class="section-header section-header--centered" data-animate-child>
-                    <p class="section-eyebrow" style="color: #E8651A;">Tarifs Fondateurs</p>
-                    <h2 id="pricing-title" class="heading-section">Transparent. Sans abonnement.</h2>
-                    <p class="section-lead section-lead--centered">Payez pour la valeur, pas pour l'accès.</p>
+                <header class="section-header section-header--centered fade-up">
+                    <p class="section-eyebrow" style="color: #E8651A;">Tarifs</p>
+                    <h2 id="pricing-title" class="heading-section">Un scoring. Un prix. Zéro surprise.</h2>
                 </header>
-                <div class="pricing-grid" data-animate-child>
-                    <div class="card-glass pricing-card">
-                        <span class="card-label">Scoring</span>
+                <div class="pricing-main fade-up">
+                    <div class="card-glass pricing-card-main">
+                        <span class="card-label">Scoring complet</span>
                         <div class="pricing-price">
                             <span class="pricing-price__amount">29&#8364;</span>
                             <span class="pricing-price__period">unique</span>
                         </div>
-                        <p class="card-body">Rapport complet sur 5 piliers + recommandations actionnables + vérification marché.</p>
-                        <a href="/scoring/" class="btn-ghost btn-large" style="width:100%; text-align:center; margin-top: auto;">Commencer le scoring</a>
-                    </div>
-                    <div class="card-glass pricing-card pricing-card--featured">
-                        <div class="pricing-badge">Recommande</div>
-                        <span class="card-label" style="color: #7B2D8E;">Scoring + Matching</span>
-                        <div class="pricing-price">
-                            <span class="pricing-price__amount">29&#8364;</span>
-                            <span class="pricing-price__period">+ 150&#8364;</span>
-                        </div>
-                        <p class="card-body">Scoring complet + mise en relation avec investisseurs qualifiés alignés à votre profil.</p>
-                        <p class="pricing-guarantee">Flaynn's Guarantee : pas de meeting investisseur en 6 mois = remboursement + recherche continue.</p>
-                        <a href="/scoring/" class="btn-primary btn-large btn-gradient" style="width:100%; text-align:center; margin-top: auto;">
-                            <span>Obtenir le matching &rarr;</span>
+                        <p class="card-body">Rapport détaillé sur 5 piliers, vérification marché, recommandations actionnables et verdict investisseur. Résultats en 24h.</p>
+                        <a href="/scoring/" class="btn-primary btn-large btn-gradient" style="width:100%; text-align:center;">
+                            <span>Démarrer mon scoring &#8594;</span>
                         </a>
+                        <p style="font-size: 0.75rem; color: var(--text-tertiary); text-align: center; margin-top: 12px;">Pas d'abonnement. Pas de frais cachés.</p>
+                    </div>
+                </div>
+                <div class="pricing-matching fade-up fade-up-delay-1">
+                    <div class="pricing-matching__inner">
+                        <div class="pricing-matching__icon">&#127919;</div>
+                        <div>
+                            <p class="pricing-matching__title">Et si vous faites partie des 15% ?</p>
+                            <p class="pricing-matching__desc">Les startups qui passent notre filtre accèdent au matching investisseur (150&#8364;). Mise en relation directe avec des investisseurs alignés à votre profil. <strong style="color: #FACC15;">Flaynn's Guarantee : pas de meeting en 6 mois = remboursement.</strong></p>
+                        </div>
                     </div>
                 </div>
             </div>

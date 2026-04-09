@@ -1156,6 +1156,49 @@ scheduleIdle(() => {
   initLiveScoring();
 });
 
+// FADE-UP SCROLL ANIMATIONS (Apple-style)
+(function(){
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        e.target.querySelectorAll('.pillar-fill').forEach(function(b) { b.classList.add('animate'); });
+      }
+    });
+  }, { threshold: 0.13, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.fade-up').forEach(function(el) { obs.observe(el); });
+})();
+
+// MOCKUP TILT 3D + PARALLAX
+(function(){
+  var hv = document.querySelector('.hero-visual');
+  var mk = document.querySelector('.mockup-card');
+  if (!hv || !mk) return;
+
+  window.addEventListener('scroll', function() {
+    if (window.scrollY < window.innerHeight)
+      hv.style.transform = 'translateY(' + (window.scrollY * 0.1) + 'px)';
+  }, { passive: true });
+
+  hv.addEventListener('mousemove', function(e) {
+    var r = hv.getBoundingClientRect();
+    var dx = (e.clientX - r.left - r.width / 2) / r.width;
+    var dy = (e.clientY - r.top - r.height / 2) / r.height;
+    mk.style.transform = 'rotateY(' + (-8 + dx * 14) + 'deg) rotateX(' + (4 - dy * 10) + 'deg)';
+  });
+
+  hv.addEventListener('mouseleave', function() {
+    mk.style.transform = 'rotateY(-8deg) rotateX(4deg)';
+  });
+})();
+
+// Animate mockup pillar bars on load
+setTimeout(function() {
+  document.querySelectorAll('.mockup-card .pillar-fill').forEach(function(b) {
+    b.classList.add('animate');
+  });
+}, 700);
+
 // PWA: Enregistrement du Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
