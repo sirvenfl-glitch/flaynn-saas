@@ -22,11 +22,12 @@
     /* Texte */
     --text-primary: #f0f0f3;
     --text-secondary: #8b8fa3;
-    --text-tertiary: #4a4e5a;
+    --text-tertiary: #787d8c;
     --text-inverse: #030407;
 
     /* Accents */
     --accent-violet: #7B2D8E;
+    --accent-violet-rgb: 139, 92, 246;
     --accent-rose: #E8651A;
     --accent-amber: #f59e0b;
     --accent-emerald: #10b981;
