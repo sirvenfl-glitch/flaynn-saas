@@ -8,44 +8,51 @@ export const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-export async function initDB(logger) {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        email VARCHAR(254) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        failed_login_attempts INT DEFAULT 0,
-        locked_until TIMESTAMP WITH TIME ZONE,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
+export async function initDB(logger, retries = 5, delay = 3000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          email VARCHAR(254) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          failed_login_attempts INT DEFAULT 0,
+          locked_until TIMESTAMP WITH TIME ZONE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
 
-      CREATE TABLE IF NOT EXISTS scores (
-        reference_id VARCHAR(50) PRIMARY KEY,
-        user_email VARCHAR(254) REFERENCES users(email),
-        startup_name VARCHAR(100),
-        data JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
+        CREATE TABLE IF NOT EXISTS scores (
+          reference_id VARCHAR(50) PRIMARY KEY,
+          user_email VARCHAR(254) REFERENCES users(email),
+          startup_name VARCHAR(100),
+          data JSONB NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
 
-      CREATE TABLE IF NOT EXISTS refresh_tokens (
-        token_hash VARCHAR(128) PRIMARY KEY,
-        user_email VARCHAR(254) NOT NULL REFERENCES users(email) ON DELETE CASCADE,
-        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-        revoked_at TIMESTAMP WITH TIME ZONE,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
+        CREATE TABLE IF NOT EXISTS refresh_tokens (
+          token_hash VARCHAR(128) PRIMARY KEY,
+          user_email VARCHAR(254) NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+          expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+          revoked_at TIMESTAMP WITH TIME ZONE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
 
-      CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_email
-      ON refresh_tokens(user_email);
+        CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_email
+        ON refresh_tokens(user_email);
 
-      CREATE INDEX IF NOT EXISTS idx_scores_user_email
-      ON scores(user_email);
-    `);
-    logger.info('[ARCHITECT-PRIME] PostgreSQL : Tables "users", "scores" et "refresh_tokens" synchronisées et prêtes.');
-  } catch (err) {
-    logger.error(err, '[FATAL] Erreur d\'initialisation PostgreSQL.');
-    throw err;
+        CREATE INDEX IF NOT EXISTS idx_scores_user_email
+        ON scores(user_email);
+      `);
+      logger.info('[ARCHITECT-PRIME] PostgreSQL : Tables "users", "scores" et "refresh_tokens" synchronisées et prêtes.');
+      return;
+    } catch (err) {
+      if (attempt === retries) {
+        logger.error(err, '[FATAL] Erreur d\'initialisation PostgreSQL.');
+        throw err;
+      }
+      logger.warn(`[DB] Tentative ${attempt}/${retries} échouée (${err.code || err.message}), retry dans ${delay / 1000}s...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
   }
 }
