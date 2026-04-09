@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { timingSafeEqual } from 'node:crypto';
 import { pool } from '../config/db.js';
-import { FlaynnError } from '../utils/errors.js';
+
 
 const WebhookPayloadSchema = z.object({
   reference: z.string(),
@@ -59,14 +59,11 @@ export default async function webhookRoutes(fastify) {
 
     const parsed = PdfPayloadSchema.parse(request.body);
 
-    const { rowCount } = await pool.query(
-      `UPDATE scores SET data = jsonb_set(COALESCE(data, '{}'::jsonb), '{pdf_base64}', $1::jsonb) WHERE reference_id = $2`,
-      [JSON.stringify(parsed.pdf_base64), parsed.reference]
+    await pool.query(
+      `INSERT INTO scores (reference_id, data) VALUES ($1, jsonb_build_object('pdf_base64', $2::jsonb))
+       ON CONFLICT (reference_id) DO UPDATE SET data = jsonb_set(COALESCE(scores.data, '{}'::jsonb), '{pdf_base64}', $2::jsonb)`,
+      [parsed.reference, JSON.stringify(parsed.pdf_base64)]
     );
-
-    if (rowCount === 0) {
-      throw new FlaynnError('Reference introuvable', 404, 'NOT_FOUND');
-    }
 
     return reply.code(200).send({ success: true, message: 'PDF stocke avec succes.' });
   });
