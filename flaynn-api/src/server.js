@@ -199,6 +199,7 @@ export const start = async () => {
     // ARCHITECT-PRIME: cache les HTML SPA en mémoire au boot (pas de readFile à chaque requête)
     const dashboardHtml = await readFile(join(siteRoot, 'dashboard/index.html'), 'utf-8');
     const authHtml = await readFile(join(siteRoot, 'auth/index.html'), 'utf-8');
+    const scoringHtml = await readFile(join(siteRoot, 'scoring/index.html'), 'utf-8');
     const scoringSuccesHtml = await readFile(join(siteRoot, 'scoring/succes/index.html'), 'utf-8');
 
     fastify.setNotFoundHandler(async (request, reply) => {

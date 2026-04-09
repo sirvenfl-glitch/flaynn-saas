@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr" style="background:#030407">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Soumettez votre startup au scoring Flaynn : 5 piliers, benchmark marche, verdict en 24h.">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#030407">
+    <meta name="color-scheme" content="dark">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Flaynn">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
+
+    <link rel="canonical" href="https://flaynn.tech/scoring/">
+
+    <title>Scoring startup — Flaynn</title>
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="/manifest.json">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="preload" href="/defaut.css" as="style">
+
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/defaut.css">
+</head>
+<body class="scoring-page-body">
+    <canvas id="canvas-bg" aria-hidden="true"></canvas>
+
+    <!-- Nav simplifiee -->
+    <header class="nav-glass" role="banner">
+        <div class="container nav-content">
+            <a href="/" class="logo-container" aria-label="Flaynn — Accueil">
+                <img src="/icons/logo.png" alt="" width="95" height="95" class="logo-img" aria-hidden="true">
+            </a>
+            <nav role="navigation" aria-label="Navigation" class="nav-links-desktop">
+                <a href="/" class="nav-link">Retour a l'accueil</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="/auth/" class="btn-ghost btn-nav-member" id="nav-auth-guest">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Espace membre
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="scoring-page" id="main-content">
+        <div class="scoring-form-wrap card-glass">
+            <div class="form-shell-intro">
+                <p class="form-shell-intro__eyebrow">Dossier fondateur</p>
+                <p class="form-shell-intro__text">Votre dossier sera analyse par <span class="gradient-text-inline">Flaynn Intelligence</span> sur 5 piliers. Resultats sous 24h.</p>
+            </div>
+            <form id="scoring-form-form" class="scoring-form__form" novalidate>
+                <div class="form-progress" role="status" aria-live="polite" aria-atomic="true">
+                    <div class="form-progress__header">
+                        <span class="form-progress__label">Etape <span id="step-current">0</span> sur 8</span>
+                        <div class="form-progress__steps-dots" aria-hidden="true">
+                            <span class="progress-dot progress-dot--active"></span>
+                            <span class="progress-dot"></span><span class="progress-dot"></span>
+                            <span class="progress-dot"></span><span class="progress-dot"></span>
+                            <span class="progress-dot"></span><span class="progress-dot"></span>
+                            <span class="progress-dot"></span><span class="progress-dot"></span>
+                        </div>
+                    </div>
+                    <div class="form-progress__track" aria-hidden="true">
+                        <div class="form-progress__fill" id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <!-- ETAPE 0 : Reference precedente -->
+                <fieldset class="form-step is-active" data-step="0" id="form-step-0">
+                    <legend class="fieldset-legend">Avant de commencer</legend>
+                    <p class="form-step__intro">Si vous avez deja soumis un dossier, entrez votre reference pour que nous comparions votre progression.</p>
+                    <div class="field">
+                        <label for="previous_ref" class="field__label">Reference scoring precedent <span class="field__label-hint">(optionnel)</span></label>
+                        <input type="text" id="previous_ref" name="previous_ref" class="field__input" placeholder="Ex: FLY-A1B2C3D4 (laissez vide si premiere soumission)" maxlength="50">
+                    </div>
+                    <button type="button" class="btn-form btn-form--next" data-next="1"><span>Commencer le scoring</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                </fieldset>
+
+                <!-- ETAPE 1 : Identite -->
+                <fieldset class="form-step is-hidden" data-step="1" id="form-step-1" hidden>
+                    <legend class="fieldset-legend">Identite</legend>
+                    <div class="field" data-validate="required|min:2|max:100">
+                        <label for="nom_fondateur" class="field__label">Nom complet du fondateur</label>
+                        <input type="text" id="nom_fondateur" name="nom_fondateur" class="field__input" autocomplete="name" required placeholder="Napoleon Bonaparte">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|email">
+                        <label for="email" class="field__label">Email professionnel</label>
+                        <input type="email" id="email" name="email" class="field__input" inputmode="email" autocomplete="email" required placeholder="vous@startup.com">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field field--inline">
+                        <div class="field" data-validate="required|min:2">
+                            <label for="pays" class="field__label">Pays</label>
+                            <input type="text" id="pays" name="pays" class="field__input" required placeholder="France">
+                            <span class="field__error" role="alert"></span>
+                        </div>
+                        <div class="field" data-validate="required|min:2">
+                            <label for="ville" class="field__label">Ville</label>
+                            <input type="text" id="ville" name="ville" class="field__input" required placeholder="Paris">
+                            <span class="field__error" role="alert"></span>
+                        </div>
+                    </div>
+                    <div class="field" data-validate="required|min:2|max:100">
+                        <label for="nom_startup" class="field__label">Nom de la startup</label>
+                        <input type="text" id="nom_startup" name="nom_startup" class="field__input" autocomplete="organization" required placeholder="ex. Flaynn">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="0"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
+                        <button type="button" class="btn-form btn-form--next" data-next="2" disabled><span>Continuer</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                </fieldset>
+
+                <!-- ETAPE 2 : Probleme & Solution -->
+                <fieldset class="form-step is-hidden" data-step="2" id="form-step-2" hidden>
+                    <legend class="fieldset-legend">Probleme & Solution</legend>
+                    <div class="field" data-validate="required|min:10|max:300">
+                        <label for="pitch_une_phrase" class="field__label">En une phrase, que fait votre startup ?</label>
+                        <input type="text" id="pitch_une_phrase" name="pitch_une_phrase" class="field__input" required placeholder="Nous aidons les X a faire Y grace a Z.">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:30|max:2000">
+                        <label for="probleme" class="field__label">Le probleme <span class="field__label-hint">(point de douleur)</span></label>
+                        <textarea id="probleme" name="probleme" class="field__input field__input--textarea" rows="4" required placeholder="Quel probleme resolvez-vous ? Pour qui ?"></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:30|max:2000">
+                        <label for="solution" class="field__label">Comment resolvez-vous ce probleme ?</label>
+                        <textarea id="solution" name="solution" class="field__input field__input--textarea" rows="4" required placeholder="Votre approche, votre technologie, votre difference."></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field field--inline">
+                        <div class="field" data-validate="required">
+                            <label for="secteur" class="field__label">Secteur principal</label>
+                            <div class="field__select-wrap">
+                                <select id="secteur" name="secteur" class="field__input field__input--select" required>
+                                    <option value="" disabled selected>Selectionner</option>
+                                    <option value="fintech">FinTech</option>
+                                    <option value="healthtech">HealthTech</option>
+                                    <option value="saas">SaaS</option>
+                                    <option value="marketplace">Marketplace</option>
+                                    <option value="deeptech">DeepTech</option>
+                                    <option value="greentech">GreenTech</option>
+                                    <option value="edtech">EdTech</option>
+                                    <option value="proptech">PropTech</option>
+                                    <option value="legaltech">LegalTech</option>
+                                    <option value="foodtech">FoodTech</option>
+                                    <option value="other">Autre</option>
+                                </select>
+                            </div>
+                            <span class="field__error" role="alert"></span>
+                        </div>
+                        <div class="field" data-validate="required">
+                            <label for="type_client" class="field__label">Type de client</label>
+                            <div class="field__select-wrap">
+                                <select id="type_client" name="type_client" class="field__input field__input--select" required>
+                                    <option value="" disabled selected>Selectionner</option>
+                                    <option value="b2b">B2B</option>
+                                    <option value="b2c">B2C</option>
+                                    <option value="b2b2c">B2B2C</option>
+                                    <option value="b2g">B2G</option>
+                                    <option value="other">Autre</option>
+                                </select>
+                            </div>
+                            <span class="field__error" role="alert"></span>
+                        </div>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="1"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
+                        <button type="button" class="btn-form btn-form--next" data-next="3" disabled><span>Continuer</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                </fieldset>
+
+                <!-- ETAPE 3 : Marche & Concurrence -->
+                <fieldset class="form-step is-hidden" data-step="3" id="form-step-3" hidden>
+                    <legend class="fieldset-legend">Marche & Concurrence</legend>
+                    <div class="field" data-validate="required">
+                        <label for="tam_usd" class="field__label">TAM (marche total adressable en USD)</label>
+                        <div class="field__select-wrap">
+                            <select id="tam_usd" name="tam_usd" class="field__input field__input--select" required>
+                                <option value="" disabled selected>Selectionner</option>
+                                <option value="<1M">&lt; 1M $</option>
+                                <option value="1M-10M">1M - 10M $</option>
+                                <option value="10M-100M">10M - 100M $</option>
+                                <option value="100M-1B">100M - 1B $</option>
+                                <option value=">1B">&gt; 1B $</option>
+                            </select>
+                        </div>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:5|max:500">
+                        <label for="estimation_tam" class="field__label">Comment avez-vous estime ce chiffre ?</label>
+                        <input type="text" id="estimation_tam" name="estimation_tam" class="field__input" required placeholder="Sources, methodologie...">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:20|max:2000">
+                        <label for="acquisition_clients" class="field__label">Comment acquerez-vous vos clients ?</label>
+                        <textarea id="acquisition_clients" name="acquisition_clients" class="field__input field__input--textarea" rows="3" required placeholder="Canaux d'acquisition, strategie go-to-market..."></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:20|max:2000">
+                        <label for="concurrents" class="field__label">Concurrents et pourquoi vous gagnez</label>
+                        <textarea id="concurrents" name="concurrents" class="field__input field__input--textarea" rows="3" required placeholder="Qui sont vos concurrents ? Quel est votre avantage ?"></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="2"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
+                        <button type="button" class="btn-form btn-form--next" data-next="4" disabled><span>Continuer</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                </fieldset>
+
+                <!-- ETAPE 4 : Traction -->
+                <fieldset class="form-step is-hidden" data-step="4" id="form-step-4" hidden>
+                    <legend class="fieldset-legend">Traction</legend>
+                    <div class="field" data-validate="required">
+                        <label for="stade" class="field__label">Stade de developpement</label>
+                        <div class="field__select-wrap">
+                            <select id="stade" name="stade" class="field__input field__input--select" required>
+                                <option value="" disabled selected>Selectionner</option>
+                                <option value="idea">Idee</option>
+                                <option value="mvp">MVP</option>
+                                <option value="seed">Seed</option>
+                                <option value="serieA">Serie A</option>
+                                <option value="serieB_plus">Serie B+</option>
+                            </select>
+                        </div>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required">
+                        <span class="field__label" id="revenus-label">Generez-vous des revenus ?</span>
+                        <div class="field__chips" role="radiogroup" aria-labelledby="revenus-label">
+                            <button type="button" class="chip" role="radio" aria-checked="false" data-value="oui">Oui</button>
+                            <button type="button" class="chip" role="radio" aria-checked="false" data-value="non">Non</button>
+                        </div>
+                        <input type="hidden" name="revenus" id="revenus" value="" required>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field field--inline" id="revenus-details" hidden>
+                        <div class="field" data-validate="numopt">
+                            <label for="mrr" class="field__label">MRR (EUR)</label>
+                            <input type="text" inputmode="decimal" id="mrr" name="mrr" class="field__input" placeholder="0">
+                            <span class="field__error" role="alert"></span>
+                        </div>
+                        <div class="field" data-validate="numopt">
+                            <label for="clients_payants" class="field__label">Clients payants</label>
+                            <input type="text" inputmode="numeric" id="clients_payants" name="clients_payants" class="field__input" placeholder="0">
+                            <span class="field__error" role="alert"></span>
+                        </div>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="3"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
+                        <button type="button" class="btn-form btn-form--next" data-next="5" disabled><span>Continuer</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                </fieldset>
+
+                <!-- ETAPE 5 : Equipe -->
+                <fieldset class="form-step is-hidden" data-step="5" id="form-step-5" hidden>
+                    <legend class="fieldset-legend">Equipe</legend>
+                    <div class="field" data-validate="required|min:20|max:2000">
+                        <label for="pourquoi_vous" class="field__label">Pourquoi vous ? <span class="field__label-hint">(fondateurs + avantage)</span></label>
+                        <textarea id="pourquoi_vous" name="pourquoi_vous" class="field__input field__input--textarea" rows="4" required placeholder="Parcours des fondateurs, expertise unique, avantage competitif de l'equipe..."></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required">
+                        <span class="field__label" id="equipe-label">Equipe a temps plein ?</span>
+                        <div class="field__chips" role="radiogroup" aria-labelledby="equipe-label">
+                            <button type="button" class="chip" role="radio" aria-checked="false" data-value="oui">Oui</button>
+                            <button type="button" class="chip" role="radio" aria-checked="false" data-value="non">Non</button>
+                        </div>
+                        <input type="hidden" name="equipe_temps_plein" id="equipe_temps_plein" value="" required>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="4"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
+                        <button type="button" class="btn-form btn-form--next" data-next="6" disabled><span>Continuer</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                </fieldset>
+
+                <!-- ETAPE 6 : Vision & Levee -->
+                <fieldset class="form-step is-hidden" data-step="6" id="form-step-6" hidden>
+                    <legend class="fieldset-legend">Vision & Levee</legend>
+                    <div class="field" data-validate="required">
+                        <label for="priorite_6_mois" class="field__label">Priorite des 6 prochains mois</label>
+                        <div class="field__select-wrap">
+                            <select id="priorite_6_mois" name="priorite_6_mois" class="field__input field__input--select" required>
+                                <option value="" disabled selected>Selectionner</option>
+                                <option value="produit">Developpement produit</option>
+                                <option value="croissance">Croissance / acquisition</option>
+                                <option value="recrutement">Recrutement</option>
+                                <option value="levee">Levee de fonds</option>
+                                <option value="rentabilite">Rentabilite</option>
+                                <option value="international">International</option>
+                                <option value="other">Autre</option>
+                            </select>
+                        </div>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:1|max:100">
+                        <label for="montant_leve" class="field__label">Combien souhaitez-vous lever ?</label>
+                        <input type="text" id="montant_leve" name="montant_leve" class="field__input" required placeholder="ex. 500K, 2M...">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:20|max:2000">
+                        <label for="jalons_18_mois" class="field__label">Jalons des 18 prochains mois</label>
+                        <textarea id="jalons_18_mois" name="jalons_18_mois" class="field__input field__input--textarea" rows="3" required placeholder="Objectifs cles a atteindre..."></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:20|max:2000">
+                        <label for="utilisation_fonds" class="field__label">Utilisation des fonds</label>
+                        <textarea id="utilisation_fonds" name="utilisation_fonds" class="field__input field__input--textarea" rows="3" required placeholder="Repartition prevue des fonds leves..."></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:20|max:2000">
+                        <label for="vision_5_ans" class="field__label">Vision a 5 ans</label>
+                        <textarea id="vision_5_ans" name="vision_5_ans" class="field__input field__input--textarea" rows="3" required placeholder="Ou voyez-vous votre startup dans 5 ans ?"></textarea>
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="5"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
+                        <button type="button" class="btn-form btn-form--next" data-next="7" disabled><span>Continuer</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                </fieldset>
+
+                <!-- ETAPE 7 : Documents & Soumission -->
+                <fieldset class="form-step is-hidden" data-step="7" id="form-step-7" hidden>
+                    <legend class="fieldset-legend">Documents</legend>
+                    <div class="field">
+                        <label for="pitch_deck_file" class="field__label">Pitch deck <span class="field__label-hint">(PDF, max 10 MB)</span></label>
+                        <input type="file" id="pitch_deck_file" name="pitch_deck_file" class="field__input field__input--file" accept=".pdf,application/pdf">
+                        <input type="hidden" id="pitch_deck_base64" name="pitch_deck_base64">
+                        <input type="hidden" id="pitch_deck_filename" name="pitch_deck_filename">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field">
+                        <label for="doc_supplementaire_url" class="field__label">Document supplementaire <span class="field__label-hint">(optionnel)</span></label>
+                        <input type="url" id="doc_supplementaire_url" name="doc_supplementaire_url" class="field__input" inputmode="url" placeholder="https://...">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="form-legal-block">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1l1.5 3h3.5l-2.8 2 1 3.5L8 7.5 4.8 9.5l1-3.5L3 4h3.5L8 1z" stroke="var(--text-tertiary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <p class="form-legal">En soumettant, vous acceptez d'etre recontacte au sujet de votre scoring. Vos donnees sont confidentielles et ne sont jamais revendues.</p>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="6"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
+                        <button type="button" class="btn-form btn-form--next" data-next="8"><span>Verifier mon dossier</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                </fieldset>
+
+                <!-- ETAPE 8 : Recapitulatif -->
+                <fieldset class="form-step is-hidden" data-step="8" id="form-step-8" hidden>
+                    <legend class="fieldset-legend">Recapitulatif</legend>
+                    <p class="form-step__intro">Verifiez vos informations avant soumission.</p>
+                    <div id="recap-content" class="recap-grid"></div>
+                    <div class="form-legal-block">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1l1.5 3h3.5l-2.8 2 1 3.5L8 7.5 4.8 9.5l1-3.5L3 4h3.5L8 1z" stroke="var(--text-tertiary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <p class="form-legal">En soumettant, vous acceptez d'etre recontacte au sujet de votre scoring. Vos donnees sont confidentielles et ne sont jamais revendues.</p>
+                    </div>
+                    <div class="form-step-actions">
+                        <button type="button" class="btn-form btn-form--ghost" data-back="7"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Modifier</button>
+                        <button type="submit" class="btn-form btn-form--submit" id="btn-submit">
+                            <span class="btn-form__text">Payer et soumettre &middot; 29&#8364;</span>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8l10 0M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+            <div id="form-success" class="form-success is-hidden" hidden tabindex="-1"></div>
+        </div>
+    </main>
+
+    <div class="footer-bottom" style="padding: var(--space-4) var(--space-5); margin-top: auto;">
+        <p class="footer-copy" style="font-size:0.75rem; color: var(--text-tertiary); text-align:center;">&copy; <span id="footer-year"></span> Flaynn SAS</p>
+    </div>
+
+    <div id="toast-root" class="toast-root" aria-live="assertive"></div>
+
+    <div id="page-transition-overlay" role="status" aria-live="assertive" aria-label="Chargement en cours">
+        <img class="transition-wing" src="/icons/logo.png" alt="" width="48" height="48" aria-hidden="true">
+    </div>
+
+    <script type="module" src="/register-sw.js"></script>
+    <script type="module" src="/script.js"></script>
+    <script type="module" src="/js/transition.js"></script>
+    <script src="/js/starfield.js" defer></script>
+    <script>document.getElementById('footer-year').textContent=String(new Date().getFullYear());</script>
+</body>
+</html>

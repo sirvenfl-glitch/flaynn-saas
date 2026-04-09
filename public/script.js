@@ -667,24 +667,6 @@ async function bootDeferred() {
     initNativeScrollReveal();
   }
 
-  const debugThree = new URLSearchParams(window.location.search).get('debug_three') === '1';
-  /* Three.js : tier 2 = léger (cf. .md), tier 3 = dense */
-  if ((tier >= 2 || debugThree) && !reduced) {
-    try {
-      const { FlaynnNeuralBackground } = await import('./js/three-neural.js');
-      const canvas = document.getElementById('bg-canvas');
-      if (canvas) {
-        const particles = debugThree ? 1200 : tier >= 3 ? 2800 : 600;
-        /* Exposé globalement pour que triggerWarpTransition soit accessible
-           depuis les intercepteurs de navigation ci-dessous.
-           @type {any} — cast intentionnel, propriété custom sur window */
-        /** @type {any} */ (window).globalBg = new FlaynnNeuralBackground(canvas, { particles });
-      }
-    } catch (err) {
-      console.error('[STARFIELD] init failed:', err);
-    }
-  }
-
   const scoringFormSection = document.getElementById('scoring-form');
   const scoringForm =
     scoringFormSection?.querySelector('form') || document.getElementById('scoring-form-form');
@@ -762,16 +744,7 @@ function warpNavigate(targetUrl, e) {
     overlay.classList.add('is-active');
   }
 
-  // ARCHITECT-PRIME: failsafe — si la navigation ne se fait pas en 3s, on force la redirection
-  const failsafe = window.setTimeout(() => { window.location.href = targetUrl; }, 3000);
-
-  const bg = /** @type {any} */ (window).globalBg;
-  if (bg && typeof bg.triggerWarpTransition === 'function') {
-    bg.triggerWarpTransition(targetUrl);
-  } else {
-    clearTimeout(failsafe);
-    window.setTimeout(() => { window.location.href = targetUrl; }, 300);
-  }
+  window.setTimeout(() => { window.location.href = targetUrl; }, 300);
 }
 
 document.addEventListener('click', (e) => {
@@ -783,8 +756,8 @@ document.addEventListener('click', (e) => {
   }
 });
 
-document.getElementById('btn-header-cta')?.addEventListener('click', () => scrollToId('scoring-form'));
-document.getElementById('btn-hero-cta')?.addEventListener('click', () => scrollToId('scoring-form'));
+document.getElementById('btn-header-cta')?.addEventListener('click', () => { window.location.href = '/scoring/'; });
+document.getElementById('btn-hero-cta')?.addEventListener('click', () => { window.location.href = '/scoring/'; });
 
 // —— Collapsing header on scroll ——————————————————————————————————————
 const navGlass = document.querySelector('.nav-glass');
@@ -833,7 +806,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // —— Bottom nav mobile — active section tracking + CTA ———————————————
-document.getElementById('btn-bnav-cta')?.addEventListener('click', () => scrollToId('scoring-form'));
+document.getElementById('btn-bnav-cta')?.addEventListener('click', () => { window.location.href = '/scoring/'; });
 
 // Active link tracking via IntersectionObserver
 (function initBnavTracking() {
