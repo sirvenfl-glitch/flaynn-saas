@@ -32,6 +32,13 @@ export default async function webhookRoutes(fastify) {
 
     const parsed = WebhookPayloadSchema.parse(request.body);
 
+    // Vérifier que la référence existe en DB avant de merger
+    const exists = await pool.query('SELECT 1 FROM scores WHERE reference_id = $1', [parsed.reference]);
+    if (exists.rowCount === 0) {
+      request.log.warn(`[SECOPS] Webhook n8n/score reçu pour référence inexistante: ${parsed.reference}`);
+      return reply.code(404).send({ error: 'NOT_FOUND', message: 'Référence inconnue.' });
+    }
+
     // ARCHITECT-PRIME: force un statut "completed" si n8n n'en fournit pas
     const scoringData = { ...parsed.data, status: parsed.data.status || 'completed' };
 

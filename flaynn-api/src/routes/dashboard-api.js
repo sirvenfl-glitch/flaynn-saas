@@ -16,6 +16,11 @@ function adaptN8nToDashboard(raw, startupName, referenceId, createdAt, previousD
     return raw;
   }
 
+  // Safety: si le scoring est "completed" mais sans données exploitables, traiter comme pending
+  if (raw.status === 'completed' && !raw.score && !raw.overall_score && !raw.score_breakdown) {
+    return { ...raw, status: 'error', error_message: 'Scoring reçu sans données exploitables.' };
+  }
+
   const score = Number(raw.score) || Number(raw.overall_score) || 0;
   const prev = previousData || {};
   const prevScore = Number(prev.score) || Number(prev.overall_score) || score;
@@ -239,6 +244,34 @@ export default async function dashboardApiRoutes(fastify) {
     } catch (err) {
       request.log.error(err);
       return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur serveur.' });
+    }
+  });
+
+  // Route 4 : Statut d'un scoring par référence (pour la page succès, sans auth)
+  // Retourne uniquement le statut, pas les données complètes (sécurité)
+  fastify.get('/api/scoring/status/:ref', {
+    config: { rateLimit: { max: 30, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const ref = request.params.ref;
+    if (!ref || ref.length > 64 || !/^FLY-[A-F0-9]+$/i.test(ref)) {
+      return reply.code(400).send({ error: 'INVALID_REF' });
+    }
+    try {
+      const { rows } = await pool.query(
+        "SELECT data->>'status' as status, startup_name, created_at FROM scores WHERE reference_id = $1",
+        [ref]
+      );
+      if (rows.length === 0) {
+        return reply.code(404).send({ error: 'NOT_FOUND' });
+      }
+      return reply.send({
+        reference: ref,
+        status: rows[0].status || 'unknown',
+        startup_name: rows[0].startup_name,
+      });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'INTERNAL_ERROR' });
     }
   });
 }

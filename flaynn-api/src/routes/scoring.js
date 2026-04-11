@@ -15,16 +15,19 @@ export default async function scoringRoutes(fastify) {
       return reply.code(400).send({ error: 'INVALID_REF' });
     }
     try {
+      // ->> retourne du texte brut (pas du JSON avec guillemets)
       const { rows } = await pool.query(
-        "SELECT COALESCE(data->'pitch_deck_base64', data->'payload'->'pitch_deck_base64') as pdf_b64 FROM scores WHERE reference_id = $1",
+        "SELECT COALESCE(data->>'pitch_deck_base64', data->'payload'->>'pitch_deck_base64') as pdf_b64 FROM scores WHERE reference_id = $1",
         [ref]
       );
       if (rows.length === 0 || !rows[0].pdf_b64) {
         return reply.code(404).send({ error: 'NOT_FOUND' });
       }
-      const b64 = typeof rows[0].pdf_b64 === 'string' ? rows[0].pdf_b64 : JSON.parse(JSON.stringify(rows[0].pdf_b64));
-      const clean = typeof b64 === 'string' ? b64.replace(/^"(.*)"$/, '$1') : String(b64);
-      const pdfBuffer = Buffer.from(clean, 'base64');
+      const pdfBuffer = Buffer.from(rows[0].pdf_b64, 'base64');
+      if (pdfBuffer.length < 100) {
+        request.log.warn(`PDF trop petit pour ref ${ref} (${pdfBuffer.length} bytes)`);
+        return reply.code(404).send({ error: 'INVALID_PDF' });
+      }
       return reply
         .header('Content-Type', 'application/pdf')
         .header('Cache-Control', 'private, max-age=3600')
