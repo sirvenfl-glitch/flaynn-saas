@@ -8,3 +8,8 @@ Thumbs.db
 .vscode/
 *.log
 npm-debug.log*
+
+# Fichiers internes - ne pas committer
+MASTER_AUDIT_REPORT.md
+claude.md
+*.json.bak
