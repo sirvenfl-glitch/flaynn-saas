@@ -10,6 +10,18 @@ const MORPH_PHRASES = [
   'Start Proving.',
 ];
 
+// ARCHITECT-PRIME: Anti copy-paste validation — Jaccard similarity on word sets
+function similarityRatio(a, b) {
+  if (!a || !b) return 0;
+  const normalize = s => s.trim().toLowerCase().replace(/\s+/g, ' ');
+  const na = normalize(a), nb = normalize(b);
+  if (na === nb) return 1;
+  const setA = new Set(na.split(' ')), setB = new Set(nb.split(' '));
+  const intersection = [...setA].filter(w => setB.has(w)).length;
+  const union = new Set([...setA, ...setB]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
 function initMorph(el) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   let i = 0;
@@ -253,6 +265,7 @@ class ScoringFormController {
       btn.addEventListener('click', () => {
         const next = Number(btn.getAttribute('data-next'), 10);
         if (!this.#validateStep(this.currentStep, true)) return;
+        if (!this.#checkSimilarity(this.currentStep)) return;
         this.#goToStep(next);
       });
     });
@@ -327,6 +340,67 @@ class ScoringFormController {
       });
     });
 
+    // ARCHITECT-PRIME: Custom dark dropdowns (unified style, no native OS selects)
+    this.form.querySelectorAll('[data-custom-dropdown]').forEach((dropdown) => {
+      const trigger = dropdown.querySelector('.custom-dropdown__trigger');
+      const textEl = dropdown.querySelector('.custom-dropdown__text');
+      const list = dropdown.querySelector('[role="listbox"]');
+      const hiddenInput = dropdown.parentElement.querySelector('input[type="hidden"]');
+      if (!trigger || !list || !hiddenInput) return;
+      const items = Array.from(list.querySelectorAll('[role="option"]'));
+
+      const open = () => {
+        list.hidden = false;
+        dropdown.setAttribute('aria-expanded', 'true');
+        trigger.setAttribute('aria-expanded', 'true');
+      };
+      const close = () => {
+        list.hidden = true;
+        dropdown.setAttribute('aria-expanded', 'false');
+        trigger.setAttribute('aria-expanded', 'false');
+      };
+
+      trigger.addEventListener('click', () => {
+        if (list.hidden) open(); else close();
+      });
+
+      items.forEach((item) => {
+        item.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          items.forEach(i => i.removeAttribute('aria-selected'));
+          item.setAttribute('aria-selected', 'true');
+          hiddenInput.value = item.dataset.value;
+          if (textEl) textEl.textContent = item.textContent;
+          trigger.setAttribute('data-filled', 'true');
+          close();
+          hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+          this.#updateStepButtons();
+        });
+      });
+
+      trigger.addEventListener('blur', () => { setTimeout(close, 150); });
+
+      trigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { close(); trigger.blur(); }
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (list.hidden) open(); else close();
+        }
+        if (e.key === 'ArrowDown' && !list.hidden) {
+          e.preventDefault();
+          const current = list.querySelector('[aria-selected="true"]');
+          const next = current ? current.nextElementSibling : items[0];
+          if (next) next.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        }
+        if (e.key === 'ArrowUp' && !list.hidden) {
+          e.preventDefault();
+          const current = list.querySelector('[aria-selected="true"]');
+          const prev = current ? current.previousElementSibling : items[items.length - 1];
+          if (prev) prev.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        }
+      });
+    });
+
     // ARCHITECT-PRIME: TAM logarithmic slider
     const tamRange = this.form.querySelector('#tam_range');
     const tamHidden = this.form.querySelector('#tam_usd');
@@ -352,14 +426,48 @@ class ScoringFormController {
       updateTam();
     }
 
+    // ARCHITECT-PRIME: Levée de fonds logarithmic slider (15 stops)
+    const leveeRange = this.form.querySelector('#levee_range');
+    const leveeHidden = this.form.querySelector('#montant_leve');
+    const leveeFloatLabel = this.form.querySelector('#levee-float-label');
+    if (leveeRange && leveeHidden) {
+      const LEVEE_VALUES = ['25K', '50K', '100K', '150K', '250K', '500K', '750K', '1M', '1.5M', '2M', '3M', '5M', '10M', '20M', '50M+'];
+      const LEVEE_LABELS = ['~25K€', '~50K€', '~100K€', '~150K€', '~250K€', '~500K€', '~750K€', '~1M€', '~1,5M€', '~2M€', '~3M€', '~5M€', '~10M€', '~20M€', '~50M€+'];
+
+      const updateLevee = () => {
+        const idx = Number(leveeRange.value);
+        leveeHidden.value = LEVEE_VALUES[idx];
+        leveeRange.setAttribute('aria-valuenow', String(idx));
+        leveeRange.setAttribute('aria-valuetext', LEVEE_LABELS[idx]);
+        if (leveeFloatLabel) {
+          leveeFloatLabel.textContent = LEVEE_LABELS[idx];
+          const pct = (idx / 14) * 100;
+          const clampedPct = Math.max(8, Math.min(92, pct));
+          leveeFloatLabel.style.left = `${clampedPct}%`;
+        }
+        this.#updateStepButtons();
+      };
+      leveeRange.addEventListener('input', updateLevee);
+      updateLevee();
+    }
+
     // Pitch deck file upload — base64 conversion
-    // ARCHITECT-PRIME: Pitch deck upload with format/size validation and preview
+    // ARCHITECT-PRIME: Pitch deck upload — PDF uniquement (requis)
+    const ALLOWED_DECK_TYPES = ['application/pdf'];
+    const ALLOWED_DECK_EXTENSIONS = ['.pdf'];
+    // Extra docs still accept PDF, PPTX, DOCX
     const ALLOWED_DOC_TYPES = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
     const ALLOWED_EXTENSIONS = ['.pdf', '.pptx', '.docx'];
+
+    function isPdfFile(file) {
+      if (ALLOWED_DECK_TYPES.includes(file.type)) return true;
+      const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+      return ALLOWED_DECK_EXTENSIONS.includes(ext);
+    }
 
     function isAllowedFile(file) {
       if (ALLOWED_DOC_TYPES.includes(file.type)) return true;
@@ -397,8 +505,9 @@ class ScoringFormController {
           return;
         }
 
-        if (!isAllowedFile(file)) {
-          if (errEl) errEl.textContent = 'Format accepté : PDF, PPTX ou DOCX.';
+        if (!isPdfFile(file)) {
+          if (errEl) errEl.textContent = 'Le pitch deck doit être au format PDF.';
+          fileInput.closest('.field')?.classList.add('field--error');
           fileInput.value = '';
           return;
         }
@@ -410,6 +519,8 @@ class ScoringFormController {
         }
 
         if (errEl) errEl.textContent = '';
+        fileInput.closest('.field')?.classList.remove('field--error');
+        fileInput.closest('.field')?.classList.add('field--valid');
         if (preview) {
           const iconEl = preview.querySelector('.file-preview__icon');
           const nameEl = preview.querySelector('.file-preview__name');
@@ -423,6 +534,7 @@ class ScoringFormController {
           const base64 = reader.result.split(',')[1];
           if (b64Input) b64Input.value = base64;
           if (nameInput) nameInput.value = file.name;
+          this.#updateStepButtons();
         };
         reader.readAsDataURL(file);
       });
@@ -572,7 +684,7 @@ class ScoringFormController {
   #validateField(input, showError, skipButtonUpdate = false) {
     const field = input.closest('.field');
     if (!field || !field.dataset.validate) return true;
-    if (input.type === 'hidden' && input.id !== 'stage' && input.id !== 'secteur' && input.id !== 'tam_usd') return true;
+    if (input.type === 'hidden' && !['stage', 'secteur', 'tam_usd', 'type_client', 'stade', 'montant_leve', 'revenus', 'equipe_temps_plein'].includes(input.id)) return true;
     const rules = field.dataset.validate.split('|');
     const value = input.value.trim();
     let error = '';
@@ -641,6 +753,39 @@ class ScoringFormController {
       if (!this.#validateField(input, showError, true)) ok = false;
     });
     return ok;
+  }
+
+  // ARCHITECT-PRIME: Anti copy-paste — block if two textareas on same step are >= 80% similar
+  #checkSimilarity(step) {
+    const container = this.form.querySelector(`.form-step[data-step="${step}"]`);
+    if (!container) return true;
+    const textareas = Array.from(container.querySelectorAll('textarea'));
+    if (textareas.length < 2) return true;
+
+    // Clear previous similarity errors
+    textareas.forEach((ta) => {
+      const errEl = ta.closest('.field')?.querySelector('.field__error');
+      if (errEl && errEl.textContent === 'Cette réponse ressemble trop à une autre. Développez votre réponse.') {
+        errEl.textContent = '';
+        ta.closest('.field')?.classList.remove('field--error');
+      }
+    });
+
+    for (let i = 0; i < textareas.length; i++) {
+      for (let j = i + 1; j < textareas.length; j++) {
+        const ratio = similarityRatio(textareas[i].value, textareas[j].value);
+        if (ratio >= 0.8) {
+          const field = textareas[j].closest('.field');
+          if (field) {
+            field.classList.add('field--error');
+            const errEl = field.querySelector('.field__error');
+            if (errEl) errEl.textContent = 'Cette réponse ressemble trop à une autre. Développez votre réponse.';
+          }
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   #updateStepButtons() {
@@ -959,27 +1104,7 @@ document.getElementById('footer-year').textContent = String(new Date().getFullYe
 document.documentElement.style.overflow = '';
 document.body.style.overflow = '';
 
-// ARCHITECT-PRIME: Reset overlay si bloqué d'une navigation précédente
-// setTimeout(0) pour s'exécuter APRÈS transition.js (les deux sont type=module,
-// mais transition.js peut appeler animateIn() qui re-set is-active)
-setTimeout(() => {
-  const _overlay = document.getElementById('page-transition-overlay');
-  if (_overlay && _overlay.classList.contains('is-active')) {
-    // Si l'overlay est encore active 50ms après le parse de tous les modules,
-    // c'est qu'une transition est en cours — on laisse le failsafe de transition.js gérer.
-    // Mais on force quand même après 1.5s au cas où.
-    setTimeout(() => {
-      if (_overlay.classList.contains('is-active')) {
-        _overlay.classList.remove('is-active');
-        _overlay.style.clipPath = 'circle(0% at 50% 50%)';
-        const _content = document.querySelector('main') || document.body;
-        _content.style.opacity = '';
-        _content.style.transform = '';
-        _content.style.filter = '';
-      }
-    }, 1500);
-  }
-}, 0);
+// ARCHITECT-PRIME: View Transition removed — wormhole only (starfield.js)
 
 /* —— Nav auth state : Espace membre (invité) ou Prénom (connecté) — */
 (function updateNavAuth() {
@@ -1039,7 +1164,7 @@ if (navGlass) {
   onScroll();
 }
 
-// ARCHITECT-PRIME: View Transition API removed — global transition handled by js/transition.js
+// ARCHITECT-PRIME: Logo transition removed — wormhole starfield only
 
 // —— Nav mobile ——————————————————————————————————————————————————————
 function openMobileMenu() {

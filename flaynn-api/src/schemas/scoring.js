@@ -30,17 +30,15 @@ export const ScoreSubmissionSchema = z.object({
   clients_payants: z.number().int().nonnegative().max(1_000_000).optional(),
   pourquoi_vous: z.string().trim().min(20).max(2000),
   equipe_temps_plein: z.enum(['oui', 'non']),
-  priorite_6_mois: z.enum([
-    'produit', 'croissance', 'recrutement', 'levee', 'rentabilite', 'international', 'other'
-  ]),
-  montant_leve: z.string().trim().min(1).max(100),
+  priorite_6_mois: z.string().trim().min(20).max(1000),
+  montant_leve: z.enum(['25K', '50K', '100K', '150K', '250K', '500K', '750K', '1M', '1.5M', '2M', '3M', '5M', '10M', '20M', '50M+']),
   jalons_18_mois: z.string().trim().min(20).max(2000),
   utilisation_fonds: z.string().trim().min(20).max(2000),
   vision_5_ans: z.string().trim().min(20).max(2000),
   autres_informations: z.string().trim().max(3000).optional(),
   linkedin_url: z.string().url().max(500).optional(),
   site_url: z.string().url().max(500).optional(),
-  pitch_deck_base64: z.string().max(15_000_000).optional(),
-  pitch_deck_filename: z.string().max(200).optional(),
+  pitch_deck_base64: z.string().min(1).max(15_000_000),
+  pitch_deck_filename: z.string().max(200).regex(/\.pdf$/i, 'Le pitch deck doit être au format PDF.'),
   doc_supplementaire_url: z.string().url().max(500).optional(),
 }).strip();

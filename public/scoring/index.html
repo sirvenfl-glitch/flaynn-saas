@@ -179,16 +179,20 @@
                         </div>
                         <div class="field" data-validate="required">
                             <label for="type_client" class="field__label">Type de client</label>
-                            <div class="field__select-wrap">
-                                <select id="type_client" name="type_client" class="field__input field__input--select" required>
-                                    <option value="" disabled selected>Sélectionner</option>
-                                    <option value="b2b">B2B</option>
-                                    <option value="b2c">B2C</option>
-                                    <option value="b2b2c">B2B2C</option>
-                                    <option value="b2g">B2G</option>
-                                    <option value="other">Autre</option>
-                                </select>
+                            <div class="custom-dropdown" data-custom-dropdown aria-expanded="false">
+                                <button type="button" class="custom-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="type_client-list">
+                                    <span class="custom-dropdown__text">Sélectionner</span>
+                                    <svg class="custom-dropdown__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11L3 6h10l-5 5z"/></svg>
+                                </button>
+                                <ul id="type_client-list" class="custom-dropdown__list" role="listbox" hidden>
+                                    <li class="custom-dropdown__item" role="option" data-value="b2b">B2B</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="b2c">B2C</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="b2b2c">B2B2C</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="b2g">B2G</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="other">Autre</li>
+                                </ul>
                             </div>
+                            <input type="hidden" id="type_client" name="type_client" required>
                             <span class="field__error" role="alert"></span>
                         </div>
                     </div>
@@ -251,17 +255,21 @@
                     <legend class="fieldset-legend">Traction</legend>
                     <div class="field" data-validate="required">
                         <label for="stade" class="field__label">Stade de développement</label>
-                        <div class="field__select-wrap">
-                            <select id="stade" name="stade" class="field__input field__input--select" required>
-                                <option value="" disabled selected>Sélectionner</option>
-                                <option value="idea">Idée</option>
-                                <option value="pre-seed">Pré-seed</option>
-                                <option value="mvp">MVP</option>
-                                <option value="seed">Seed</option>
-                                <option value="serieA">Série A</option>
-                                <option value="serieB_plus">Série B+</option>
-                            </select>
+                        <div class="custom-dropdown" data-custom-dropdown aria-expanded="false">
+                            <button type="button" class="custom-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="stade-list">
+                                <span class="custom-dropdown__text">Sélectionner</span>
+                                <svg class="custom-dropdown__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11L3 6h10l-5 5z"/></svg>
+                            </button>
+                            <ul id="stade-list" class="custom-dropdown__list" role="listbox" hidden>
+                                <li class="custom-dropdown__item" role="option" data-value="idea">Idée</li>
+                                <li class="custom-dropdown__item" role="option" data-value="pre-seed">Pré-seed</li>
+                                <li class="custom-dropdown__item" role="option" data-value="mvp">MVP</li>
+                                <li class="custom-dropdown__item" role="option" data-value="seed">Seed</li>
+                                <li class="custom-dropdown__item" role="option" data-value="serieA">Série A</li>
+                                <li class="custom-dropdown__item" role="option" data-value="serieB_plus">Série B+</li>
+                            </ul>
                         </div>
+                        <input type="hidden" id="stade" name="stade" required>
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="field" data-validate="required">
@@ -317,25 +325,29 @@
                 <!-- ETAPE 6 : Vision & Levée -->
                 <fieldset class="form-step is-hidden" data-step="6" id="form-step-6" hidden>
                     <legend class="fieldset-legend">Vision & Levée</legend>
-                    <div class="field" data-validate="required">
+                    <div class="field" data-validate="required|min:20|max:1000">
                         <label for="priorite_6_mois" class="field__label">Priorité des 6 prochains mois</label>
-                        <div class="field__select-wrap">
-                            <select id="priorite_6_mois" name="priorite_6_mois" class="field__input field__input--select" required>
-                                <option value="" disabled selected>Sélectionner</option>
-                                <option value="produit">Développement produit</option>
-                                <option value="croissance">Croissance / acquisition</option>
-                                <option value="recrutement">Recrutement</option>
-                                <option value="levee">Levée de fonds</option>
-                                <option value="rentabilite">Rentabilité</option>
-                                <option value="international">International</option>
-                                <option value="other">Autre</option>
-                            </select>
-                        </div>
+                        <textarea id="priorite_6_mois" name="priorite_6_mois" class="field__input field__input--textarea" rows="3" required placeholder="Ex: finaliser le produit d'ici juin, atteindre 10 clients payants, recruter un CTO, lancer la campagne de levée de fonds Series A..."></textarea>
                         <span class="field__error" role="alert"></span>
                     </div>
-                    <div class="field" data-validate="required|min:1|max:100">
-                        <label for="montant_leve" class="field__label">Combien souhaitez-vous lever ?</label>
-                        <input type="text" id="montant_leve" name="montant_leve" class="field__input" required placeholder="ex. 500K, 2M...">
+                    <div class="field" data-validate="required">
+                        <label for="levee_range" class="field__label">Combien souhaitez-vous lever ?</label>
+                        <div class="tam-slider" data-levee-slider>
+                            <div class="tam-slider__track-wrap">
+                                <span class="tam-slider__float-label" id="levee-float-label">~25K€</span>
+                                <input type="range" id="levee_range" class="tam-slider__input" min="0" max="14" step="1" value="0" aria-valuenow="0" aria-valuetext="~25K€">
+                            </div>
+                            <div class="tam-slider__legend" aria-hidden="true">
+                                <span class="tam-slider__tick" style="left:0%">25K</span>
+                                <span class="tam-slider__tick" style="left:21%">150K</span>
+                                <span class="tam-slider__tick" style="left:36%">500K</span>
+                                <span class="tam-slider__tick" style="left:50%">1M</span>
+                                <span class="tam-slider__tick" style="left:79%">5M</span>
+                                <span class="tam-slider__tick" style="left:93%">20M</span>
+                                <span class="tam-slider__tick" style="left:100%">50M+</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="montant_leve" name="montant_leve" value="25K" required>
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="field" data-validate="required|min:20|max:2000">
@@ -368,10 +380,10 @@
                 <fieldset class="form-step is-hidden" data-step="7" id="form-step-7" hidden>
                     <legend class="fieldset-legend">Documents & Liens</legend>
 
-                    <!-- Bloc 1 : Pitch deck -->
-                    <div class="field">
-                        <label for="pitch_deck_file" class="field__label">Pitch deck <span class="field__label-hint">(PDF, PPTX ou DOCX — max 25 MB)</span></label>
-                        <input type="file" id="pitch_deck_file" name="pitch_deck_file" class="field__input field__input--file" accept=".pdf,.pptx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                    <!-- Bloc 1 : Pitch deck (REQUIS, PDF uniquement) -->
+                    <div class="field" data-validate="required">
+                        <label for="pitch_deck_file" class="field__label">Pitch deck <span class="field__label-hint">(PDF uniquement — max 25 MB)</span></label>
+                        <input type="file" id="pitch_deck_file" name="pitch_deck_file" class="field__input field__input--file" accept=".pdf" required>
                         <div class="file-preview" id="pitch-deck-preview" hidden>
                             <span class="file-preview__icon" aria-hidden="true"></span>
                             <span class="file-preview__name"></span>
@@ -448,63 +460,51 @@
 
     <div id="toast-root" class="toast-root" aria-live="assertive"></div>
 
-    <div id="page-transition-overlay" role="status" aria-live="assertive" aria-label="Chargement en cours">
-        <img class="transition-wing" src="/icons/logo.png" alt="" width="80" height="80" style="width:80px;height:auto;" aria-hidden="true">
+    <div id="page-loader" aria-hidden="true">
+        <canvas id="loader-starfield"></canvas>
+        <img src="/icons/icon-192.png" alt="" class="loader-icon" width="48" height="48">
     </div>
 
     <script type="module" src="/register-sw.js"></script>
     <script type="module" src="/script.js"></script>
-    <script type="module" src="/js/transition.js"></script>
     <script src="/js/starfield.js" defer></script>
     <script>document.getElementById('footer-year').textContent=String(new Date().getFullYear());</script>
+    <script>(function(){var loader=document.getElementById('page-loader');if(!loader)return;var canvas=document.getElementById('loader-starfield');var ctx=canvas.getContext('2d');var stars=[];var raf;function initStars(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;stars=Array.from({length:120},function(){return{x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.2+0.3,speed:Math.random()*0.4+0.1,opacity:Math.random()*0.7+0.3}});}function drawStars(){ctx.clearRect(0,0,canvas.width,canvas.height);stars.forEach(function(s){ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+s.opacity+')';ctx.fill();s.y+=s.speed;if(s.y>canvas.height){s.y=0;s.x=Math.random()*canvas.width;}});raf=requestAnimationFrame(drawStars);}document.addEventListener('click',function(e){var link=e.target.closest('a[href]');if(!link)return;var href=link.getAttribute('href');if(!href||href.startsWith('#')||href.startsWith('http')||href.startsWith('mailto')||link.target==='_blank')return;var timer=setTimeout(function(){initStars();drawStars();loader.classList.add('visible');},300);window.addEventListener('beforeunload',function(){clearTimeout(timer);},{once:true});});window.addEventListener('pageshow',function(){loader.classList.remove('visible');cancelAnimationFrame(raf);});})()</script>
 </body>
 </html>
 <!--
 SYNC N8N — NE PAS SUPPRIMER
-Champs modifiés dans cette session (à répercuter manuellement dans le prompt Claude
-du nœud Scoring du workflow n8n avant toute mise en prod) :
+Champs modifiés dans cette session (à répercuter dans le prompt Claude
+du nœud Scoring du workflow n8n avant mise en prod) :
 
-SECTEUR (modifié) :
-  - Type : searchable dropdown → hidden input
-  - Valeurs ajoutées : mobility_logistics, media_entertainment, hr_recruiting, cybersecurity,
-    insurtech, biotech, agritech, social_impact, ai_ml_native, web3_blockchain, space_defense
-  - Total : 22 secteurs (z.enum)
+PRIORITE_6_MOIS (modifié) :
+  - Ancien type : select (z.enum 7 valeurs)
+  - Nouveau type : textarea libre, z.string().min(20).max(1000)
+  - Le prompt n8n doit traiter ce champ comme texte libre, pas comme enum
 
-STADE (modifié) :
-  - Valeur ajoutée : pre-seed (entre idea et mvp)
-  - Total : 6 stades (z.enum)
+MONTANT_LEVE (modifié) :
+  - Ancien type : input text libre, z.string().min(1).max(100)
+  - Nouveau type : slider logarithmique 15 stops → hidden input string
+  - Valeurs : z.enum(["25K","50K","100K","150K","250K","500K","750K",
+    "1M","1.5M","2M","3M","5M","10M","20M","50M+"])
 
-TAM_USD (modifié) :
-  - Ancien type : select avec ranges (<1M, 1M-10M, etc.)
-  - Nouveau type : slider logarithmique → hidden input string
-  - Nouvelles valeurs : 100K, 500K, 1M, 5M, 10M, 50M, 100M, 500M, 1B, 5B, 10B (z.enum)
+PITCH_DECK (modifié) :
+  - Statut : OPTIONNEL → REQUIS
+  - Format : PDF uniquement (anciennement PDF + PPTX + DOCX)
+  - pitch_deck_base64 : z.string().min(1).max(15_000_000) (plus .optional())
+  - pitch_deck_filename : z.string().max(200).regex(/\.pdf$/i) (plus .optional())
 
-ESTIMATION_TAM (modifié) :
-  - Ancien type : input text, min:5
-  - Nouveau type : textarea, min:20, max:2000
+TYPE_CLIENT (modifié UI) :
+  - Ancien : <select> natif OS
+  - Nouveau : custom dropdown dark (mêmes valeurs z.enum inchangées)
 
-MOAT (ajouté) :
-  - Nouveau champ textarea, requis, min:20, max:2000
-  - Label : "Barrières à l'entrée (moat)"
+STADE (modifié UI) :
+  - Ancien : <select> natif OS
+  - Nouveau : custom dropdown dark (mêmes valeurs z.enum inchangées)
 
-AUTRES_INFORMATIONS (ajouté) :
-  - Nouveau champ textarea, optionnel, max:3000
-  - Label : "Informations complémentaires"
-
-LINKEDIN_URL (ajouté) :
-  - Nouveau champ URL, optionnel, z.string().url().max(500)
-
-SITE_URL (ajouté) :
-  - Nouveau champ URL, optionnel, z.string().url().max(500)
-
-CHAMPS TEXTAREA — min relevé à 20 :
-  - probleme, solution, acquisition_clients, concurrents, pourquoi_vous,
-    jalons_18_mois, utilisation_fonds, vision_5_ans
-
-DOC_SUPPLEMENTAIRE_URL :
-  - Toujours présent dans le schéma, mais déplacé dans la section Liens (step 7)
-
-PITCH_DECK_FILE :
-  - Formats étendus : PDF + PPTX + DOCX (anciennement PDF seul)
-  - Taille max : 25 MB (anciennement 10 MB)
+SECTEUR : déjà requis (inchangé)
+MRR : reste optionnel (inchangé)
+CLIENTS_PAYANTS : reste optionnel (inchangé)
+LINKEDIN_URL : reste optionnel (inchangé)
+SITE_URL : reste optionnel (inchangé)
 -->

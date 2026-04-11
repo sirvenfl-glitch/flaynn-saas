@@ -11,7 +11,6 @@ const PRECACHE_URLS = [
   '/favicon.svg',
   '/defaut.css',
   '/script.js',
-  '/js/transition.js',
   '/js/landing-motion.js',
   '/js/starfield.js',
   '/js/mini-score.js',

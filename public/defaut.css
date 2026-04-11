@@ -406,8 +406,7 @@
   body > footer,
   body > nav,
   body > .skip-link,
-  body > #toast-root,
-  body > #page-transition-overlay {
+  body > #toast-root {
     position: relative;
     z-index: 1;
   }
@@ -2047,6 +2046,98 @@
     background-position: right var(--space-3) center;
     padding-right: var(--space-8);
     cursor: pointer;
+    color-scheme: dark;
+  }
+
+  .field__input--select option {
+    background: var(--surface-overlay);
+    color: var(--text-primary);
+  }
+
+  /* Custom dark dropdown (replaces native selects) */
+  .custom-dropdown {
+    position: relative;
+  }
+
+  .custom-dropdown__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: var(--surface-raised);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-secondary);
+    font-size: max(16px, 0.875rem);
+    font-family: var(--font-body);
+    min-height: 44px;
+    cursor: pointer;
+    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    text-align: left;
+  }
+
+  .custom-dropdown__trigger[data-filled="true"] {
+    color: var(--text-primary);
+  }
+
+  .custom-dropdown__trigger:focus-visible {
+    outline: 2px solid var(--accent-violet);
+    outline-offset: 3px;
+  }
+
+  .custom-dropdown__trigger:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .custom-dropdown__arrow {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    fill: var(--text-tertiary);
+    transition: transform var(--duration-fast) ease;
+  }
+
+  .custom-dropdown[aria-expanded="true"] .custom-dropdown__arrow {
+    transform: rotate(180deg);
+  }
+
+  .custom-dropdown__list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--surface-overlay);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-elevated);
+    z-index: 50;
+    list-style: none;
+    padding: var(--space-1) 0;
+  }
+
+  .custom-dropdown__item {
+    padding: var(--space-2) var(--space-4);
+    font-size: max(16px, 0.875rem);
+    color: var(--text-secondary);
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+  }
+
+  .custom-dropdown__item:hover,
+  .custom-dropdown__item:focus-visible {
+    background: rgba(139, 92, 246, 0.12);
+    color: var(--text-primary);
+  }
+
+  .custom-dropdown__item[aria-selected="true"] {
+    color: var(--text-primary);
+    background: rgba(139, 92, 246, 0.08);
   }
 
   .field__input--file {
@@ -2799,40 +2890,45 @@
     border: 1px solid var(--border-subtle);
   }
 
-  /* —— ARCHITECT-PRIME: "The Void Shutter" page transition —— */
-  #page-transition-overlay {
+  /* —— Page Loader (conditionnel, > 300ms) —— */
+  #page-loader {
     position: fixed;
     inset: 0;
-    z-index: 9999;
+    background: #05060a;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--surface-void, #030407);
-    clip-path: circle(0% at 50% 50%);
-    pointer-events: none;
-    will-change: clip-path;
-  }
-
-  #page-transition-overlay.is-active {
-    pointer-events: auto;
-    /* FAILSAFE CSS: si le JS ne retire pas is-active,
-       on force pointer-events:none après 1.5s via animation */
-    animation: overlay-safety-release 0s 1.5s forwards;
-  }
-
-  @keyframes overlay-safety-release {
-    to {
-      pointer-events: none;
-      opacity: 0;
-    }
-  }
-
-  /* ARCHITECT-PRIME: Flaynn wing SVG — invisible par défaut, animée par JS */
-  .transition-wing {
+    z-index: 9999;
     opacity: 0;
-    transform: scale(0.7);
-    filter: drop-shadow(0 0 0px rgba(232, 101, 26, 0));
-    will-change: opacity, transform, filter;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+
+  #page-loader.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  #loader-starfield {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .loader-icon {
+    position: relative;
+    z-index: 1;
+    animation: loader-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes loader-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.92); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .loader-icon { animation: none; }
   }
 
   /* —— Modales (Glassmorphism) —— */
