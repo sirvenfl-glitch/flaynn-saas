@@ -702,6 +702,7 @@ class ScoringFormController {
   #validateField(input, showError, skipButtonUpdate = false) {
     const field = input.closest('.field');
     if (!field || !field.dataset.validate) return true;
+    if (field.hidden) return true;
     if (input.type === 'hidden' && !['stage', 'secteur', 'tam_usd', 'type_client', 'stade', 'montant_leve', 'revenus', 'equipe_temps_plein'].includes(input.id)) return true;
     const rules = field.dataset.validate.split('|');
     const value = input.value.trim();
@@ -756,8 +757,11 @@ class ScoringFormController {
     if (!container) return false;
     let ok = true;
     container.querySelectorAll('.field__input, input[type="hidden"]').forEach((input) => {
+      // Skip inputs inside a hidden parent field (e.g. secteur_autre when secteur !== 'other')
+      const field = input.closest('.field');
+      if (field && field.hidden) return;
+
       if (input.type === 'hidden') {
-        const field = input.closest('.field');
         if (field && field.dataset.validate?.includes('required') && !input.value.trim()) {
           ok = false;
           if (showError) {
