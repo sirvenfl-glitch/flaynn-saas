@@ -49,6 +49,8 @@ export default async function scoringRoutes(fastify) {
   });
 
   // Servir le pitch deck PDF stocke en base pour Mistral OCR
+  const OCR_BYPASS_TOKEN = process.env.OCR_BYPASS_TOKEN || 'flaynn-ocr-secret-2026';
+
   fastify.get('/api/decks/:ref', {
     config: { rateLimit: { max: 20, timeWindow: '1 minute' } }
   }, async (request, reply) => {
@@ -56,6 +58,13 @@ export default async function scoringRoutes(fastify) {
     if (!ref || ref.length > 64) {
       return reply.code(400).send({ error: 'INVALID_REF' });
     }
+
+    // ARCHITECT-PRIME: bypass auth pour les appels OCR internes (n8n/Mistral)
+    const isOcrBypass = request.query.ocr_token === OCR_BYPASS_TOKEN;
+    if (!isOcrBypass) {
+      return reply.code(403).send({ error: 'FORBIDDEN', message: 'Token OCR invalide ou manquant.' });
+    }
+
     try {
       // ->> retourne du texte brut (pas du JSON avec guillemets)
       const { rows } = await pool.query(
