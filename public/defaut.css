@@ -3343,11 +3343,30 @@
 
   @media (max-width: 399px) {
     .scoring-page {
-      padding: 100px 16px 40px;
+      padding: 90px 12px 40px;
     }
 
     .scoring-page .scoring-form-wrap {
-      padding: var(--space-4) var(--space-3);
+      padding: var(--space-5) var(--space-4);
+      border-radius: 16px;
+    }
+
+    .scoring-page .form-step {
+      gap: var(--space-4);
+    }
+
+    .scoring-page .fieldset-legend {
+      font-size: 1.1rem;
+    }
+
+    .scoring-page .btn-form {
+      min-height: 48px;
+      padding: var(--space-3) var(--space-4);
+      font-size: 0.9375rem;
+    }
+
+    .scoring-page .form-step-actions {
+      gap: var(--space-2);
     }
 
     .tam-slider__legend {
@@ -3365,7 +3384,11 @@
 
   @media (min-width: 400px) and (max-width: 767px) {
     .scoring-page {
-      padding: 110px 20px 48px;
+      padding: 100px 16px 48px;
+    }
+
+    .scoring-page .scoring-form-wrap {
+      padding: var(--space-5);
     }
   }
 
@@ -4363,6 +4386,7 @@
 }
 
 /* Petit mobile (< 400px) — compacter sans casser le layout */
+@layer utilities {
 @media (max-width: 399px) {
   .container { padding: 0 var(--space-4); }
   .section { padding: var(--space-8) 0; }
@@ -4383,6 +4407,7 @@
   .hero-stat-divider { display: none; }
 
   .scoring-form-wrap { padding: var(--space-5) var(--space-3); }
+}
 }
 
 /* ─────────────────────────────────────────
