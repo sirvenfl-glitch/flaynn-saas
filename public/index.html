@@ -273,11 +273,11 @@
         <!-- POURQUOI FLAYNN (pain carousel) -->
         <section class="section section--why" data-animate="reveal">
             <div class="container">
-                <div class="fade-up" style="text-align: center; max-width: 580px; margin: 0 auto 56px;">
+                <div data-animate-child style="text-align: center; max-width: 580px; margin: 0 auto 56px;">
                     <p class="section-eyebrow" style="color: #E8651A;">Le problème</p>
                     <h2 class="heading-section">Vous levez dans le noir.</h2>
                 </div>
-                <div class="pain-carousel fade-up" aria-roledescription="carousel" aria-label="Problèmes rencontrés par les fondateurs">
+                <div class="pain-carousel" data-animate-child aria-roledescription="carousel" aria-label="Problèmes rencontrés par les fondateurs">
                     <div class="pain-carousel__viewport">
                         <div class="pain-carousel__track" id="pain-track">
                             <div class="pain-carousel__slide card-glass" role="group" aria-roledescription="slide" aria-label="1 sur 5">
@@ -323,8 +323,8 @@
                     <h2 id="process-title" class="heading-section">Trois étapes. Un verdict.</h2>
                     <p class="section-lead section-lead--centered">De la soumission au verdict. Structuré, transparent, chiffré.</p>
                 </header>
-                <div class="process-grid" data-animate-child>
-                    <div class="process-step">
+                <div class="process-grid">
+                    <div class="process-step" data-animate-child>
                         <div class="process-step__number" aria-hidden="true">01</div>
                         <div class="process-step__icon" aria-hidden="true">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -336,7 +336,7 @@
                         <p class="process-step__desc">Renseignez les données clés de votre startup en 3 minutes : secteur, stade, pitch structuré et métriques.</p>
                     </div>
                     <div class="process-connector" aria-hidden="true"></div>
-                    <div class="process-step">
+                    <div class="process-step" data-animate-child>
                         <div class="process-step__number" aria-hidden="true">02</div>
                         <div class="process-step__icon" aria-hidden="true">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -348,7 +348,7 @@
                         <p class="process-step__desc">Flaynn Intelligence score chaque pilier en benchmark sectoriel. Un analyste valide la synthèse sous 24h.</p>
                     </div>
                     <div class="process-connector" aria-hidden="true"></div>
-                    <div class="process-step">
+                    <div class="process-step" data-animate-child>
                         <div class="process-step__number" aria-hidden="true">03</div>
                         <div class="process-step__icon" aria-hidden="true">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -370,8 +370,8 @@
                     <h2 id="pillars-title" class="heading-section">Cinq piliers. Un verdict.</h2>
                     <p class="section-lead">Chaque axe est pondéré comme en phase de due diligence : pas de vanity metrics, que des signaux actionnables.</p>
                 </header>
-                <ul class="pillars-grid" role="list" data-animate-child>
-                    <li class="card-glass pillar-card">
+                <ul class="pillars-grid" role="list">
+                    <li class="card-glass pillar-card" data-animate-child>
                         <div class="pillar-card__header">
                             <span class="pillar-index" aria-hidden="true">01</span>
                             <div class="pillar-icon" aria-hidden="true">
@@ -386,7 +386,7 @@
                             <div class="pillar-score-bar__fill" style="--bar-width: 88%"></div>
                         </div>
                     </li>
-                    <li class="card-glass pillar-card">
+                    <li class="card-glass pillar-card" data-animate-child>
                         <div class="pillar-card__header">
                             <span class="pillar-index" aria-hidden="true">02</span>
                             <div class="pillar-icon" aria-hidden="true">
@@ -402,7 +402,7 @@
                             <div class="pillar-score-bar__fill" style="--bar-width: 76%"></div>
                         </div>
                     </li>
-                    <li class="card-glass pillar-card">
+                    <li class="card-glass pillar-card" data-animate-child>
                         <div class="pillar-card__header">
                             <span class="pillar-index" aria-hidden="true">03</span>
                             <div class="pillar-icon" aria-hidden="true">
@@ -417,7 +417,7 @@
                             <div class="pillar-score-bar__fill pillar-score-bar__fill--emerald" style="--bar-width: 92%"></div>
                         </div>
                     </li>
-                    <li class="card-glass pillar-card">
+                    <li class="card-glass pillar-card" data-animate-child>
                         <div class="pillar-card__header">
                             <span class="pillar-index" aria-hidden="true">04</span>
                             <div class="pillar-icon" aria-hidden="true">
@@ -434,7 +434,7 @@
                             <div class="pillar-score-bar__fill" style="--bar-width: 84%"></div>
                         </div>
                     </li>
-                    <li class="card-glass pillar-card">
+                    <li class="card-glass pillar-card" data-animate-child>
                         <div class="pillar-card__header">
                             <span class="pillar-index" aria-hidden="true">05</span>
                             <div class="pillar-icon" aria-hidden="true">
@@ -461,8 +461,8 @@
                     <h2 id="preview-title" class="heading-section">Aperçu d'un scoring réel</h2>
                     <p class="section-lead">Chaque scoring est contextualisé à votre secteur et votre stade.</p>
                 </header>
-                <div class="bento-grid" data-animate-child>
-                    <article class="card-glass bento-item bento-large">
+                <div class="bento-grid">
+                    <article class="card-glass bento-item bento-large" data-animate-child>
                         <div class="bento-large__inner">
                             <div class="bento-large__text">
                                 <span class="card-label">Score global</span>
@@ -486,7 +486,7 @@
                             </div>
                         </div>
                     </article>
-                    <article class="card-glass bento-item">
+                    <article class="card-glass bento-item" data-animate-child>
                         <span class="card-label">Marché adressable</span>
                         <p class="bento-metric bento-metric--blue">€2.4B</p>
                         <p class="bento-metric-sub">TAM indicatif, affiné après entretien</p>
@@ -496,7 +496,7 @@
                             </div>
                         </div>
                     </article>
-                    <article class="card-glass bento-item">
+                    <article class="card-glass bento-item" data-animate-child>
                         <span class="card-label">Traction</span>
                         <p class="bento-metric bento-metric--emerald">+15% MoM</p>
                         <p class="bento-metric-sub">Croissance mensuelle calculée sur vos données réelles</p>
@@ -506,7 +506,7 @@
                             </svg>
                         </div>
                     </article>
-                    <article class="card-glass bento-item bento-wide">
+                    <article class="card-glass bento-item bento-wide" data-animate-child>
                         <span class="card-label">Cinq piliers · Exemple</span>
                         <div class="bento-pillars-mini" aria-label="Scores par pilier">
                             <div class="bento-pillar-row">
@@ -543,12 +543,12 @@
         <!-- SHOWCASE DASHBOARD DEMO -->
         <section class="section section--showcase" data-animate="reveal">
             <div class="container">
-                <header class="section-header section-header--centered fade-up">
+                <header class="section-header section-header--centered" data-animate-child>
                     <p class="section-eyebrow" style="color: #7B2D8E;">Aperçu du produit</p>
                     <h2 class="heading-section">Votre scoring, en un coup d'oeil.</h2>
                     <p class="section-lead section-lead--centered">Chaque fondateur reçoit un tableau de bord complet. Voici ce que ça donne.</p>
                 </header>
-                <div class="showcase-frame fade-up fade-up-delay-1">
+                <div class="showcase-frame" data-animate-child>
                     <div class="showcase-toolbar">
                         <div class="showcase-dots">
                             <span style="background:#ff5f57"></span>
@@ -582,7 +582,7 @@
                         <div class="showcase-demo-badge">Mode démo - données illustratives</div>
                     </div>
                 </div>
-                <p class="showcase-hint fade-up fade-up-delay-2" id="showcase-hint">Utilisez le Quick Score ci-dessus pour voir votre résultat ici <span aria-hidden="true">&#8593;</span></p>
+                <p class="showcase-hint" data-animate-child id="showcase-hint">Utilisez le Quick Score ci-dessus pour voir votre résultat ici <span aria-hidden="true">&#8593;</span></p>
             </div>
         </section>
 
@@ -606,11 +606,11 @@
         <!-- PRICING -->
         <section id="pricing" class="section" aria-labelledby="pricing-title" data-animate="reveal">
             <div class="container">
-                <header class="section-header section-header--centered fade-up">
+                <header class="section-header section-header--centered" data-animate-child>
                     <p class="section-eyebrow" style="color: #E8651A;">Tarifs</p>
                     <h2 id="pricing-title" class="heading-section">Un scoring. Un prix. Zéro surprise.</h2>
                 </header>
-                <div class="pricing-main fade-up">
+                <div class="pricing-main" data-animate-child>
                     <div class="card-glass pricing-card-main">
                         <span class="card-label">Scoring complet</span>
                         <div class="pricing-price">
@@ -624,7 +624,7 @@
                         <p style="font-size: 0.75rem; color: var(--text-tertiary); text-align: center; margin-top: 12px;">Pas d'abonnement. Pas de frais cachés.</p>
                     </div>
                 </div>
-                <div class="pricing-matching fade-up fade-up-delay-1">
+                <div class="pricing-matching" data-animate-child>
                     <div class="pricing-matching__inner">
                         <div class="pricing-matching__icon">&#127919;</div>
                         <div>
@@ -705,22 +705,22 @@
                     <h2 id="trust-title" class="heading-section">Vos données sont sacrées</h2>
                     <p class="section-lead section-lead--centered">Flaynn est conçu pour manipuler des données sensibles de startups pré-levée. La sécurité n'est pas une option.</p>
                 </header>
-                <div class="trust-grid" data-animate-child>
-                    <div class="card-glass trust-card">
+                <div class="trust-grid">
+                    <div class="card-glass trust-card" data-animate-child>
                         <div class="trust-card__icon" aria-hidden="true">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                         </div>
                         <h3 class="trust-card__title">Chiffrement de bout en bout</h3>
                         <p class="trust-card__desc">HTTPS strict, mots de passe hachés via Argon2, tokens JWT HttpOnly. Aucune donnée sensible en clair.</p>
                     </div>
-                    <div class="card-glass trust-card">
+                    <div class="card-glass trust-card" data-animate-child>
                         <div class="trust-card__icon" aria-hidden="true">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                         </div>
                         <h3 class="trust-card__title">RGPD natif</h3>
                         <p class="trust-card__desc">Hébergement UE (Render). Pas de revente de données. Droit d'accès, rectification et suppression à tout moment.</p>
                     </div>
-                    <div class="card-glass trust-card">
+                    <div class="card-glass trust-card" data-animate-child>
                         <div class="trust-card__icon" aria-hidden="true">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                         </div>
