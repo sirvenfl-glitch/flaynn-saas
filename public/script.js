@@ -1289,20 +1289,25 @@ function initModals() {
 }
 
 function initLiquidUX() {
+  // ARCHITECT-PRIME: court-circuiter le cursor tracking sur tablette/mobile
+  const hasHover = window.matchMedia('(hover: hover)').matches;
+
   const setMouseFromEvent = (el, e) => {
+    if (e.target.closest('input, textarea, select, button')) return;
     const rect = el.getBoundingClientRect();
     el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
     el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
   };
 
   // 1. Glow magnétique : cartes glass, champs, wrappers .field (bordure scoring)
+  // Uniquement sur desktop (hover: hover) — désaxe les éléments au tap sur touch
   const applyGlow = () => {
+    if (!hasHover) return;
     document.querySelectorAll('.card-glass, .field__input, .scoring-form .field').forEach((el) => {
       if (el.dataset.glowBound) return;
       el.dataset.glowBound = 'true';
       const move = (e) => setMouseFromEvent(el, e);
       el.addEventListener('mousemove', move, { passive: true });
-      el.addEventListener('touchmove', move, { passive: true });
     });
   };
   applyGlow();
@@ -1345,6 +1350,7 @@ function initLiquidUX() {
 
 // ARCHITECT-PRIME: Phase 3 — Cursor glow tracking on premium cards
 function initCardGlow() {
+  if (window.matchMedia('(hover: none)').matches) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const cards = document.querySelectorAll('.pillar-card, .process-step, .trust-card');
   cards.forEach(card => {
