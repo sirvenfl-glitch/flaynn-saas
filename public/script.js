@@ -123,6 +123,7 @@ function initNativeScrollReveal() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('is-revealed');
+        entry.target.querySelectorAll('.pillar-fill, .showcase-pillar-fill').forEach(b => b.classList.add('animate'));
         obs.unobserve(entry.target); // Ne s'anime qu'une seule fois
       }
     });
