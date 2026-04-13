@@ -33,21 +33,9 @@
 
     <article class="card-glass auth-card">
       <h1 class="auth-title">Espace membre</h1>
-      <p class="auth-subtitle">Connectez-vous ou créez votre compte pour accéder à vos analyses.</p>
-
-      <nav class="auth-tabs" aria-label="Authentification">
-        <button type="button" class="auth-tab is-active" data-tab="login">Connexion</button>
-        <button type="button" class="auth-tab" data-tab="register">Inscription</button>
-      </nav>
+      <p class="auth-subtitle">Connectez-vous pour accéder à vos analyses.</p>
 
       <form id="auth-form" novalidate>
-        <!-- Champs inscription (hidden par defaut) -->
-        <div class="field" id="field-name" hidden>
-          <label for="name" class="field__label">Nom complet</label>
-          <input type="text" id="name" name="name" class="field__input" autocomplete="name" placeholder="Napoleon Bonaparte" minlength="2" maxlength="100">
-          <span class="field__hint">Tel qu'il apparaitra dans votre espace</span>
-        </div>
-
         <!-- Email -->
         <div class="field">
           <label for="email" class="field__label">Email professionnel</label>
@@ -62,20 +50,7 @@
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </label>
-          <div class="field__input-wrap">
-            <input type="password" id="password" name="password" class="field__input" required minlength="12" autocomplete="current-password" placeholder="Min. 12 caractères">
-            <button type="button" class="auth-generate-pw" id="generate-pw" hidden aria-label="Générer un mot de passe fort">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Strength meter (inscription) -->
-        <div class="auth-pw-strength" id="pw-strength-container" hidden>
-          <div class="auth-pw-strength__track">
-            <div class="auth-pw-strength__fill" id="pw-strength-fill"></div>
-          </div>
-          <span class="auth-pw-strength__label" id="pw-strength-label"></span>
+          <input type="password" id="password" name="password" class="field__input" required minlength="12" autocomplete="current-password" placeholder="Min. 12 caractères">
         </div>
 
         <!-- Erreur globale -->

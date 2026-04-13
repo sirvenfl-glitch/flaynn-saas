@@ -208,8 +208,8 @@ function buildSuccessView(reference) {
     cta.href = `/dashboard/?id=${encodeURIComponent(reference)}`;
     cta.textContent = 'Voir mon analyse';
   } else {
-    cta.href = `/auth/#register`;
-    cta.textContent = 'Créer un compte pour suivre mon analyse';
+    cta.href = '/auth/';
+    cta.textContent = 'Se connecter pour suivre mon analyse';
   }
 
   wrap.appendChild(icon);

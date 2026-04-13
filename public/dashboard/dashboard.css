@@ -764,6 +764,28 @@
 }
 
 /* ── Logout btn ── */
+.dashboard-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  min-height: 44px;
+  margin-bottom: var(--space-4);
+}
+.dashboard-back-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
 .dashboard-logout-btn {
   display: inline-flex;
   align-items: center;

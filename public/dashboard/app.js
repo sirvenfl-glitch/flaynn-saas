@@ -507,6 +507,34 @@ function buildInvestorReadiness(items) {
   return card;
 }
 
+/* ── Sanitize detail data ─────────────────────────────────────────────── */
+function sanitizeDetailData(data) {
+  data.score = Number.isFinite(data.score) ? data.score : 0;
+  data.scorePrev = Number.isFinite(data.scorePrev) ? data.scorePrev : data.score;
+  data.level = data.level || '—';
+  data.stage = data.stage || '—';
+  data.sector = data.sector || '—';
+  data.updatedAt = data.updatedAt || new Date().toISOString();
+  data.pillars = Array.isArray(data.pillars) && data.pillars.length > 0 ? data.pillars : [];
+  data.pillars.forEach(p => {
+    p.score = Number.isFinite(p.score) ? p.score : 0;
+    p.prev = Number.isFinite(p.prev) ? p.prev : p.score;
+    p.name = p.name || 'Pilier';
+    p.color = p.color || 'var(--accent-violet)';
+    p.insight = p.insight || '';
+  });
+  data.history = Array.isArray(data.history) && data.history.length > 0 ? data.history : [
+    { label: 'Actuel', date: new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }), score: data.score }
+  ];
+  data.recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
+  data.investorReadiness = Array.isArray(data.investorReadiness) ? data.investorReadiness : [];
+  data.market = data.market || {};
+  data.graph = data.graph && data.graph.nodes ? data.graph : {
+    nodes: [{ id: 'you', label: 'Vous', type: 'user' }],
+    links: []
+  };
+}
+
 /* ── Handlers de routes ────────────────────────────────────────────────── */
 function buildRoutes(data) {
   return [
@@ -514,6 +542,33 @@ function buildRoutes(data) {
     {
       path: /^\/dashboard\/?$/,
       async handler(root) {
+        // ARCHITECT-PRIME: re-fetch dynamique selon l'URL pour supporter la navigation SPA
+        const id = new URLSearchParams(window.location.search).get('id');
+        if (!id && !data.isList) {
+          // Retour à la liste depuis une vue détail
+          try {
+            const res = await fetch('/api/dashboard/list', { credentials: 'same-origin', signal: AbortSignal.timeout(15000) });
+            if (res.status === 401 || res.status === 403) { clearAuth(); window.location.replace('/auth/?expired=1'); return; }
+            if (res.ok) {
+              const listData = await res.json();
+              Object.keys(data).forEach(k => delete data[k]);
+              Object.assign(data, { isDemo: false, isList: true, items: listData });
+            }
+          } catch { /* garde les données actuelles */ }
+        } else if (id && (data.isList || data.id !== id)) {
+          // Navigation vers un détail depuis la liste (ou changement de détail)
+          try {
+            const res = await fetch(`/api/dashboard/${encodeURIComponent(id)}`, { credentials: 'same-origin', signal: AbortSignal.timeout(15000) });
+            if (res.status === 401 || res.status === 403) { clearAuth(); window.location.replace('/auth/?expired=1'); return; }
+            if (res.ok) {
+              const apiData = await res.json();
+              Object.keys(data).forEach(k => delete data[k]);
+              Object.assign(data, apiData, { isDemo: false, isList: false });
+              sanitizeDetailData(data);
+            }
+          } catch { /* garde les données actuelles */ }
+        }
+
         const section = el('section', 'dashboard-app__section');
 
         if (data.isList) {
@@ -535,7 +590,7 @@ function buildRoutes(data) {
             const card = el('article', 'card-glass');
             card.style.padding = 'var(--space-5)';
             card.style.cursor = 'pointer';
-            card.addEventListener('click', () => { window.navigateTo ? window.navigateTo(`/dashboard/?id=${item.reference_id}`) : (window.location.href = `/dashboard/?id=${item.reference_id}`); });
+            card.addEventListener('click', () => { history.pushState(null, '', `/dashboard/?id=${item.reference_id}`); window.dispatchEvent(new PopStateEvent('popstate')); });
             const title = el('h3', 'dashboard-card-title', { textContent: item.startup_name || item.reference_id });
             const date = el('p', 'dashboard-meta', { textContent: 'Analysée le ' + new Date(item.created_at).toLocaleDateString('fr-FR') });
             card.appendChild(title);
@@ -567,6 +622,12 @@ function buildRoutes(data) {
           root.appendChild(section);
           return;
         }
+
+        // ARCHITECT-PRIME: Bouton retour vers la liste
+        const backLink = el('button', 'dashboard-back-btn', { type: 'button' });
+        backLink.textContent = '← Retour aux analyses';
+        backLink.addEventListener('click', () => { history.pushState(null, '', '/dashboard/'); window.dispatchEvent(new PopStateEvent('popstate')); });
+        section.appendChild(backLink);
 
         // ARCHITECT-PRIME : Gestion des états asynchrones (En cours / Erreur)
         if (data.status === 'pending_analysis' || data.status === 'pending_webhook') {
@@ -1221,30 +1282,7 @@ async function main() {
 
   // ARCHITECT-PRIME: sanitize data — fallbacks pour champs vides/manquants
   if (!data.isList) {
-    data.score = Number.isFinite(data.score) ? data.score : 0;
-    data.scorePrev = Number.isFinite(data.scorePrev) ? data.scorePrev : data.score;
-    data.level = data.level || '—';
-    data.stage = data.stage || '—';
-    data.sector = data.sector || '—';
-    data.updatedAt = data.updatedAt || new Date().toISOString();
-    data.pillars = Array.isArray(data.pillars) && data.pillars.length > 0 ? data.pillars : [];
-    data.pillars.forEach(p => {
-      p.score = Number.isFinite(p.score) ? p.score : 0;
-      p.prev = Number.isFinite(p.prev) ? p.prev : p.score;
-      p.name = p.name || 'Pilier';
-      p.color = p.color || 'var(--accent-violet)';
-      p.insight = p.insight || '';
-    });
-    data.history = Array.isArray(data.history) && data.history.length > 0 ? data.history : [
-      { label: 'Actuel', date: new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }), score: data.score }
-    ];
-    data.recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
-    data.investorReadiness = Array.isArray(data.investorReadiness) ? data.investorReadiness : [];
-    data.market = data.market || {};
-    data.graph = data.graph && data.graph.nodes ? data.graph : {
-      nodes: [{ id: 'you', label: 'Vous', type: 'user' }],
-      links: []
-    };
+    sanitizeDetailData(data);
   }
 
   const routes = buildRoutes(data);
