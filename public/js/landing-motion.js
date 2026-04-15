@@ -59,7 +59,10 @@ export function initScrollReveal(gsap) {
       scrollTrigger: {
         trigger: section,
         start: 'top 85%',
-        toggleActions: 'play none none none'
+        toggleActions: 'play none none none',
+        onEnter: () => {
+          section.querySelectorAll('.pillar-fill, .showcase-pillar-fill').forEach(b => b.classList.add('animate'));
+        }
       },
       y: 36,
       opacity: 0,
