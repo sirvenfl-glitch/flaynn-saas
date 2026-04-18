@@ -27,14 +27,25 @@ services:
         sync: false
       - key: APP_URL
         value: https://flaynn.tech
+      # Delta 12: CSV des origines autorisees (parser src/config/security.js).
+      # Inclure flaynn.com pour la landing /rejoindre du repo flaynn-investors.
       - key: CORS_ORIGIN
-        value: https://flaynn.tech
+        value: https://flaynn.tech,https://flaynn.com,https://flaynn.fr
       - key: N8N_WEBHOOK_URL
         sync: false
       - key: N8N_SECRET_TOKEN
         sync: false
       - key: REDIS_URL
         sync: false
+      # Delta 12: secrets BA onboarding (set via Render dashboard)
+      - key: STRIPE_PRICE_BA_SUBSCRIPTION
+        sync: false
+      - key: INTRO_TOKEN_SECRET
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: BA_PUBLIC_BASE_URL
+        value: https://flaynn.com
 
 databases:
   - name: flaynn-db

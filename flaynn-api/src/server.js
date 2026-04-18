@@ -21,6 +21,9 @@ import stripeRoutes from './routes/stripe.js';
 import miniScoreRoute from './routes/mini-score.js';
 import publicCardsRoutes from './routes/public-cards.js';
 import { warmUpOgRender } from './lib/og-render.js';
+import baApplyRoutes from './routes/ba-apply.js';
+import baIntroRequestRoutes from './routes/ba-intro-request.js';
+import adminBaRoutes from './routes/admin-ba.js';
 import { initDB, pool } from './config/db.js';
 import authPlugin from './plugins/auth.js';
 import deviceDetect from './plugins/device-detect.js';
@@ -184,6 +187,9 @@ export const start = async () => {
     await fastify.register(stripeRoutes);
     await fastify.register(miniScoreRoute);
     await fastify.register(publicCardsRoutes);
+    await fastify.register(baApplyRoutes);
+    await fastify.register(baIntroRequestRoutes);
+    await fastify.register(adminBaRoutes);
 
     fastify.log.info(`[ARCHITECT-PRIME] Montage du dossier statique : ${siteRoot}`);
     await fastify.register(fastifyStatic, {
