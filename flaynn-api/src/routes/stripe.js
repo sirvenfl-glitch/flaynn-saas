@@ -4,6 +4,8 @@ import Stripe from 'stripe';
 import { n8nBridge } from '../services/n8n-bridge.js';
 import { pool } from '../config/db.js';
 import { ScoreSubmissionSchema } from '../schemas/scoring.js';
+import { putObject } from '../lib/r2-storage.js';
+import { extractBase64Payload, sanitizeExtension, EXTRA_MIME_MAP } from '../lib/pdf-upload.js';
 
 export default async function stripeRoutes(fastify) {
 
@@ -32,55 +34,128 @@ export default async function stripeRoutes(fastify) {
     }
   );
 
-  // 1. ENDPOINT DE CHECKOUT : Reçoit le formulaire, enregistre en base, redirige vers Stripe
+  // 1. ENDPOINT DE CHECKOUT : Reçoit le formulaire, upload R2, INSERT DB, crée session Stripe
   fastify.post('/api/checkout', {
     config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
-    bodyLimit: 16 * 1024 * 1024
+    bodyLimit: 25 * 1024 * 1024
   }, async (request, reply) => {
+    let parsed;
     try {
-      const parsed = ScoreSubmissionSchema.parse(request.body);
-      let userEmail = null;
+      parsed = ScoreSubmissionSchema.parse(request.body);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return reply.code(422).send({ error: 'VALIDATION_FAILED', details: err.flatten().fieldErrors });
+      }
+      throw err;
+    }
 
-      // Récupération de l'email via le token JWT si l'utilisateur est connecté
-      const accessToken = request.cookies?.flaynn_at;
-      if (accessToken) {
-        try {
-          const decoded = fastify.jwt.verify(accessToken);
-          userEmail = decoded.email;
-        } catch {
-          request.log.warn('Token invalide lors du checkout.');
-        }
+    let userEmail = null;
+    // Récupération de l'email via le token JWT si l'utilisateur est connecté
+    const accessToken = request.cookies?.flaynn_at;
+    if (accessToken) {
+      try {
+        const decoded = fastify.jwt.verify(accessToken);
+        userEmail = decoded.email;
+      } catch {
+        request.log.warn('Token invalide lors du checkout.');
+      }
+    }
+    // Fallback : on cherche dans la base de données
+    if (!userEmail) {
+      try {
+        const userCheck = await pool.query('SELECT email FROM users WHERE email = $1', [parsed.email]);
+        if (userCheck.rowCount > 0) userEmail = userCheck.rows[0].email;
+      } catch {
+        request.log.warn('Erreur vérification utilisateur.');
+      }
+    }
+
+    // Génération de la référence unique
+    const reference = `FLY-${randomBytes(4).toString('hex').toUpperCase()}`;
+
+    // ARCHITECT-PRIME: Delta 13 — Upload R2 AVANT INSERT DB AVANT Stripe.session.create.
+    // Même pattern que POST /api/score step 3. Orphelins R2 acceptés si INSERT ou Stripe
+    // échouent après upload (cf. progress-delta-13.md TODO cleanup V2).
+    let pitchDeckStorage = null;
+    const extraDocsStorage = [];
+    try {
+      if (parsed.pitch_deck_base64) {
+        const { buffer } = extractBase64Payload(parsed.pitch_deck_base64);
+        const key = `decks/${reference}.pdf`;
+        const meta = await putObject(key, buffer, 'application/pdf', { logger: request.log });
+        pitchDeckStorage = {
+          kind: 'r2',
+          key: meta.key,
+          size: meta.size,
+          content_type: 'application/pdf',
+          uploaded_at: new Date().toISOString(),
+        };
       }
 
-      // Fallback : on cherche dans la base de données
-      if (!userEmail) {
-        try {
-          const userCheck = await pool.query('SELECT email FROM users WHERE email = $1', [parsed.email]);
-          if (userCheck.rowCount > 0) userEmail = userCheck.rows[0].email;
-        } catch {
-          request.log.warn('Erreur vérification utilisateur.');
+      if (Array.isArray(parsed.extra_docs) && parsed.extra_docs.length > 0) {
+        for (let i = 0; i < parsed.extra_docs.length; i++) {
+          const doc = parsed.extra_docs[i];
+          if (!doc?.base64) {
+            request.log.warn(
+              { reference, index: i, filename: doc?.filename },
+              'extra_doc sans base64, skip'
+            );
+            continue;
+          }
+          const { buffer, contentType } = extractBase64Payload(doc.base64);
+          const ext = sanitizeExtension(doc.filename);
+          const key = `extras/${reference}/${i}${ext}`;
+          const mime = contentType || EXTRA_MIME_MAP[ext] || 'application/pdf';
+          const meta = await putObject(key, buffer, mime, { logger: request.log });
+          extraDocsStorage.push({
+            kind: 'r2',
+            key: meta.key,
+            size: meta.size,
+            filename: doc.filename,
+            content_type: mime,
+            uploaded_at: new Date().toISOString(),
+          });
         }
       }
+    } catch (uploadErr) {
+      request.log.error({ err: uploadErr, reference }, 'Echec upload R2 pendant /api/checkout');
+      return reply.code(502).send({
+        error: 'STORAGE_UNAVAILABLE',
+        message: 'Le stockage des documents est temporairement indisponible. Réessayez dans quelques instants.',
+      });
+    }
 
-      // Génération de la référence unique
-      const reference = `FLY-${randomBytes(4).toString('hex').toUpperCase()}`;
+    // Payload sans base64 : réutilisé pour DB (aucun blob persisté).
+    const { pitch_deck_base64: _pdb, extra_docs: _ed, ...payloadWithoutBase64 } = parsed;
 
-      // Enregistrement initial en base (STATUT : pending_payment)
-      const initialData = {
-        status: 'pending_payment', // En attente de paiement
-        pitch_deck_base64: parsed.pitch_deck_base64 || null,
-        payload: parsed
-      };
+    const initialData = {
+      status: 'pending_payment',
+      pitch_deck_storage: pitchDeckStorage,
+      extra_docs: extraDocsStorage,
+      payload: payloadWithoutBase64,
+    };
 
+    try {
       await pool.query(
         'INSERT INTO scores (reference_id, user_email, startup_name, data) VALUES ($1, $2, $3, $4::jsonb)',
         [reference, userEmail, parsed.nom_startup, JSON.stringify(initialData)]
       );
+    } catch (dbErr) {
+      // R2 upload OK mais DB KO → orphelins R2 (cleanup V2). Log dédié pour retrouver.
+      request.log.error(
+        { err: dbErr, reference, r2_deck: pitchDeckStorage?.key, r2_extras: extraDocsStorage.map((x) => x.key) },
+        'checkout_db_insert_failed_r2_orphan'
+      );
+      return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur lors de la création du dossier.' });
+    }
 
-      const baseUrl = process.env.APP_URL || 'https://flaynn.tech';
+    const baseUrl = process.env.APP_URL || 'https://flaynn.tech';
 
-      // Création de la session Stripe
-      const session = await stripe.checkout.sessions.create({
+    // Création de la session Stripe APRÈS INSERT. Si échec ici, row DB reste en
+    // 'pending_payment' + orphelins R2 — cleanup V2.
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
           {
@@ -90,30 +165,29 @@ export default async function stripeRoutes(fastify) {
                 name: 'Audit Scoring Flaynn',
                 description: 'Analyse IA + validation humaine sur 5 piliers',
               },
-              unit_amount: 2900, // 29.00€ (en centimes)
+              unit_amount: 2900,
             },
             quantity: 1,
           },
         ],
         mode: 'payment',
-        success_url: `${baseUrl}/scoring/succes?session_id={CHECKOUT_SESSION_ID}`, // Redirection après succès
-        cancel_url: `${baseUrl}/#scoring-form`, // Redirection si annulation
+        success_url: `${baseUrl}/scoring/succes?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/#scoring-form`,
         customer_email: parsed.email,
-        metadata: {
-          reference: reference // Indispensable pour lier le paiement au dossier
-        }
+        metadata: { reference },
       });
-
-      // On renvoie l'URL de paiement au frontend
-      return reply.code(200).send({ checkout_url: session.url, reference });
-
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        return reply.code(422).send({ error: 'VALIDATION_FAILED', details: err.flatten().fieldErrors });
-      }
-      request.log.error({ err }, 'Erreur lors du checkout Stripe');
-      return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur lors de la création du paiement.' });
+    } catch (stripeErr) {
+      request.log.error(
+        { err: stripeErr, reference, r2_deck: pitchDeckStorage?.key, r2_extras: extraDocsStorage.map((x) => x.key) },
+        'checkout_stripe_session_failed_row_stale'
+      );
+      return reply.code(502).send({
+        error: 'PAYMENT_UNAVAILABLE',
+        message: 'Le service de paiement est temporairement indisponible. Réessayez dans quelques instants.',
+      });
     }
+
+    return reply.code(200).send({ checkout_url: session.url, reference });
   });
 
 
@@ -224,7 +298,9 @@ export default async function stripeRoutes(fastify) {
     }
 
     const data = scoreRecord.rows[0].data;
-    const parsedPayload = data.payload;
+    // ARCHITECT-PRIME: Delta 13 — payload est déjà purgé de base64 au moment de
+    // l'INSERT dans /api/checkout (post-refactor). Pas de destructuring nécessaire.
+    const parsedPayload = data.payload || {};
 
     await pool.query(
       `UPDATE scores SET data = jsonb_set(data, '{status}', '"pending_analysis"') WHERE reference_id = $1`,
@@ -233,16 +309,25 @@ export default async function stripeRoutes(fastify) {
 
     const host = request.headers['x-forwarded-host'] || request.headers.host || 'flaynn.tech';
     const protocol = request.headers['x-forwarded-proto'] || 'https';
-    const deckUrl = data.pitch_deck_base64
+
+    // Deck URL : dérivée de pitch_deck_storage (R2). Vide si pas d'upload.
+    const deckUrl = data.pitch_deck_storage?.kind === 'r2'
       ? `${protocol}://${host}/api/decks/${reference}`
       : '';
 
-    const { pitch_deck_base64, ...payloadWithoutBase64 } = parsedPayload;
+    // Extra docs URLs : même pattern que POST /api/score step 3. Un index par entry R2.
+    const extraDocsR2 = Array.isArray(data.extra_docs)
+      ? data.extra_docs.filter((d) => d?.kind === 'r2')
+      : [];
+    const extraDocsUrls = extraDocsR2.map((_, i) =>
+      `${protocol}://${host}/api/decks/${reference}/extra/${i}`
+    );
 
     n8nBridge.submitScore({
-      ...payloadWithoutBase64,
+      ...parsedPayload,
       reference,
-      pitch_deck_url: deckUrl
+      pitch_deck_url: deckUrl,
+      extra_docs_urls: extraDocsUrls,
     }, request.id).catch(async (err) => {
       request.log.error(err, `Échec envoi n8n post-paiement pour ${reference}`);
       await pool.query(

@@ -1,7 +1,15 @@
 import { z } from 'zod';
 import { pool } from '../config/db.js';
+import { getSignedGetUrl } from '../lib/r2-storage.js';
 
 const idSchema = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
+
+// ARCHITECT-PRIME: Delta 13 — guard unique pour pdf_report_storage + pitch_deck_storage.
+// Les anciens dossiers (base64 JSONB) n'ont pas ce champ → has_* = false, cohérent avec
+// la décision "zéro migration des vieux PDFs" du brief.
+function isR2Storage(v) {
+  return !!v && typeof v === 'object' && v.kind === 'r2' && typeof v.key === 'string' && v.key.length > 0;
+}
 
 /**
  * Transforme le cardPayload n8n V2 en format dashboard frontend.
@@ -181,7 +189,15 @@ export default async function dashboardApiRoutes(fastify) {
         return reply.code(404).send({ error: 'NOT_FOUND', message: 'Analyse introuvable ou en cours de génération.' });
       }
 
-      const { pdf_base64, pitch_deck_base64, extra_docs, ...dataWithoutBlobs } = rows[0].data || {};
+      const data = rows[0].data || {};
+      const {
+        pdf_base64,           // legacy, ignored (ancien format pré-Delta 13)
+        pitch_deck_base64,    // legacy, ignored (ancien format pré-Delta 13)
+        pdf_report_storage,
+        pitch_deck_storage,
+        extra_docs,
+        ...dataWithoutBlobs
+      } = data;
 
       // Scoring précédent (trend chips) + card publique active (Delta 9 J6) en
       // parallèle. publicCard = null si aucune card active pour ce report.
@@ -224,8 +240,8 @@ export default async function dashboardApiRoutes(fastify) {
       return reply.code(200).send({
         id: parsed.data,
         startupName,
-        has_pdf: !!pdf_base64,
-        has_pitch_deck: !!pitch_deck_base64,
+        has_pdf: isR2Storage(pdf_report_storage),
+        has_pitch_deck: isR2Storage(pitch_deck_storage),
         ...adapted,
         publicCard
       });
@@ -249,25 +265,30 @@ export default async function dashboardApiRoutes(fastify) {
     try {
       const userEmail = request.user.email;
       const { rows } = await pool.query(
-        "SELECT data->'pdf_base64' as pdf, startup_name FROM scores WHERE reference_id = $1 AND user_email = $2",
+        "SELECT data->'pdf_report_storage' as storage FROM scores WHERE reference_id = $1 AND user_email = $2",
         [parsed.data, userEmail]
       );
 
-      if (rows.length === 0 || !rows[0].pdf) {
-        return reply.code(404).send({ error: 'NOT_FOUND', message: 'PDF non disponible.' });
+      // 404 si row inexistant OU appartient à un autre user (ownership dans WHERE → pas de leak).
+      if (rows.length === 0) {
+        return reply.code(404).send({ error: 'NOT_FOUND', message: 'Dossier introuvable.' });
       }
 
-      const rawBase64 = JSON.parse(rows[0].pdf).replace(/^data:application\/pdf;base64,/, '');
-      const pdfBuffer = Buffer.from(rawBase64, 'base64');
-      const rawName = (rows[0].startup_name || parsed.data).replace(/[^\w\s\-'.]/g, '_');
-      const filename = `Flaynn-Scoring-${rawName}.pdf`;
+      // Row existe mais storage absent/malformé : rapport n8n pas encore reçu, ou legacy pré-Delta 13.
+      // Message UX distinct pour ne pas prêter à confusion avec un 404 "dossier introuvable".
+      const storage = rows[0].storage;
+      if (!isR2Storage(storage)) {
+        return reply.code(404).send({
+          error: 'PDF_NOT_READY',
+          message: 'Le PDF n\'est pas encore disponible. Réessayez dans quelques instants.',
+        });
+      }
 
-      return reply
-        .header('Content-Type', 'application/pdf')
-        .header('Content-Disposition', `attachment; filename="${filename}"`)
-        .send(pdfBuffer);
+      // TTL 300s : vue dashboard humaine, le browser ouvre le PDF immédiatement.
+      const url = await getSignedGetUrl(storage.key, 300);
+      return reply.redirect(url, 302);
     } catch (err) {
-      request.log.error(err);
+      request.log.error({ err, id: parsed.data }, 'dashboard_pdf_redirect_failed');
       return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur serveur.' });
     }
   });

@@ -59,7 +59,14 @@ const envSchema = z.object({
   // ARCHITECT-PRIME: Delta 9 — répertoire de sortie des OG PNG générés par Satori.
   // Filesystem Render éphémère : les fichiers disparaissent au redeploy, la route
   // GET /og/:slug.png re-render à la volée sur premier hit (dette acceptée v1).
-  OG_OUTPUT_DIR: z.string().default('./public/og')
+  OG_OUTPUT_DIR: z.string().default('./public/og'),
+  // ARCHITECT-PRIME: Delta 13 — stockage R2 Cloudflare (S3-compatible)
+  // Optional ici (pattern Stripe/N8N) ; validation stricte au 1er appel dans lib/r2-storage.js
+  R2_ACCOUNT_ID: z.string().min(1).optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  R2_BUCKET: z.string().min(1).optional(),
+  R2_ENDPOINT: z.string().url().optional()
 });
 
 let env;
