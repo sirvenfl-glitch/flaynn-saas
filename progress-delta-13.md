@@ -14,7 +14,7 @@ DB Render expire le **4 mai 2026**. On libère la DB des PDF stockés en base64 
 - Clés objets : `reports/{reference_id}.pdf`, `decks/{reference_id}.pdf`, `extras/{reference_id}/{index}.{ext}`.
 - Serving : signed URL R2 + 302 redirect (TTL 5 min pour dashboard/view, 10 min pour OCR bypass).
 - Ingestion : décodage base64 côté serveur → upload R2 immédiat → DB ne stocke que les métadonnées `{kind:'r2', key, size}`.
-- Nouveau format DB : `scores.data.pdf_storage` (rapport) et `scores.data.pitch_deck_storage` (deck). Extras : `scores.data.extra_docs[i] = {filename, key, size, kind:'r2'}`.
+- Nouveau format DB : `scores.data.pdf_report_storage` (rapport n8n) et `scores.data.pitch_deck_storage` (deck founder). Extras : `scores.data.extra_docs[i] = {filename, key, size, kind:'r2'}`.
 - bodyLimit `/api/score` : 90 MB → 25 MB. `/api/webhooks/n8n/pdf` reste 10 MB. `/api/checkout` : refactor step 9.
 - Uploads R2 en écrasement silencieux (comportement S3 natif), avec `HeadObject` préalable non-bloquant + `warn` si l'objet existe déjà.
 
@@ -46,8 +46,8 @@ DB Render expire le **4 mai 2026**. On libère la DB des PDF stockés en base64 
 ```json
 {
   "status": "pending_analysis|completed|error",
-  "pitch_deck_storage": { "kind": "r2", "key": "decks/FLY-XXX.pdf", "size": 12345 },
-  "pdf_storage":        { "kind": "r2", "key": "reports/FLY-XXX.pdf", "size": 67890 },
+  "pitch_deck_storage":  { "kind": "r2", "key": "decks/FLY-XXX.pdf", "size": 12345 },
+  "pdf_report_storage":  { "kind": "r2", "key": "reports/FLY-XXX.pdf", "size": 67890 },
   "extra_docs": [
     { "filename": "original.pdf", "key": "extras/FLY-XXX/0.pdf", "size": 1234, "kind": "r2" }
   ],
