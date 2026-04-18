@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { pool } from '../config/db.js';
+import { generateUniqueSlug } from '../lib/slug.js';
 
 // ARCHITECT-PRIME — Delta 9 step 1 : route SSR publique /score/:slug (stub).
 // Le rendu HTML est minimal et vérifiable via curl. Le CSS complet (J5) et le JS
@@ -28,6 +30,75 @@ const SLUG_RE = /^[a-z0-9-]{1,80}$/;
 
 function isValidSlug(slug) {
   return typeof slug === 'string' && SLUG_RE.test(slug);
+}
+
+// Delta 9 §11 + décision C : verdicts publiables. 'Not yet' (et absent) exclus.
+const PUBLISHABLE_VERDICTS = new Set(['Ready', 'Almost', 'Yes', 'Strong Yes']);
+
+// Schémas de validation des params de route.
+const referenceIdSchema = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
+const cardIdSchema = z.coerce.number().int().positive().max(2_147_483_647);
+
+// Extrait le snapshot figé à partir du payload n8n stocké dans scores.data.
+// Invariant : clés EN conservées côté DB (décision E). Les labels FR restent
+// côté rendu (J5). Si un champ manque, fallback documenté sur alias legacy.
+function buildSnapshotFromScoreData(data) {
+  const payload = data?.payload || {};
+  const breakdown = data?.score_breakdown || {};
+
+  const score = Number(data?.score ?? data?.overall_score ?? 0);
+  const forces = Array.isArray(data?.top_3_strengths)
+    ? data.top_3_strengths.filter((s) => typeof s === 'string' && s.trim().length > 0)
+    : [];
+  const challenges = Array.isArray(data?.top_3_risks)
+    ? data.top_3_risks.filter((c) => typeof c === 'string' && c.trim().length > 0)
+    : [];
+
+  const pillars = {
+    market:           Number(breakdown.market           ?? data?.market_score           ?? 0),
+    solution_product: Number(breakdown.solution_product ?? data?.venture_score          ?? 0),
+    traction:         Number(breakdown.traction         ?? data?.traction_signal_score  ?? 0),
+    team:             Number(breakdown.team             ?? data?.team_score             ?? 0),
+    execution_ask:    Number(breakdown.execution_ask    ?? data?.execution_score        ?? 0)
+  };
+
+  return {
+    score,
+    verdict: data?.verdict || '',
+    track: data?.track || '',
+    track_reason: data?.track_reason || '',
+    sector: data?.sector || payload.secteur || 'Startup',
+    stage: data?.stage_estimate || payload.stade || '',
+    forces: forces.slice(0, 3),
+    challenges: challenges.slice(0, 3),
+    pillars,
+    confidence_level: data?.confidence_level || '',
+    methodology_version: data?.methodology_version || '',
+    scored_at: data?.generated_at || null
+  };
+}
+
+// Décision D : noindex si verdict = 'Almost' ET score < 70.
+function computeIndexSeo(snapshot) {
+  if (snapshot.verdict === 'Almost' && snapshot.score < 70) return false;
+  return true;
+}
+
+function buildPublishResponse(card, snapshot) {
+  const baseUrl = getPublicBaseUrl();
+  return {
+    card_id: card.id,
+    slug: card.slug,
+    url: `${baseUrl}/score/${card.slug}`,
+    og_url: `${baseUrl}/og/${card.slug}.png`,
+    og_pending: !card.og_image_path,
+    index_seo: card.index_seo,
+    created_at: card.created_at,
+    snapshot: {
+      score: snapshot.score,
+      verdict: snapshot.verdict
+    }
+  };
 }
 
 function getPublicBaseUrl() {
@@ -208,6 +279,187 @@ ${robotsTag}
 }
 
 export default async function publicCardsRoutes(fastify) {
+  // ──────────────────────────────────────────────────────────────────────
+  // POST /api/dashboard/:id/publish — publish a scoring as a public card.
+  // :id = scores.reference_id (VARCHAR, pattern FLY-...).
+  // Auth via fastify.authenticate (cookie flaynn_at / flaynn_rt).
+  // ──────────────────────────────────────────────────────────────────────
+  fastify.post('/api/dashboard/:id/publish', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    onRequest: [fastify.authenticate]
+  }, async (request, reply) => {
+    const parsedId = referenceIdSchema.safeParse(request.params.id);
+    if (!parsedId.success) {
+      return reply.code(400).send({ error: 'INVALID_ID', message: 'Identifiant de dossier invalide.' });
+    }
+    const referenceId = parsedId.data;
+    const userEmail = request.user.email;
+
+    try {
+      // 1) Charger le scoring de l'utilisateur — filter par user_email = ownership
+      //    (même pattern que /api/dashboard/:id — pas de 403 distinct pour éviter
+      //     la divulgation d'existence de référence).
+      const scoreResult = await pool.query(
+        `SELECT reference_id, startup_name, data, created_at
+         FROM scores WHERE reference_id = $1 AND user_email = $2 LIMIT 1`,
+        [referenceId, userEmail]
+      );
+      if (scoreResult.rows.length === 0) {
+        return reply.code(404).send({ error: 'REPORT_NOT_FOUND', message: 'Dossier introuvable.' });
+      }
+      const scoreRow = scoreResult.rows[0];
+      const data = scoreRow.data || {};
+
+      // 2) Idempotence : si une card active existe déjà pour ce report,
+      //    on la retourne telle quelle au lieu de créer un doublon. On lit le
+      //    snapshot figé de la card existante — PAS le live data — pour respecter
+      //    l'invariant "snapshot figé au moment du publish initial".
+      const existingActive = await pool.query(
+        `SELECT id, slug, og_image_path, index_seo, created_at, snapshot_data
+         FROM public_cards
+         WHERE reference_id = $1 AND user_email = $2 AND is_active = TRUE
+         LIMIT 1`,
+        [referenceId, userEmail]
+      );
+      if (existingActive.rows.length > 0) {
+        const existing = existingActive.rows[0];
+        return reply.code(200).send({
+          ...buildPublishResponse(existing, existing.snapshot_data || {}),
+          already_published: true
+        });
+      }
+
+      // 3) Gating verdict (décision C : 'Not yet' et absent exclus).
+      const verdict = data.verdict;
+      if (!PUBLISHABLE_VERDICTS.has(verdict)) {
+        return reply.code(403).send({
+          error: 'NOT_PUBLIC_ELIGIBLE',
+          message: "Votre verdict ne permet pas de publier une carte publique."
+        });
+      }
+
+      // 4) Gating contenu (décision F : 3 forces + 3 challenges requis).
+      const snapshot = buildSnapshotFromScoreData(data);
+      if (snapshot.forces.length < 3 || snapshot.challenges.length < 3) {
+        return reply.code(403).send({
+          error: 'INSUFFICIENT_CONTENT',
+          message: 'Complétez votre report : 3 forces et 3 zones à renforcer sont nécessaires pour publier.'
+        });
+      }
+
+      // 5) Nom de startup — obligatoire pour bâtir le slug et l'affichage public.
+      const startupName = scoreRow.startup_name || '';
+      if (!startupName.trim()) {
+        return reply.code(403).send({
+          error: 'MISSING_STARTUP_NAME',
+          message: 'Votre dossier n\'a pas de nom de startup — impossible de publier.'
+        });
+      }
+
+      // 6) Slug unique + index_seo selon règle D.
+      let slug;
+      try {
+        slug = await generateUniqueSlug(startupName, pool);
+      } catch (err) {
+        request.log.error({ err, referenceId }, 'slug_generation_failed');
+        return reply.code(500).send({
+          error: 'SLUG_GENERATION_FAILED',
+          message: 'Erreur temporaire lors de la création de votre lien public. Réessayez.'
+        });
+      }
+      const indexSeo = computeIndexSeo(snapshot);
+
+      // 7) INSERT. og_image_path reste NULL en J2 — rempli en J3 par le render Satori.
+      const insertResult = await pool.query(
+        `INSERT INTO public_cards
+           (slug, reference_id, user_email, startup_name, snapshot_data, og_image_path,
+            is_active, index_seo)
+         VALUES ($1, $2, $3, $4, $5::jsonb, NULL, TRUE, $6)
+         RETURNING id, slug, og_image_path, index_seo, created_at`,
+        [slug, referenceId, userEmail, startupName, JSON.stringify(snapshot), indexSeo]
+      );
+      const card = insertResult.rows[0];
+
+      request.log.info(
+        { cardId: card.id, slug: card.slug, referenceId, indexSeo },
+        'public_card_published'
+      );
+
+      return reply.code(201).send({
+        ...buildPublishResponse(card, snapshot),
+        already_published: false
+      });
+    } catch (err) {
+      request.log.error({ err, referenceId }, 'public_card_publish_failed');
+      return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur serveur.' });
+    }
+  });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // DELETE /api/dashboard/:id/publish/:cardId — soft-delete (unpublish).
+  // Idempotent : si la card est déjà inactive, renvoie 200 avec l'état courant.
+  // ──────────────────────────────────────────────────────────────────────
+  fastify.delete('/api/dashboard/:id/publish/:cardId', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    onRequest: [fastify.authenticate]
+  }, async (request, reply) => {
+    const parsedId = referenceIdSchema.safeParse(request.params.id);
+    if (!parsedId.success) {
+      return reply.code(400).send({ error: 'INVALID_ID', message: 'Identifiant de dossier invalide.' });
+    }
+    const parsedCardId = cardIdSchema.safeParse(request.params.cardId);
+    if (!parsedCardId.success) {
+      return reply.code(400).send({ error: 'INVALID_CARD_ID', message: 'Identifiant de carte invalide.' });
+    }
+    const referenceId = parsedId.data;
+    const cardId = parsedCardId.data;
+    const userEmail = request.user.email;
+
+    try {
+      // Ownership : filtre par user_email ET reference_id (le couple doit matcher).
+      const { rows } = await pool.query(
+        `SELECT id, is_active, unpublished_at
+         FROM public_cards
+         WHERE id = $1 AND reference_id = $2 AND user_email = $3
+         LIMIT 1`,
+        [cardId, referenceId, userEmail]
+      );
+      if (rows.length === 0) {
+        return reply.code(404).send({ error: 'CARD_NOT_FOUND', message: 'Carte introuvable.' });
+      }
+      const current = rows[0];
+
+      // Idempotent : déjà dépubliée → pas de mutation, on renvoie l'état courant.
+      if (!current.is_active) {
+        return reply.code(200).send({
+          card_id: current.id,
+          unpublished_at: current.unpublished_at,
+          already_unpublished: true
+        });
+      }
+
+      const updateResult = await pool.query(
+        `UPDATE public_cards
+         SET is_active = FALSE, unpublished_at = NOW()
+         WHERE id = $1
+         RETURNING id, unpublished_at`,
+        [cardId]
+      );
+      const updated = updateResult.rows[0];
+
+      request.log.info({ cardId: updated.id, referenceId }, 'public_card_unpublished');
+
+      return reply.code(200).send({
+        card_id: updated.id,
+        unpublished_at: updated.unpublished_at,
+        already_unpublished: false
+      });
+    } catch (err) {
+      request.log.error({ err, referenceId, cardId }, 'public_card_unpublish_failed');
+      return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur serveur.' });
+    }
+  });
+
   fastify.get('/score/:slug', {
     config: { rateLimit: { max: 120, timeWindow: '1 minute' } }
   }, async (request, reply) => {
