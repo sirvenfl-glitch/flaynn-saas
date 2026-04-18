@@ -46,12 +46,34 @@ export const helmetConfig = {
   xssFilter: true
 };
 
-// ARCHITECT-PRIME: flaynn.tech est le domaine de production (pas flaynn.fr)
-const prodOrigin = process.env.CORS_ORIGIN || 'https://flaynn.tech';
+// ARCHITECT-PRIME: allowlist multi-origines (flaynn.tech = SaaS, flaynn.com = investors landing,
+// flaynn.fr = legacy). CORS_ORIGIN peut surcharger via CSV en prod.
+// Defaults inclus pour résister à un déploiement sans variable correctement set
+// (le pire serait de bloquer le frontend en silence — ici on garantit au minimum
+// les domaines connus, et toute origine non-listée reste rejetée).
+const DEFAULT_PROD_ORIGINS = [
+  'https://flaynn.tech',
+  'https://flaynn.com',
+  'https://flaynn.fr'
+];
+
+function parseOriginList(raw) {
+  if (!raw) return DEFAULT_PROD_ORIGINS;
+  return raw.split(',').map((o) => o.trim()).filter(Boolean);
+}
+
+const prodAllowlist = parseOriginList(process.env.CORS_ORIGIN);
+
+function prodOriginCheck(origin, cb) {
+  // Requêtes server-to-server / curl / health checks sans header Origin → autorisées
+  if (!origin) return cb(null, true);
+  if (prodAllowlist.includes(origin)) return cb(null, true);
+  return cb(new Error(`Origin not allowed by CORS: ${origin}`), false);
+}
 
 export const corsConfig = {
-  origin: process.env.NODE_ENV === 'production' ? prodOrigin : true,
-  methods: ['GET', 'POST', 'OPTIONS'],
+  origin: process.env.NODE_ENV === 'production' ? prodOriginCheck : true,
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Flaynn-Source'],
   credentials: true
 };
