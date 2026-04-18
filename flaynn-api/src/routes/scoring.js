@@ -152,7 +152,7 @@ export default async function scoringRoutes(fastify) {
 
   fastify.post('/api/score', {
     config: { rateLimit: { max: 3, timeWindow: '1 minute' } },
-    bodyLimit: 90 * 1024 * 1024
+    bodyLimit: 25 * 1024 * 1024
   }, async (request, reply) => {
     try {
       const parsed = ScoreSubmissionSchema.parse(request.body);
