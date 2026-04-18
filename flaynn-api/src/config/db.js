@@ -128,8 +128,35 @@ export async function initDB(logger, retries = 8, delay = 2000) {
         );
 
         CREATE INDEX IF NOT EXISTS idx_digests_ba ON ba_digests(ba_id);
+
+        -- ======================================================================
+        -- Delta 9 — Flaynn Score Cards publiques partageables
+        -- FK reference_id → scores(reference_id) ON DELETE RESTRICT : si un scoring
+        -- est supprimé par erreur, la card publique doit lever une erreur, pas
+        -- disparaître silencieusement (audit trail).
+        -- id SERIAL conservé pour la FK future intro_requests.card_id (delta 12).
+        -- ======================================================================
+        CREATE TABLE IF NOT EXISTS public_cards (
+          id              SERIAL PRIMARY KEY,
+          slug            VARCHAR(80)  NOT NULL UNIQUE,
+          reference_id    VARCHAR(50)  NOT NULL REFERENCES scores(reference_id) ON DELETE RESTRICT,
+          user_email      VARCHAR(254) NOT NULL,
+          startup_name    VARCHAR(120) NOT NULL,
+          snapshot_data   JSONB        NOT NULL,
+          og_image_path   VARCHAR(255),
+          is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
+          index_seo       BOOLEAN      NOT NULL DEFAULT TRUE,
+          view_count      INTEGER      NOT NULL DEFAULT 0,
+          created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          unpublished_at  TIMESTAMP WITH TIME ZONE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_public_cards_reference ON public_cards(reference_id);
+        CREATE INDEX IF NOT EXISTS idx_public_cards_active    ON public_cards(is_active) WHERE is_active = TRUE;
+        CREATE INDEX IF NOT EXISTS idx_public_cards_email     ON public_cards(user_email);
+        CREATE INDEX IF NOT EXISTS idx_public_cards_created   ON public_cards(created_at DESC);
       `);
-      logger.info('[ARCHITECT-PRIME] PostgreSQL : Tables "users", "scores", "refresh_tokens", "business_angels", "intro_requests", "ba_digests" synchronisées et prêtes.');
+      logger.info('[ARCHITECT-PRIME] PostgreSQL : Tables "users", "scores", "refresh_tokens", "business_angels", "intro_requests", "ba_digests", "public_cards" synchronisées et prêtes.');
       return;
     } catch (err) {
       if (attempt === retries) {

@@ -19,6 +19,8 @@ import authRoutes from './routes/auth.js';
 import webhookRoutes from './routes/webhooks.js';
 import stripeRoutes from './routes/stripe.js';
 import miniScoreRoute from './routes/mini-score.js';
+import publicCardsRoutes from './routes/public-cards.js';
+import { warmUpOgRender } from './lib/og-render.js';
 import baApplyRoutes from './routes/ba-apply.js';
 import baIntroRequestRoutes from './routes/ba-intro-request.js';
 import adminBaRoutes from './routes/admin-ba.js';
@@ -53,7 +55,11 @@ const envSchema = z.object({
   STRIPE_PRICE_BA_SUBSCRIPTION: z.string().startsWith('price_').optional(),
   INTRO_TOKEN_SECRET: z.string().min(32, "INTRO_TOKEN_SECRET doit faire au moins 32 caractères.").optional(),
   ADMIN_EMAILS: z.string().optional(),
-  BA_PUBLIC_BASE_URL: z.string().url().default('https://flaynn.com')
+  BA_PUBLIC_BASE_URL: z.string().url().default('https://flaynn.com'),
+  // ARCHITECT-PRIME: Delta 9 — répertoire de sortie des OG PNG générés par Satori.
+  // Filesystem Render éphémère : les fichiers disparaissent au redeploy, la route
+  // GET /og/:slug.png re-render à la volée sur premier hit (dette acceptée v1).
+  OG_OUTPUT_DIR: z.string().default('./public/og')
 });
 
 let env;
@@ -180,6 +186,7 @@ export const start = async () => {
     await fastify.register(webhookRoutes);
     await fastify.register(stripeRoutes);
     await fastify.register(miniScoreRoute);
+    await fastify.register(publicCardsRoutes);
     await fastify.register(baApplyRoutes);
     await fastify.register(baIntroRequestRoutes);
     await fastify.register(adminBaRoutes);
@@ -237,6 +244,17 @@ export const start = async () => {
       }
       return reply.code(404).send({ error: 'Not Found' });
     });
+
+    // ARCHITECT-PRIME: Delta 9 — warm-up Satori (fonts + render fantôme 100×100
+    // jeté) pour amortir ~1.5 s de cold path sur le premier publish réel.
+    // Non bloquant sur l'erreur : si ça plante, le render lazy au premier hit
+    // prendra le relais.
+    try {
+      const warmMs = await warmUpOgRender();
+      fastify.log.info(`[ARCHITECT-PRIME] Warm-up Satori terminé en ${warmMs} ms.`);
+    } catch (err) {
+      fastify.log.warn({ err }, '[ARCHITECT-PRIME] Warm-up Satori échoué (non bloquant).');
+    }
 
     const port = env.PORT;
     await fastify.listen({ port, host: '0.0.0.0' });

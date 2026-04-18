@@ -183,28 +183,51 @@ export default async function dashboardApiRoutes(fastify) {
 
       const { pdf_base64, pitch_deck_base64, extra_docs, ...dataWithoutBlobs } = rows[0].data || {};
 
-      // Chercher le scoring précédent pour la même startup (trend chips)
-      let previousData = null;
-      if (rows[0].startup_name) {
-        const prevResult = await pool.query(
-          `SELECT data FROM scores
-           WHERE user_email = $1 AND startup_name = $2 AND reference_id != $3
-             AND data->>'status' = 'completed'
-           ORDER BY created_at DESC LIMIT 1`,
-          [userEmail, rows[0].startup_name, parsed.data]
-        );
-        if (prevResult.rows.length > 0) {
-          previousData = prevResult.rows[0].data;
-        }
+      // Scoring précédent (trend chips) + card publique active (Delta 9 J6) en
+      // parallèle. publicCard = null si aucune card active pour ce report.
+      const startupName = rows[0].startup_name;
+      const prevPromise = startupName
+        ? pool.query(
+            `SELECT data FROM scores
+             WHERE user_email = $1 AND startup_name = $2 AND reference_id != $3
+               AND data->>'status' = 'completed'
+             ORDER BY created_at DESC LIMIT 1`,
+            [userEmail, startupName, parsed.data]
+          )
+        : Promise.resolve({ rows: [] });
+      const publicCardPromise = pool.query(
+        `SELECT id, slug, view_count, created_at, og_image_path
+         FROM public_cards
+         WHERE reference_id = $1 AND user_email = $2 AND is_active = TRUE
+         ORDER BY created_at DESC LIMIT 1`,
+        [parsed.data, userEmail]
+      );
+      const [prevResult, publicCardResult] = await Promise.all([prevPromise, publicCardPromise]);
+
+      const previousData = prevResult.rows.length > 0 ? prevResult.rows[0].data : null;
+
+      let publicCard = null;
+      if (publicCardResult.rows.length > 0) {
+        const c = publicCardResult.rows[0];
+        const baseUrl = process.env.APP_URL || 'https://flaynn.tech';
+        publicCard = {
+          card_id: c.id,
+          slug: c.slug,
+          url: `${baseUrl}/score/${c.slug}`,
+          view_count: c.view_count,
+          created_at: c.created_at,
+          og_pending: !c.og_image_path
+        };
       }
 
-      const adapted = adaptN8nToDashboard(dataWithoutBlobs, rows[0].startup_name, parsed.data, rows[0].created_at, previousData);
+      const adapted = adaptN8nToDashboard(dataWithoutBlobs, startupName, parsed.data, rows[0].created_at, previousData);
       return reply.code(200).send({
         id: parsed.data,
-        startupName: rows[0].startup_name,
+        startupName,
         has_pdf: !!pdf_base64,
         has_pitch_deck: !!pitch_deck_base64,
-        ...adapted
+        ...adapted,
+        publicCard
       });
     } catch (err) {
       request.log.error(err);

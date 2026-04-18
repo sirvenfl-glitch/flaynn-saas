@@ -13,3 +13,6 @@ npm-debug.log*
 MASTER_AUDIT_REPORT.md
 claude.md
 *.json.bak
+
+# Delta 9 — OG images rendues à la volée, filesystem éphémère Render
+public/og/*.png

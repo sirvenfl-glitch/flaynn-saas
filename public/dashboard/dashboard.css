@@ -1165,3 +1165,140 @@
   font-weight: 700;
 }
 
+/* ============================================================
+   DELTA 9 — Dashboard section "Partage public"
+   ============================================================ */
+
+.dashboard-public-share {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dashboard-public-share__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dashboard-public-share__lead {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.dashboard-public-share__hint {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.dashboard-public-share--disabled .dashboard-public-share__lead {
+  opacity: 0.7;
+}
+
+.dashboard-public-share__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.dashboard-public-share__status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.dashboard-public-share__publish-btn {
+  align-self: flex-start;
+}
+
+.dashboard-public-share__link-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dashboard-public-share__link {
+  flex: 1 1 320px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+}
+.dashboard-public-share__link:focus {
+  outline: 2px solid var(--accent-violet);
+  outline-offset: 2px;
+}
+
+.dashboard-public-share__btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.dashboard-public-share__btn:hover:not(:disabled),
+.dashboard-public-share__btn:focus {
+  background: rgba(123, 45, 142, 0.15);
+  border-color: var(--accent-violet);
+}
+.dashboard-public-share__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dashboard-public-share__btn--danger {
+  color: var(--accent-rose);
+  border-color: rgba(232, 101, 26, 0.3);
+}
+.dashboard-public-share__btn--danger:hover:not(:disabled),
+.dashboard-public-share__btn--danger:focus {
+  background: rgba(232, 101, 26, 0.12);
+  border-color: var(--accent-rose);
+  color: var(--accent-rose);
+}
+
+.dashboard-public-share__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dashboard-public-share__open {
+  color: var(--accent-violet);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+.dashboard-public-share__open:hover,
+.dashboard-public-share__open:focus {
+  text-decoration: underline;
+}
+
+.dashboard-public-share__meta {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+

@@ -535,6 +535,144 @@ function sanitizeDetailData(data) {
   };
 }
 
+/* ── Delta 9 : section Partage public (Flaynn Card publique) ──────────── */
+const PUBLISHABLE_VERDICTS = new Set(['Ready', 'Almost', 'Yes', 'Strong Yes']);
+
+function buildPublicShareSection(data) {
+  const canPublish = PUBLISHABLE_VERDICTS.has(data.verdict);
+  const card = data.publicCard;
+
+  const wrap = el('article', 'card-glass dashboard-public-share');
+  const titleRow = el('div', 'dashboard-public-share__title-row');
+  titleRow.appendChild(el('h3', 'dashboard-card-title', { textContent: 'Partage public' }));
+
+  if (card && card.url) {
+    /* État 3 : carte publiée */
+    wrap.classList.add('dashboard-public-share--live');
+    const status = el('span', 'dashboard-public-share__status');
+    status.appendChild(el('span', 'dashboard-public-share__status-dot'));
+    status.appendChild(document.createTextNode('En ligne'));
+    titleRow.appendChild(status);
+    wrap.appendChild(titleRow);
+
+    const linkRow = el('div', 'dashboard-public-share__link-row');
+    const linkInput = el('input', 'dashboard-public-share__link', {
+      type: 'text',
+      readonly: 'readonly',
+      value: card.url,
+      'aria-label': 'URL publique de votre Flaynn Card'
+    });
+    const copyBtn = el('button', 'dashboard-public-share__btn', {
+      type: 'button',
+      textContent: 'Copier'
+    });
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(card.url);
+        copyBtn.textContent = 'Copié ✓';
+        setTimeout(() => { copyBtn.textContent = 'Copier'; }, 2000);
+      } catch {
+        linkInput.select();
+      }
+    });
+    linkRow.appendChild(linkInput);
+    linkRow.appendChild(copyBtn);
+    wrap.appendChild(linkRow);
+
+    const actions = el('div', 'dashboard-public-share__actions');
+    const openLink = el('a', 'dashboard-public-share__open', {
+      href: card.url,
+      target: '_blank',
+      rel: 'noopener',
+      textContent: 'Ouvrir la page publique →'
+    });
+    const unpubBtn = el('button', 'dashboard-public-share__btn dashboard-public-share__btn--danger', {
+      type: 'button',
+      textContent: 'Dépublier'
+    });
+    unpubBtn.addEventListener('click', async () => {
+      if (!window.confirm('Dépublier cette Flaynn Card ? Le lien deviendra inaccessible.')) return;
+      unpubBtn.disabled = true;
+      unpubBtn.textContent = 'Dépublication…';
+      try {
+        const res = await fetch(
+          `/api/dashboard/${encodeURIComponent(data.id)}/publish/${card.card_id}`,
+          { method: 'DELETE', credentials: 'same-origin' }
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
+          throw new Error(err.message || 'Erreur');
+        }
+        window.location.reload();
+      } catch (err) {
+        alert('Dépublication impossible : ' + err.message);
+        unpubBtn.disabled = false;
+        unpubBtn.textContent = 'Dépublier';
+      }
+    });
+    actions.appendChild(openLink);
+    actions.appendChild(unpubBtn);
+    wrap.appendChild(actions);
+
+    const meta = el('p', 'dashboard-public-share__meta');
+    const publishedAt = new Date(card.created_at).toLocaleDateString('fr-FR', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+    const viewLabel = card.view_count === 1 ? 'vue' : 'vues';
+    meta.textContent = `Publiée le ${publishedAt} · ${card.view_count} ${viewLabel}` +
+      (card.og_pending ? ' · image de partage en cours de génération' : '');
+    wrap.appendChild(meta);
+
+  } else if (canPublish) {
+    /* État 2 : publiable non publié */
+    wrap.appendChild(titleRow);
+    wrap.appendChild(el('p', 'dashboard-public-share__lead', {
+      textContent: 'Publiez une version brandée et auditée de votre scoring. Partageable sur LinkedIn, utilisable dans vos dossiers investisseurs.'
+    }));
+    const publishBtn = el('button', 'btn-primary dashboard-public-share__publish-btn', {
+      type: 'button',
+      textContent: 'Publier ma Flaynn Card'
+    });
+    publishBtn.addEventListener('click', async () => {
+      publishBtn.disabled = true;
+      publishBtn.textContent = 'Publication en cours…';
+      try {
+        const res = await fetch(
+          `/api/dashboard/${encodeURIComponent(data.id)}/publish`,
+          {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
+          throw new Error(err.message || 'Erreur');
+        }
+        window.location.reload();
+      } catch (err) {
+        alert('Publication impossible : ' + err.message);
+        publishBtn.disabled = false;
+        publishBtn.textContent = 'Publier ma Flaynn Card';
+      }
+    });
+    wrap.appendChild(publishBtn);
+
+  } else {
+    /* État 1 : verrouillé (verdict Not yet ou absent) */
+    wrap.classList.add('dashboard-public-share--disabled');
+    wrap.appendChild(titleRow);
+    wrap.appendChild(el('p', 'dashboard-public-share__lead', {
+      textContent: 'Votre Flaynn Card publique permet de partager votre scoring en un lien.'
+    }));
+    wrap.appendChild(el('p', 'dashboard-public-share__hint', {
+      textContent: 'Débloquez le partage public en améliorant votre score par un nouveau scoring.'
+    }));
+  }
+
+  return wrap;
+}
+
 /* ── Handlers de routes ────────────────────────────────────────────────── */
 function buildRoutes(data) {
   return [
@@ -737,6 +875,9 @@ function buildRoutes(data) {
           }
           section.appendChild(verdictCard);
         }
+
+        /* Delta 9 : section Partage public (Flaynn Card publique) */
+        section.appendChild(buildPublicShareSection(data));
 
         /* Pillar rows */
         const pillarCard = el('article', 'card-glass');

@@ -9,28 +9,65 @@ function n8nConnectOrigin() {
   }
 }
 
+// ARCHITECT-PRIME: directives CSP partagées (helmet config + override /score/:slug).
+// Exposées séparément pour que les routes Score Card publique puissent construire
+// un header CSP scoped incluant un hash SHA-256 du JSON-LD inline (delta 9 J4).
+const CSP_DIRECTIVES = {
+  defaultSrc: ["'self'"],
+  scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://js.stripe.com'],
+  styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+  fontSrc: ["'self'", "https://fonts.gstatic.com"],
+  imgSrc: ["'self'", "data:", "https://*.stripe.com"],
+  connectSrc: [
+    "'self'",
+    'https://cdn.jsdelivr.net',
+    'https://fonts.googleapis.com',
+    'https://fonts.gstatic.com',
+    'https://api.stripe.com',
+    ...n8nConnectOrigin()
+  ],
+  frameSrc: ["'self'", "https://js.stripe.com"],
+  baseUri: ["'self'"],
+  formAction: ["'self'"],
+  objectSrc: ["'none'"],
+  upgradeInsecureRequests: []
+};
+
+function kebabCase(camel) {
+  return camel.replace(/([A-Z])/g, '-$1').toLowerCase();
+}
+
+function serializeCspDirectives(directives) {
+  const parts = [];
+  for (const [key, values] of Object.entries(directives)) {
+    const name = kebabCase(key);
+    if (!values || values.length === 0) {
+      parts.push(name);
+    } else {
+      parts.push(`${name} ${values.join(' ')}`);
+    }
+  }
+  return parts.join('; ');
+}
+
+// Construit un header CSP identique à celui posé par helmet, + éventuellement
+// des hashes additionnels dans script-src (format 'sha256-BASE64' SANS les
+// apostrophes — elles sont ajoutées ici). Scoped : utilisé uniquement pour
+// /score/:slug qui a besoin d'autoriser un <script type="application/ld+json">.
+export function buildCspHeader(extraScriptSrcHashes = []) {
+  const directives = { ...CSP_DIRECTIVES };
+  if (extraScriptSrcHashes.length > 0) {
+    directives.scriptSrc = [
+      ...CSP_DIRECTIVES.scriptSrc,
+      ...extraScriptSrcHashes.map((h) => `'${h}'`)
+    ];
+  }
+  return serializeCspDirectives(directives);
+}
+
 export const helmetConfig = {
   contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://js.stripe.com'],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://*.stripe.com"],
-      connectSrc: [
-        "'self'",
-        'https://cdn.jsdelivr.net',
-        'https://fonts.googleapis.com',
-        'https://fonts.gstatic.com',
-        'https://api.stripe.com',
-        ...n8nConnectOrigin()
-      ],
-      frameSrc: ["'self'", "https://js.stripe.com"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: []
-    }
+    directives: CSP_DIRECTIVES
   },
   /* COEP désactivée : import dynamique Three/GSAP depuis jsDelivr + WebGL sinon souvent bloqués */
   crossOriginEmbedderPolicy: false,
