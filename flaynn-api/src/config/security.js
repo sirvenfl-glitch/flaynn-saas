@@ -46,28 +46,35 @@ export const helmetConfig = {
   xssFilter: true
 };
 
-// ARCHITECT-PRIME: allowlist multi-origines (flaynn.tech = SaaS, flaynn.com = investors landing,
-// flaynn.fr = legacy). CORS_ORIGIN peut surcharger via CSV en prod.
-// Defaults inclus pour résister à un déploiement sans variable correctement set
-// (le pire serait de bloquer le frontend en silence — ici on garantit au minimum
-// les domaines connus, et toute origine non-listée reste rejetée).
-const DEFAULT_PROD_ORIGINS = [
-  'https://flaynn.tech',
-  'https://flaynn.com',
-  'https://flaynn.fr'
-];
+// ARCHITECT-PRIME: les domaines de PROD sont hardcodés ici, jamais lus depuis l'env.
+// Raison : un typo dans une variable Render avait coupé l'auth de tous les users en avril
+// 2026 (CORS_ORIGIN mal écrit → flaynn.tech rejeté → login impossible). Désormais ces 3
+// domaines sont garantis quel que soit l'état de l'env. Ils sont versionnés dans git.
+const CANONICAL_PROD_ORIGINS = Object.freeze([
+  'https://flaynn.tech',  // SaaS API + dashboard
+  'https://flaynn.com',   // Landing investisseurs / page /rejoindre
+  'https://flaynn.fr'     // Legacy redirect
+]);
 
-function parseOriginList(raw) {
-  if (!raw) return DEFAULT_PROD_ORIGINS;
-  return raw.split(',').map((o) => o.trim()).filter(Boolean);
+// CORS_ORIGIN reste utile pour AJOUTER des origines (preview Vercel, staging…).
+// Il ne peut PAS retirer un canonical. Lu à chaque requête pour qu'un changement
+// dashboard s'applique sans redeploy.
+function buildAllowlist() {
+  const set = new Set(CANONICAL_PROD_ORIGINS);
+  const raw = process.env.CORS_ORIGIN;
+  if (raw) {
+    for (const part of raw.split(',')) {
+      const trimmed = part.trim();
+      if (trimmed) set.add(trimmed);
+    }
+  }
+  return set;
 }
-
-const prodAllowlist = parseOriginList(process.env.CORS_ORIGIN);
 
 function prodOriginCheck(origin, cb) {
   // Requêtes server-to-server / curl / health checks sans header Origin → autorisées
   if (!origin) return cb(null, true);
-  if (prodAllowlist.includes(origin)) return cb(null, true);
+  if (buildAllowlist().has(origin)) return cb(null, true);
   return cb(new Error(`Origin not allowed by CORS: ${origin}`), false);
 }
 
