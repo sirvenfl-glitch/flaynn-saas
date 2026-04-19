@@ -50,7 +50,7 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().startsWith('sk_').min(20).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_').optional(),
-  APP_URL: z.string().url().default('https://flaynn.tech'),
+  APP_URL: z.string().url().default('https://flaynn.io'),
   // ARCHITECT-PRIME: Delta 12 — onboarding Business Angels
   STRIPE_PRICE_BA_SUBSCRIPTION: z.string().startsWith('price_').optional(),
   INTRO_TOKEN_SECRET: z.string().min(32, "INTRO_TOKEN_SECRET doit faire au moins 32 caractères.").optional(),

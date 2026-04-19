@@ -26,11 +26,11 @@ services:
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
       - key: APP_URL
-        value: https://flaynn.tech
+        value: https://flaynn.io
       # Delta 12: CSV des origines autorisees (parser src/config/security.js).
       # Inclure flaynn.com pour la landing /rejoindre du repo flaynn-investors.
       - key: CORS_ORIGIN
-        value: https://flaynn.tech,https://flaynn.com,https://flaynn.fr
+        value: https://flaynn.io,https://flaynn.tech,https://flaynn.com,https://flaynn.fr
       - key: N8N_WEBHOOK_URL
         sync: false
       - key: N8N_SECRET_TOKEN

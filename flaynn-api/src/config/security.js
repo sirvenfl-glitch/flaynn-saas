@@ -85,10 +85,11 @@ export const helmetConfig = {
 
 // ARCHITECT-PRIME: les domaines de PROD sont hardcodés ici, jamais lus depuis l'env.
 // Raison : un typo dans une variable Render avait coupé l'auth de tous les users en avril
-// 2026 (CORS_ORIGIN mal écrit → flaynn.tech rejeté → login impossible). Désormais ces 3
+// 2026 (CORS_ORIGIN mal écrit → flaynn.tech rejeté → login impossible). Désormais ces
 // domaines sont garantis quel que soit l'état de l'env. Ils sont versionnés dans git.
 const CANONICAL_PROD_ORIGINS = Object.freeze([
-  'https://flaynn.tech',  // SaaS API + dashboard
+  'https://flaynn.io',    // SaaS API + dashboard (primaire)
+  'https://flaynn.tech',  // Ancien domaine SaaS (backward compat)
   'https://flaynn.com',   // Landing investisseurs / page /rejoindre
   'https://flaynn.fr'     // Legacy redirect
 ]);

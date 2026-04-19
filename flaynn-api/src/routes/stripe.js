@@ -149,7 +149,7 @@ export default async function stripeRoutes(fastify) {
       return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Erreur lors de la création du dossier.' });
     }
 
-    const baseUrl = process.env.APP_URL || 'https://flaynn.tech';
+    const baseUrl = process.env.APP_URL || 'https://flaynn.io';
 
     // Création de la session Stripe APRÈS INSERT. Si échec ici, row DB reste en
     // 'pending_payment' + orphelins R2 — cleanup V2.
@@ -307,7 +307,7 @@ export default async function stripeRoutes(fastify) {
       [reference]
     );
 
-    const host = request.headers['x-forwarded-host'] || request.headers.host || 'flaynn.tech';
+    const host = request.headers['x-forwarded-host'] || request.headers.host || 'flaynn.io';
     const protocol = request.headers['x-forwarded-proto'] || 'https';
 
     // Deck URL : dérivée de pitch_deck_storage (R2). Vide si pas d'upload.

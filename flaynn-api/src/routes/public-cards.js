@@ -107,7 +107,7 @@ function buildPublishResponse(card, snapshot) {
 }
 
 function getPublicBaseUrl() {
-  return process.env.APP_URL || 'https://flaynn.tech';
+  return process.env.APP_URL || 'https://flaynn.io';
 }
 
 function getBaJoinUrl() {
@@ -779,7 +779,7 @@ export default async function publicCardsRoutes(fastify) {
   fastify.get('/sitemap.xml', {
     config: { rateLimit: { max: 60, timeWindow: '1 minute' } }
   }, async (request, reply) => {
-    const baseUrl = process.env.APP_URL || 'https://flaynn.tech';
+    const baseUrl = process.env.APP_URL || 'https://flaynn.io';
 
     let cardRows = [];
     try {

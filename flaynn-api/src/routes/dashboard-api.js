@@ -225,7 +225,7 @@ export default async function dashboardApiRoutes(fastify) {
       let publicCard = null;
       if (publicCardResult.rows.length > 0) {
         const c = publicCardResult.rows[0];
-        const baseUrl = process.env.APP_URL || 'https://flaynn.tech';
+        const baseUrl = process.env.APP_URL || 'https://flaynn.io';
         publicCard = {
           card_id: c.id,
           slug: c.slug,

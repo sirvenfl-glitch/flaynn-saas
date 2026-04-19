@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://flaynn.tech/sitemap.xml
+Sitemap: https://flaynn.io/sitemap.xml

@@ -214,7 +214,7 @@ export default async function scoringRoutes(fastify) {
       );
 
       // Construire l URL du deck pour n8n/Mistral
-      const host = request.headers['x-forwarded-host'] || request.headers.host || 'flaynn.tech';
+      const host = request.headers['x-forwarded-host'] || request.headers.host || 'flaynn.io';
       const protocol = request.headers['x-forwarded-proto'] || 'https';
       const deckUrl = pitchDeckStorage
         ? `${protocol}://${host}/api/decks/${reference}`
