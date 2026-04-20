@@ -151,41 +151,33 @@
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="field field--inline">
-                        <div class="field" data-validate="required">
-                            <label for="secteur" class="field__label">Secteur principal</label>
-                            <div class="searchable-dropdown" data-dropdown>
-                                <input type="text" class="field__input" data-dropdown-search placeholder="Rechercher un secteur..." autocomplete="off" aria-expanded="false" aria-controls="secteur-list" role="combobox">
-                                <input type="hidden" id="secteur" name="secteur" required>
-                                <ul id="secteur-list" class="searchable-dropdown__list" role="listbox" hidden>
-                                    <li role="option" data-value="fintech">FinTech</li>
-                                    <li role="option" data-value="healthtech">HealthTech</li>
-                                    <li role="option" data-value="saas">SaaS</li>
-                                    <li role="option" data-value="marketplace">Marketplace</li>
-                                    <li role="option" data-value="deeptech">DeepTech</li>
-                                    <li role="option" data-value="greentech">GreenTech</li>
-                                    <li role="option" data-value="edtech">EdTech</li>
-                                    <li role="option" data-value="proptech">PropTech</li>
-                                    <li role="option" data-value="legaltech">LegalTech</li>
-                                    <li role="option" data-value="foodtech">FoodTech</li>
-                                    <li role="option" data-value="mobility_logistics">Mobility / Logistics</li>
-                                    <li role="option" data-value="media_entertainment">Media / Entertainment</li>
-                                    <li role="option" data-value="hr_recruiting">HR / Recruiting</li>
-                                    <li role="option" data-value="cybersecurity">Cybersecurity</li>
-                                    <li role="option" data-value="insurtech">InsurTech</li>
-                                    <li role="option" data-value="biotech">BioTech</li>
-                                    <li role="option" data-value="agritech">AgriTech</li>
-                                    <li role="option" data-value="social_impact">Social Impact</li>
-                                    <li role="option" data-value="ai_ml_native">AI / ML Native</li>
-                                    <li role="option" data-value="web3_blockchain">Web3 / Blockchain</li>
-                                    <li role="option" data-value="space_defense">Space / Defense</li>
-                                    <li role="option" data-value="other">Autre</li>
-                                </ul>
-                            </div>
-                            <span class="field__error" role="alert"></span>
-                        </div>
-                        <div class="field" id="secteur-autre-field" data-validate="required" hidden>
-                            <label for="secteur_autre" class="field__label">Précisez votre secteur</label>
-                            <input type="text" id="secteur_autre" name="secteur_autre" class="field__input" placeholder="Ex : RegTech, CleanTech..." minlength="2" maxlength="100">
+                        <div class="field" data-validate="required|min:2|max:100">
+                            <label for="secteur_input" class="field__label">Secteur principal</label>
+                            <input type="text" id="secteur_input" class="field__input" list="secteur-datalist" required placeholder="Ex : fintech, cleantech, regtech..." autocomplete="off" maxlength="100">
+                            <datalist id="secteur-datalist">
+                                <option value="FinTech"></option>
+                                <option value="HealthTech"></option>
+                                <option value="SaaS"></option>
+                                <option value="Marketplace"></option>
+                                <option value="DeepTech"></option>
+                                <option value="GreenTech"></option>
+                                <option value="EdTech"></option>
+                                <option value="PropTech"></option>
+                                <option value="LegalTech"></option>
+                                <option value="FoodTech"></option>
+                                <option value="Mobility / Logistics"></option>
+                                <option value="Media / Entertainment"></option>
+                                <option value="HR / Recruiting"></option>
+                                <option value="Cybersecurity"></option>
+                                <option value="InsurTech"></option>
+                                <option value="BioTech"></option>
+                                <option value="AgriTech"></option>
+                                <option value="Social Impact"></option>
+                                <option value="AI / ML Native"></option>
+                                <option value="Web3 / Blockchain"></option>
+                                <option value="Space / Defense"></option>
+                            </datalist>
+                            <input type="hidden" id="secteur" name="secteur" required>
                             <span class="field__error" role="alert"></span>
                         </div>
                         <div class="field" data-validate="required">
@@ -206,6 +198,11 @@
                             <input type="hidden" id="type_client" name="type_client" required>
                             <span class="field__error" role="alert"></span>
                         </div>
+                    </div>
+                    <div class="field" data-validate="max:200" id="segment-clientele-field">
+                        <label for="segment_clientele" class="field__label">Segment clientèle précis <span class="field__label-hint" id="segment-clientele-hint">(optionnel)</span></label>
+                        <input type="text" id="segment_clientele" name="segment_clientele" class="field__input" maxlength="200" placeholder="Ex : PME industrielles 50-500 salariés, fonds VC francophones early-stage, médecins généralistes...">
+                        <span class="field__error" role="alert"></span>
                     </div>
                     <div class="form-step-actions">
                         <button type="button" class="btn-form btn-form--ghost" data-back="1"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
@@ -232,7 +229,18 @@
                                 <span class="tam-slider__tick" style="left:100%">10Md</span>
                             </div>
                         </div>
-                        <input type="hidden" id="tam_usd" name="tam_usd" value="100K" required>
+                        <div class="amount-row" data-amount-row="tam">
+                            <label for="tam_amount_value" class="amount-row__label">Ou saisissez un montant précis</label>
+                            <div class="amount-row__controls">
+                                <input type="number" id="tam_amount_value" class="field__input amount-row__input" min="1" step="any" inputmode="decimal" placeholder="Ex : 200" aria-label="Montant TAM">
+                                <select id="tam_amount_unit" class="field__input amount-row__unit" aria-label="Unité TAM">
+                                    <option value="K">K€</option>
+                                    <option value="M" selected>M€</option>
+                                    <option value="Md">Md€</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" id="tam_amount" name="tam_amount" value="100K" required>
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="field" data-validate="required|min:20|max:2000">
@@ -355,10 +363,21 @@
                                 <span class="tam-slider__tick" style="left:50%">1M</span>
                                 <span class="tam-slider__tick" style="left:79%">5M</span>
                                 <span class="tam-slider__tick" style="left:93%">20M</span>
-                                <span class="tam-slider__tick" style="left:100%">50M+</span>
+                                <span class="tam-slider__tick" style="left:100%">50M</span>
                             </div>
                         </div>
-                        <input type="hidden" id="montant_leve" name="montant_leve" value="25K" required>
+                        <div class="amount-row" data-amount-row="levee">
+                            <label for="levee_amount_value" class="amount-row__label">Ou saisissez un montant précis</label>
+                            <div class="amount-row__controls">
+                                <input type="number" id="levee_amount_value" class="field__input amount-row__input" min="1" step="any" inputmode="decimal" placeholder="Ex : 750" aria-label="Montant levée">
+                                <select id="levee_amount_unit" class="field__input amount-row__unit" aria-label="Unité levée">
+                                    <option value="K" selected>K€</option>
+                                    <option value="M">M€</option>
+                                    <option value="Md">Md€</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" id="levee_amount" name="levee_amount" value="25K" required>
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="field" data-validate="required|min:20|max:2000">
@@ -497,34 +516,38 @@ SYNC N8N — NE PAS SUPPRIMER
 Champs modifiés dans cette session (à répercuter dans le prompt Claude
 du nœud Scoring du workflow n8n avant mise en prod) :
 
-PRIORITE_6_MOIS (modifié) :
-  - Ancien type : select (z.enum 7 valeurs)
-  - Nouveau type : textarea libre, z.string().min(20).max(1000)
-  - Le prompt n8n doit traiter ce champ comme texte libre, pas comme enum
+TAM_USD → TAM_AMOUNT (renommé + assoupli) :
+  - Ancien champ : tam_usd, z.enum(["100K","500K","1M",…,"10B"]) (11 stops fixes)
+  - Nouveau champ : tam_amount, z.string().regex(/^\d+(\.\d+)?(K|M|Md)?€?$/)
+  - Saisie libre : slider prédéfini OU input numérique + select d'unité (K€/M€/Md€)
+  - Rétro-compat : le bridge n8n reçoit ENCORE tam_usd (copie de tam_amount)
+    côté back → pas de modif workflow n8n immédiate requise. À terme, migrer
+    le node pour lire tam_amount directement.
 
-MONTANT_LEVE (modifié) :
-  - Ancien type : input text libre, z.string().min(1).max(100)
-  - Nouveau type : slider logarithmique 15 stops → hidden input string
-  - Valeurs : z.enum(["25K","50K","100K","150K","250K","500K","750K",
-    "1M","1.5M","2M","3M","5M","10M","20M","50M+"])
+MONTANT_LEVE → LEVEE_AMOUNT (renommé + assoupli) :
+  - Ancien champ : montant_leve, z.enum(["25K","50K",…,"50M+"]) (15 stops)
+  - Nouveau champ : levee_amount, z.string().regex(/^\d+(\.\d+)?(K|M|Md)?€?$/)
+  - Saisie libre : idem TAM
+  - Rétro-compat : le bridge n8n reçoit ENCORE montant_leve (copie de levee_amount).
 
-PITCH_DECK (modifié) :
-  - Statut : OPTIONNEL → REQUIS
-  - Format : PDF uniquement (anciennement PDF + PPTX + DOCX)
-  - pitch_deck_base64 : z.string().min(1).max(15_000_000) (plus .optional())
-  - pitch_deck_filename : z.string().max(200).regex(/\.pdf$/i) (plus .optional())
+SECTEUR (ouvert) :
+  - Ancien : z.enum(22 valeurs) + champ secteur_autre conditionnel
+  - Nouveau : z.string().regex(/^[a-z0-9-]+$/) (slug ASCII libre)
+  - Front : input text + datalist d'autocomplete, translittération automatique
+    côté client (accents → ASCII, espaces/slashes → tirets). secteur_autre supprimé.
 
-TYPE_CLIENT (modifié UI) :
-  - Ancien : <select> natif OS
-  - Nouveau : custom dropdown dark (mêmes valeurs z.enum inchangées)
+SEGMENT_CLIENTELE (nouveau) :
+  - z.string().trim().max(200).optional()
+  - Requis min 3 caractères quand type_client === 'other' (superRefine).
 
-STADE (modifié UI) :
-  - Ancien : <select> natif OS
-  - Nouveau : custom dropdown dark (mêmes valeurs z.enum inchangées)
+PRIORITE_6_MOIS (inchangé depuis session précédente) :
+  - textarea libre, z.string().min(20).max(1000)
 
-SECTEUR : déjà requis (inchangé)
-MRR : reste optionnel (inchangé)
-CLIENTS_PAYANTS : reste optionnel (inchangé)
-LINKEDIN_URL : reste optionnel (inchangé)
-SITE_URL : reste optionnel (inchangé)
+PITCH_DECK (inchangé depuis session précédente) :
+  - pitch_deck_base64 : z.string().min(1).max(15_000_000) (requis)
+  - pitch_deck_filename : z.string().max(200).regex(/\.pdf$/i) (requis)
+
+TYPE_CLIENT, STADE : custom dropdown dark (enum inchangée)
+
+MRR / CLIENTS_PAYANTS / LINKEDIN_URL / SITE_URL : optionnels (inchangés)
 -->

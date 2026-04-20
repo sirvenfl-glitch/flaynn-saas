@@ -323,8 +323,13 @@ export default async function stripeRoutes(fastify) {
       `${protocol}://${host}/api/decks/${reference}/extra/${i}`
     );
 
+    // ARCHITECT-PRIME: rétro-compat n8n — workflow lit encore tam_usd / montant_leve.
+    // On duplique tam_amount → tam_usd et levee_amount → montant_leve pour ne pas
+    // casser les nodes existants tant qu'ils n'ont pas migré.
     n8nBridge.submitScore({
       ...parsedPayload,
+      tam_usd: parsedPayload.tam_amount,
+      montant_leve: parsedPayload.levee_amount,
       reference,
       pitch_deck_url: deckUrl,
       extra_docs_urls: extraDocsUrls,

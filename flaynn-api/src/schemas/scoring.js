@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// tam_amount / levee_amount : string normalisée EUR (ex: "200K", "15M", "2Md")
+// Format : /^\d+(\.\d+)?(K|M|Md)?€?$/
+const EUR_AMOUNT_REGEX = /^\d+(?:\.\d+)?(?:K|M|Md)?€?$/;
+
 export const ScoreSubmissionSchema = z.object({
   previous_ref: z.string().trim().max(50).optional(),
   nom_fondateur: z.string().trim().min(2).max(100),
@@ -10,17 +14,13 @@ export const ScoreSubmissionSchema = z.object({
   pitch_une_phrase: z.string().trim().min(5).max(300),
   probleme: z.string().trim().min(20).max(2000),
   solution: z.string().trim().min(20).max(2000),
-  secteur: z.enum([
-    'fintech', 'healthtech', 'saas', 'marketplace', 'deeptech',
-    'greentech', 'edtech', 'proptech', 'legaltech', 'foodtech',
-    'mobility_logistics', 'media_entertainment', 'hr_recruiting',
-    'cybersecurity', 'insurtech', 'biotech', 'agritech',
-    'social_impact', 'ai_ml_native', 'web3_blockchain',
-    'space_defense', 'other'
-  ]),
-  secteur_autre: z.string().trim().min(2).max(100).optional(),
+  // Secteur : texte libre normalisé (slug ASCII minuscule-tirets, transliteré côté front).
+  secteur: z.string().trim().min(2).max(100).regex(/^[a-z0-9-]+$/, 'Secteur : caractères ASCII minuscules, chiffres et tirets uniquement.'),
   type_client: z.enum(['b2b', 'b2c', 'b2b2c', 'b2g', 'other']),
-  tam_usd: z.enum(['100K', '500K', '1M', '5M', '10M', '50M', '100M', '500M', '1B', '5B', '10B']),
+  // Segment clientèle : précision libre (PME industrielles, fonds VC francophones, etc.).
+  // Requis min 3 caractères quand type_client === 'other' (cf. superRefine).
+  segment_clientele: z.string().trim().max(200).optional(),
+  tam_amount: z.string().trim().min(1).max(32).regex(EUR_AMOUNT_REGEX, 'TAM : format attendu ex. 200K, 15M, 2Md.'),
   estimation_tam: z.string().trim().min(20).max(2000),
   acquisition_clients: z.string().trim().min(20).max(2000),
   concurrents: z.string().trim().min(20).max(2000),
@@ -32,7 +32,7 @@ export const ScoreSubmissionSchema = z.object({
   pourquoi_vous: z.string().trim().min(20).max(2000),
   equipe_temps_plein: z.enum(['oui', 'non']),
   priorite_6_mois: z.string().trim().min(20).max(1000),
-  montant_leve: z.enum(['25K', '50K', '100K', '150K', '250K', '500K', '750K', '1M', '1.5M', '2M', '3M', '5M', '10M', '20M', '50M+']),
+  levee_amount: z.string().trim().min(1).max(32).regex(EUR_AMOUNT_REGEX, 'Levée : format attendu ex. 500K, 1.5M, 2Md.'),
   jalons_18_mois: z.string().trim().min(20).max(2000),
   utilisation_fonds: z.string().trim().min(20).max(2000),
   vision_5_ans: z.string().trim().min(20).max(2000),
@@ -48,4 +48,15 @@ export const ScoreSubmissionSchema = z.object({
       base64: z.string().min(1).max(14_000_000),
     })
   ).max(5).optional(),
-}).strip();
+}).strip().superRefine((data, ctx) => {
+  if (data.type_client === 'other') {
+    const seg = (data.segment_clientele ?? '').trim();
+    if (seg.length < 3) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['segment_clientele'],
+        message: 'Segment clientèle requis (min 3 caractères) quand Type de client = Autre.',
+      });
+    }
+  }
+});

@@ -2273,6 +2273,21 @@
     opacity: 1;
   }
 
+  /* ARCHITECT-PRIME: compteur de caractères live (BLOQ 2). Warning à 90 %, erreur > max. */
+  .field__counter {
+    display: block;
+    margin-top: var(--space-1);
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-tertiary);
+    transition: color var(--duration-fast) ease;
+  }
+
+  .field__counter--warning { color: var(--accent-amber); }
+  .field__counter--error { color: var(--accent-rose); font-weight: 700; }
+
   .field--valid .field__input { border-color: rgba(16, 185, 129, 0.45); }
   .field--error .field__input { border-color: rgba(244, 63, 94, 0.6); box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1); }
 
@@ -2500,6 +2515,62 @@
 
   .tam-slider__tick:last-child {
     transform: translateX(-100%);
+  }
+
+  /* ARCHITECT-PRIME: input libre à côté du slider (BLOQ 1). Mobile-first : wrap sous
+     le slider, empile label + contrôles. À partir de 480 px on aligne input + select
+     sur une seule ligne. Le hidden (#tam_amount / #levee_amount) reste source de vérité. */
+  .amount-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border-subtle);
+  }
+
+  .amount-row__label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
+  }
+
+  .amount-row__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: stretch;
+  }
+
+  .amount-row__input {
+    min-height: 44px;
+  }
+
+  .amount-row__unit {
+    min-height: 44px;
+    min-width: 92px;
+    padding-right: var(--space-6);
+    background-image:
+      linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01)),
+      linear-gradient(135deg, transparent 50%, var(--text-secondary) 50%, var(--text-secondary) 55%, transparent 55%),
+      linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%, var(--text-secondary) 55%, transparent 55%);
+    background-repeat: no-repeat;
+    background-position:
+      0 0,
+      calc(100% - var(--space-4)) 54%,
+      calc(100% - var(--space-4) - 5px) 54%;
+    background-size: 100% 100%, 5px 5px, 5px 5px;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .amount-row__unit:focus-visible {
+    outline: 2px solid var(--accent-violet);
+    outline-offset: 2px;
   }
 
   /* Dropzone */

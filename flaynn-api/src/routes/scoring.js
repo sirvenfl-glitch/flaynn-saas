@@ -226,8 +226,13 @@ export default async function scoringRoutes(fastify) {
       );
 
       // Envoyer a n8n SANS le base64, avec l URL du deck + extra docs
+      // ARCHITECT-PRIME: rétro-compat n8n — workflow lit encore tam_usd / montant_leve.
+      // On duplique tam_amount → tam_usd et levee_amount → montant_leve pour ne pas
+      // casser les nodes existants tant qu'ils n'ont pas migré.
       n8nBridge.submitScore({
         ...payloadWithoutBase64,
+        tam_usd: payloadWithoutBase64.tam_amount,
+        montant_leve: payloadWithoutBase64.levee_amount,
         reference,
         pitch_deck_url: deckUrl,
         extra_docs_urls: extraDocsUrls

@@ -234,6 +234,8 @@ class ScoringFormController {
     this.#initChips();
     this.#initLabelBadges();
     this.#initResubmitToggle();
+    this.#initCharCounters();
+    this.#initSegmentClienteleConditional();
     this.#updateProgress();
     this.#updateStepButtons();
   }
@@ -284,81 +286,28 @@ class ScoringFormController {
       this.#submit();
     });
 
-    // ARCHITECT-PRIME: Searchable dropdown for secteur
-    this.form.querySelectorAll('[data-dropdown]').forEach((dropdown) => {
-      const searchInput = dropdown.querySelector('[data-dropdown-search]');
-      const hiddenInput = dropdown.parentElement.querySelector('input[type="hidden"]');
-      const list = dropdown.querySelector('[role="listbox"]');
-      if (!searchInput || !hiddenInput || !list) return;
-      const items = Array.from(list.querySelectorAll('[role="option"]'));
-
-      // Champ "Autre" conditionnel pour le secteur
-      const secteurAutreField = this.form.querySelector('#secteur-autre-field');
-      const isSecteur = hiddenInput.id === 'secteur';
-      const toggleAutre = (val) => {
-        if (!isSecteur || !secteurAutreField) return;
-        const autreInput = secteurAutreField.querySelector('#secteur_autre');
-        if (val === 'other') {
-          secteurAutreField.hidden = false;
-          if (autreInput) autreInput.focus();
-        } else {
-          secteurAutreField.hidden = true;
-          if (autreInput) autreInput.value = '';
-        }
+    // ARCHITECT-PRIME: Secteur — free-form input with datalist autocomplete.
+    // Normalise à chaque frappe en slug ASCII ([a-z0-9-]) et propage dans le hidden #secteur.
+    const secteurInput = this.form.querySelector('#secteur_input');
+    const secteurHidden = this.form.querySelector('#secteur');
+    if (secteurInput && secteurHidden) {
+      const slugify = (raw) => {
+        return String(raw || '')
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+          .toLowerCase()
+          .trim()
+          .replace(/[\s/]+/g, '-')        // espaces + slashes → tiret
+          .replace(/[^a-z0-9-]/g, '')     // ASCII safe uniquement
+          .replace(/-+/g, '-')
+          .replace(/^-+|-+$/g, '');
       };
-
-      const showList = () => { list.hidden = false; searchInput.setAttribute('aria-expanded', 'true'); };
-      const hideList = () => { list.hidden = true; searchInput.setAttribute('aria-expanded', 'false'); };
-
-      const filterItems = () => {
-        const q = searchInput.value.toLowerCase().trim();
-        let visibleCount = 0;
-        items.forEach((item) => {
-          const match = !q || item.textContent.toLowerCase().includes(q);
-          item.hidden = !match;
-          if (match) visibleCount++;
-        });
-        if (visibleCount > 0) showList(); else hideList();
+      const syncSecteur = () => {
+        secteurHidden.value = slugify(secteurInput.value);
+        secteurHidden.dispatchEvent(new Event('input', { bubbles: true }));
       };
-
-      searchInput.addEventListener('focus', () => { filterItems(); });
-      searchInput.addEventListener('input', () => {
-        hiddenInput.value = '';
-        hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
-        toggleAutre('');
-        filterItems();
-      });
-
-      items.forEach((item) => {
-        item.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          hiddenInput.value = item.dataset.value;
-          searchInput.value = item.textContent;
-          hideList();
-          hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
-          toggleAutre(item.dataset.value);
-          this.#updateStepButtons();
-        });
-      });
-
-      searchInput.addEventListener('blur', () => { setTimeout(hideList, 150); });
-
-      searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { hideList(); searchInput.blur(); }
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const visible = items.find((i) => !i.hidden);
-          if (visible) {
-            hiddenInput.value = visible.dataset.value;
-            searchInput.value = visible.textContent;
-            hideList();
-            hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
-            toggleAutre(visible.dataset.value);
-            this.#updateStepButtons();
-          }
-        }
-      });
-    });
+      secteurInput.addEventListener('input', syncSecteur);
+      secteurInput.addEventListener('change', syncSecteur); // datalist pick
+    }
 
     // ARCHITECT-PRIME: Custom dark dropdowns (unified style, no native OS selects)
     this.form.querySelectorAll('[data-custom-dropdown]').forEach((dropdown) => {
@@ -421,55 +370,146 @@ class ScoringFormController {
       });
     });
 
-    // ARCHITECT-PRIME: TAM logarithmic slider
-    const tamRange = this.form.querySelector('#tam_range');
-    const tamHidden = this.form.querySelector('#tam_usd');
-    const tamFloatLabel = this.form.querySelector('#tam-float-label');
-    if (tamRange && tamHidden) {
-      const TAM_VALUES = ['100K', '500K', '1M', '5M', '10M', '50M', '100M', '500M', '1B', '5B', '10B'];
-      const TAM_LABELS = ['~100K€', '~500K€', '~1M€', '~5M€', '~10M€', '~50M€', '~100M€', '~500M€', '~1Md€', '~5Md€', '~10Md€'];
+    // ARCHITECT-PRIME: TAM + Levée — slider + input libre bidirectionnel.
+    // Le hidden `#tam_amount` / `#levee_amount` est la source de vérité envoyée au back
+    // (format regex /^\d+(\.\d+)?(K|M|Md)?€?$/). Slider → snap vers stop prédéfini,
+    // input libre → snap log-proche côté slider (affichage uniquement) + hidden brut.
+    const UNIT_FACTORS = { K: 1e3, M: 1e6, Md: 1e9 };
+    const amountToEur = (amount, unit) => {
+      const n = Number(amount);
+      if (!Number.isFinite(n) || n <= 0) return NaN;
+      return n * (UNIT_FACTORS[unit] || 1);
+    };
+    const formatNumber = (n) => {
+      const rounded = Math.round(n * 100) / 100;
+      return String(rounded).replace(/\.?0+$/, ''); // strip trailing zeros
+    };
+    const labelFor = (amount, unit) => `~${formatNumber(amount)}${unit}€`;
+    const normalizedFor = (amount, unit) => `${formatNumber(amount)}${unit}`;
 
-      const updateTam = () => {
-        const idx = Number(tamRange.value);
-        tamHidden.value = TAM_VALUES[idx];
-        tamRange.setAttribute('aria-valuenow', String(idx));
-        tamRange.setAttribute('aria-valuetext', TAM_LABELS[idx]);
-        if (tamFloatLabel) {
-          tamFloatLabel.textContent = TAM_LABELS[idx];
-          const pct = (idx / 10) * 100;
+    const setupRangeWithInput = ({ rangeId, hiddenId, floatId, valueInputId, unitInputId, stops }) => {
+      const range = this.form.querySelector(`#${rangeId}`);
+      const hidden = this.form.querySelector(`#${hiddenId}`);
+      const floatLabel = this.form.querySelector(`#${floatId}`);
+      const valueInput = this.form.querySelector(`#${valueInputId}`);
+      const unitInput = this.form.querySelector(`#${unitInputId}`);
+      if (!range || !hidden || !valueInput || !unitInput) return;
+
+      // ARCHITECT-PRIME: flag anti-boucle — le slider met à jour les inputs
+      // sans déclencher de re-snap (et inversement).
+      let suppressEcho = false;
+
+      const snapRangeToEur = (eur) => {
+        if (!Number.isFinite(eur) || eur <= 0) return 0;
+        const logE = Math.log10(eur);
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        stops.forEach((stop, i) => {
+          const stopEur = amountToEur(stop.amount, stop.unit);
+          const dist = Math.abs(Math.log10(stopEur) - logE);
+          if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+        });
+        return bestIdx;
+      };
+
+      const applyAmountUnit = (amount, unit, { fromRange = false } = {}) => {
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        hidden.value = normalizedFor(amount, unit);
+        if (floatLabel) {
+          floatLabel.textContent = labelFor(amount, unit);
+          const idx = Number(range.value);
+          const max = Number(range.max) || 1;
+          const pct = (idx / max) * 100;
           const clampedPct = Math.max(8, Math.min(92, pct));
-          tamFloatLabel.style.left = `${clampedPct}%`;
+          floatLabel.style.left = `${clampedPct}%`;
         }
+        range.setAttribute('aria-valuenow', range.value);
+        range.setAttribute('aria-valuetext', labelFor(amount, unit));
+        if (!fromRange) {
+          // Écho vers valeurs affichées uniquement depuis le côté input libre
+        } else {
+          suppressEcho = true;
+          valueInput.value = formatNumber(amount);
+          unitInput.value = unit;
+          suppressEcho = false;
+        }
+        hidden.dispatchEvent(new Event('input', { bubbles: true }));
         this.#updateStepButtons();
       };
-      tamRange.addEventListener('input', updateTam);
-      updateTam();
-    }
 
-    // ARCHITECT-PRIME: Levée de fonds logarithmic slider (15 stops)
-    const leveeRange = this.form.querySelector('#levee_range');
-    const leveeHidden = this.form.querySelector('#montant_leve');
-    const leveeFloatLabel = this.form.querySelector('#levee-float-label');
-    if (leveeRange && leveeHidden) {
-      const LEVEE_VALUES = ['25K', '50K', '100K', '150K', '250K', '500K', '750K', '1M', '1.5M', '2M', '3M', '5M', '10M', '20M', '50M+'];
-      const LEVEE_LABELS = ['~25K€', '~50K€', '~100K€', '~150K€', '~250K€', '~500K€', '~750K€', '~1M€', '~1,5M€', '~2M€', '~3M€', '~5M€', '~10M€', '~20M€', '~50M€+'];
-
-      const updateLevee = () => {
-        const idx = Number(leveeRange.value);
-        leveeHidden.value = LEVEE_VALUES[idx];
-        leveeRange.setAttribute('aria-valuenow', String(idx));
-        leveeRange.setAttribute('aria-valuetext', LEVEE_LABELS[idx]);
-        if (leveeFloatLabel) {
-          leveeFloatLabel.textContent = LEVEE_LABELS[idx];
-          const pct = (idx / 14) * 100;
-          const clampedPct = Math.max(8, Math.min(92, pct));
-          leveeFloatLabel.style.left = `${clampedPct}%`;
-        }
-        this.#updateStepButtons();
+      const onRangeInput = () => {
+        const idx = Number(range.value);
+        const stop = stops[idx] || stops[0];
+        applyAmountUnit(stop.amount, stop.unit, { fromRange: true });
       };
-      leveeRange.addEventListener('input', updateLevee);
-      updateLevee();
-    }
+
+      const onAmountInput = () => {
+        if (suppressEcho) return;
+        const raw = valueInput.value.trim();
+        if (raw === '') return; // slider reste source de vérité si vide
+        const amount = Number(raw.replace(',', '.'));
+        const unit = unitInput.value || 'M';
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        const eur = amountToEur(amount, unit);
+        if (!Number.isFinite(eur)) return;
+        const idx = snapRangeToEur(eur);
+        suppressEcho = true;
+        range.value = String(idx);
+        suppressEcho = false;
+        applyAmountUnit(amount, unit);
+      };
+
+      range.addEventListener('input', onRangeInput);
+      valueInput.addEventListener('input', onAmountInput);
+      unitInput.addEventListener('change', onAmountInput);
+      onRangeInput(); // init hidden + label
+    };
+
+    setupRangeWithInput({
+      rangeId: 'tam_range',
+      hiddenId: 'tam_amount',
+      floatId: 'tam-float-label',
+      valueInputId: 'tam_amount_value',
+      unitInputId: 'tam_amount_unit',
+      stops: [
+        { amount: 100, unit: 'K' },
+        { amount: 500, unit: 'K' },
+        { amount: 1,   unit: 'M' },
+        { amount: 5,   unit: 'M' },
+        { amount: 10,  unit: 'M' },
+        { amount: 50,  unit: 'M' },
+        { amount: 100, unit: 'M' },
+        { amount: 500, unit: 'M' },
+        { amount: 1,   unit: 'Md' },
+        { amount: 5,   unit: 'Md' },
+        { amount: 10,  unit: 'Md' },
+      ],
+    });
+
+    setupRangeWithInput({
+      rangeId: 'levee_range',
+      hiddenId: 'levee_amount',
+      floatId: 'levee-float-label',
+      valueInputId: 'levee_amount_value',
+      unitInputId: 'levee_amount_unit',
+      stops: [
+        { amount: 25,  unit: 'K' },
+        { amount: 50,  unit: 'K' },
+        { amount: 100, unit: 'K' },
+        { amount: 150, unit: 'K' },
+        { amount: 250, unit: 'K' },
+        { amount: 500, unit: 'K' },
+        { amount: 750, unit: 'K' },
+        { amount: 1,   unit: 'M' },
+        { amount: 1.5, unit: 'M' },
+        { amount: 2,   unit: 'M' },
+        { amount: 3,   unit: 'M' },
+        { amount: 5,   unit: 'M' },
+        { amount: 10,  unit: 'M' },
+        { amount: 20,  unit: 'M' },
+        { amount: 50,  unit: 'M' },
+      ],
+    });
 
     // Pitch deck file upload — base64 conversion
     // ARCHITECT-PRIME: Pitch deck upload — PDF uniquement (requis)
@@ -716,14 +756,81 @@ class ScoringFormController {
     });
   }
 
+  // ARCHITECT-PRIME: live char counters sur tout champ avec data-validate "max:N".
+  // S'applique aux textareas et aux input[type=text] (ex: segment_clientele).
+  #initCharCounters() {
+    this.form.querySelectorAll('[data-validate]').forEach((field) => {
+      const rules = (field.dataset.validate || '').split('|');
+      const maxRule = rules.find((r) => r.startsWith('max:'));
+      if (!maxRule) return;
+      const input = field.querySelector('textarea, input[type="text"], input[type="email"]');
+      if (!input) return;
+      if (field.querySelector('.field__counter')) return;
+
+      const max = Number(maxRule.split(':')[1]);
+      if (!Number.isFinite(max) || max <= 0) return;
+
+      const counter = document.createElement('span');
+      counter.className = 'field__counter';
+      counter.setAttribute('aria-live', 'polite');
+
+      const errEl = field.querySelector('.field__error');
+      if (errEl) field.insertBefore(counter, errEl);
+      else field.appendChild(counter);
+
+      const warnAt = Math.floor(max * 0.9);
+      const update = () => {
+        const len = input.value.length;
+        counter.textContent = `${len} / ${max}`;
+        counter.classList.toggle('field__counter--warning', len >= warnAt && len <= max);
+        counter.classList.toggle('field__counter--error', len > max);
+      };
+      input.addEventListener('input', update);
+      update();
+      // Stocker pour rafraîchir quand la règle max change dynamiquement (ex: segment_clientele)
+      field._flaynnCounterUpdate = update;
+    });
+  }
+
+  // ARCHITECT-PRIME: segment_clientele devient requis (min 3) quand type_client = "other".
+  // Sinon optionnel (max 200). On synchronise data-validate, le badge de label, et on
+  // re-valide pour mettre à jour la state des boutons.
+  #initSegmentClienteleConditional() {
+    const typeHidden = this.form.querySelector('#type_client');
+    const field = this.form.querySelector('#segment-clientele-field');
+    const input = this.form.querySelector('#segment_clientele');
+    const hint = this.form.querySelector('#segment-clientele-hint');
+    if (!typeHidden || !field || !input) return;
+
+    const badge = field.querySelector('.field__label-badge');
+
+    const update = () => {
+      const isOther = typeHidden.value === 'other';
+      field.dataset.validate = isOther ? 'required|min:3|max:200' : 'max:200';
+      if (hint) hint.textContent = isOther ? '(requis pour le type de client « Autre »)' : '(optionnel)';
+      if (badge) badge.textContent = isOther ? 'Requis' : 'Optionnel';
+      this.#validateField(input, false);
+      this.#updateStepButtons();
+    };
+    typeHidden.addEventListener('input', update);
+    update();
+  }
+
   #validateField(input, showError, skipButtonUpdate = false) {
     const field = input.closest('.field');
     if (!field || !field.dataset.validate) return true;
     if (field.hidden) return true;
-    if (input.type === 'hidden' && !['stage', 'secteur', 'tam_usd', 'type_client', 'stade', 'montant_leve', 'revenus', 'equipe_temps_plein'].includes(input.id)) return true;
+    // Helpers amount+unit sont des saisies d'affichage uniquement : le hidden
+    // tam_amount / levee_amount (whitelisté ci-dessous) porte la source de vérité.
+    if (input.closest('[data-amount-row]')) return true;
+    if (input.type === 'hidden' && !['stage', 'secteur', 'tam_amount', 'type_client', 'stade', 'levee_amount', 'revenus', 'equipe_temps_plein'].includes(input.id)) return true;
     const rules = field.dataset.validate.split('|');
     const value = input.value.trim();
     let error = '';
+    // ARCHITECT-PRIME: max: doit afficher l'erreur au `input` (pas seulement au blur).
+    // On force showError=true dans ce cas pour ne pas laisser passer des textareas
+    // au-delà de la limite jusqu'au changement de champ.
+    let forceShow = false;
 
     for (const rule of rules) {
       if (rule === 'required' && !value) {
@@ -736,6 +843,7 @@ class ScoringFormController {
       }
       if (rule.startsWith('max:') && value.length > Number(rule.split(':')[1])) {
         error = `Maximum ${rule.split(':')[1]} caractères.`;
+        forceShow = true;
         break;
       }
       if (rule === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
@@ -759,10 +867,11 @@ class ScoringFormController {
       }
     }
 
+    const shouldShow = showError || forceShow;
     field.classList.toggle('field--valid', !error && !!value);
-    field.classList.toggle('field--error', !!error && showError);
+    field.classList.toggle('field--error', !!error && shouldShow);
     const errEl = field.querySelector('.field__error');
-    if (errEl) errEl.textContent = showError ? error : '';
+    if (errEl) errEl.textContent = shouldShow ? error : '';
 
     if (!skipButtonUpdate) this.#updateStepButtons();
 
@@ -774,7 +883,7 @@ class ScoringFormController {
     if (!container) return false;
     let ok = true;
     container.querySelectorAll('.field__input, input[type="hidden"]').forEach((input) => {
-      // Skip inputs inside a hidden parent field (e.g. secteur_autre when secteur !== 'other')
+      // Skip inputs inside a hidden parent field (ex: #previous-ref-field quand resubmit décoché)
       const field = input.closest('.field');
       if (field && field.hidden) return;
 
@@ -968,12 +1077,13 @@ class ScoringFormController {
       nom_fondateur: 'Fondateur', email: 'Email', pays: 'Pays', ville: 'Ville',
       nom_startup: 'Startup', pitch_une_phrase: 'Pitch', probleme: 'Problème',
       solution: 'Solution', secteur: 'Secteur', type_client: 'Client cible',
-      tam_usd: 'TAM', estimation_tam: 'Estimation TAM',
+      segment_clientele: 'Segment clientèle',
+      tam_amount: 'TAM', estimation_tam: 'Estimation TAM',
       acquisition_clients: 'Acquisition', concurrents: 'Concurrents',
       stade: 'Stade', revenus: 'Revenus', mrr: 'MRR', clients_payants: 'Clients payants',
       moat: 'Barrières à l\'entrée',
       pourquoi_vous: 'Pourquoi vous', equipe_temps_plein: 'Temps plein',
-      priorite_6_mois: 'Priorité 6 mois', montant_leve: 'Montant levée',
+      priorite_6_mois: 'Priorité 6 mois', levee_amount: 'Montant levée',
       jalons_18_mois: 'Jalons 18 mois', utilisation_fonds: 'Utilisation fonds',
       vision_5_ans: 'Vision 5 ans', autres_informations: 'Infos complémentaires',
       pitch_deck_filename: 'Pitch deck', doc_supplementaire_url: 'Liens documents',
