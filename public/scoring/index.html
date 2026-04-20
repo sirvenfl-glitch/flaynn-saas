@@ -61,8 +61,7 @@
             </div>
             <form id="scoring-form-form" class="scoring-form__form" novalidate>
                 <div class="form-progress" role="status" aria-live="polite" aria-atomic="true">
-                    <span class="sr-only" id="step-current-sr">Étape 0 sur 8</span>
-                    <span id="step-current" hidden>0</span>
+                    <span class="form-progress__step-counter" id="step-current">Étape 0 sur 8</span>
                     <div class="form-progress__track" aria-hidden="true">
                         <div class="form-progress__fill" id="progress-fill"></div>
                         <div class="progress-dots-bar" id="progress-dots-bar">
@@ -245,7 +244,7 @@
                     </div>
                     <div class="field" data-validate="required|min:20|max:2000">
                         <label for="estimation_tam" class="field__label">Comment avez-vous estimé ce chiffre ?</label>
-                        <textarea id="estimation_tam" name="estimation_tam" class="field__input field__input--textarea" rows="4" required placeholder="Ex: rapport McKinsey 2024 estimant le marché européen du X à 2,3Md€, multiplié par notre taux d'adressabilité de 15% sur le segment PME..."></textarea>
+                        <textarea id="estimation_tam" name="estimation_tam" class="field__input field__input--textarea" rows="4" required placeholder="Ex : ~15 000 BA francophones actifs (France Angels + équivalents BE/CH/QC), ARPU cible 4 200€/an → marché théorique 63M€. Sources : Bilan France Angels 2024, EBAN 2024. Pénétration réaliste 20% en 5 ans = SAM 12M€."></textarea>
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="field" data-validate="required|min:20|max:2000">
@@ -311,6 +310,13 @@
                             <input type="text" inputmode="numeric" id="clients_payants" name="clients_payants" class="field__input" placeholder="0">
                             <span class="field__error" role="alert"></span>
                         </div>
+                    </div>
+                    <div class="pre-revenus-block" id="pre-revenus-block" role="note" hidden>
+                        <svg class="pre-revenus-block__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.75"/>
+                            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                        </svg>
+                        <p class="pre-revenus-block__text">En pré-revenus — c'est normal en early-stage. Flaynn prendra en compte votre stade dans le scoring.</p>
                     </div>
                     <div class="form-step-actions">
                         <button type="button" class="btn-form btn-form--ghost" data-back="3"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Retour</button>
@@ -395,8 +401,9 @@
                         <textarea id="vision_5_ans" name="vision_5_ans" class="field__input field__input--textarea" rows="3" required placeholder="Où voyez-vous votre startup dans 5 ans ?"></textarea>
                         <span class="field__error" role="alert"></span>
                     </div>
-                    <div class="field">
-                        <label for="autres_informations" class="field__label">Informations complémentaires <span class="field__label-hint">(optionnel)</span></label>
+                    <hr class="field-separator" aria-hidden="true">
+                    <div class="field" data-no-badge>
+                        <label for="autres_informations" class="field__label">↓ Optionnel : tout ce qui n'a pas trouvé sa place ci-dessus</label>
                         <textarea id="autres_informations" name="autres_informations" class="field__input field__input--textarea" rows="4" placeholder="Tout ce que vous jugez utile et que le formulaire ne couvre pas : contexte de marché, partenariats en cours, contraintes réglementaires, historique pertinent..."></textarea>
                         <span class="field__error" role="alert"></span>
                     </div>

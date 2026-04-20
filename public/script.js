@@ -257,12 +257,15 @@ class ScoringFormController {
       s.addEventListener('change', () => this.#validateField(s, false));
     });
 
-    // Toggle revenus oui/non — affiche/masque MRR + clients payants
+    // Toggle revenus oui/non — affiche MRR + clients si oui, message pré-revenus si non.
     const revenusInput = this.form.querySelector('#revenus');
     if (revenusInput) {
       revenusInput.addEventListener('input', () => {
         const details = this.form.querySelector('#revenus-details');
-        if (details) details.hidden = revenusInput.value !== 'oui';
+        const preBlock = this.form.querySelector('#pre-revenus-block');
+        const val = revenusInput.value;
+        if (details) details.hidden = val !== 'oui';
+        if (preBlock) preBlock.hidden = val !== 'non';
       });
     }
 
@@ -292,13 +295,14 @@ class ScoringFormController {
     const secteurInput = this.form.querySelector('#secteur_input');
     const secteurHidden = this.form.querySelector('#secteur');
     if (secteurInput && secteurHidden) {
+      // ARCHITECT-PRIME: slugification — accents → ASCII, lowercase, tout caractère
+      // hors [a-z0-9-] supprimé (espaces compris). Le user type "Health Tech Ω !" →
+      // "healthtech". Les tirets explicites saisis par l'utilisateur sont conservés.
       const slugify = (raw) => {
         return String(raw || '')
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
           .toLowerCase()
-          .trim()
-          .replace(/[\s/]+/g, '-')        // espaces + slashes → tiret
-          .replace(/[^a-z0-9-]/g, '')     // ASCII safe uniquement
+          .replace(/[^a-z0-9-]/g, '')
           .replace(/-+/g, '-')
           .replace(/^-+|-+$/g, '');
       };
@@ -550,6 +554,21 @@ class ScoringFormController {
       return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
+    // ARCHITECT-PRIME: POLISH 10 — extraction best-effort du nombre de pages d'un PDF
+    // sans dépendance externe. On décode en latin1 et on compte les occurrences
+    // "/Type /Page" (pas "/Pages"). Les PDFs avec objets compressés (objet stream)
+    // peuvent retourner 0 ou une valeur incomplète — on skip silencieusement.
+    async function extractPdfPageCount(file) {
+      if (!file || file.size > 15 * 1024 * 1024) return null;
+      try {
+        const buf = await file.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        const text = new TextDecoder('latin1').decode(bytes);
+        const matches = text.match(/\/Type\s*\/Page[^s]/g);
+        return matches && matches.length > 0 ? matches.length : null;
+      } catch { return null; }
+    }
+
     const fileInput = this.form.querySelector('#pitch_deck_file');
     if (fileInput) {
       const preview = this.form.querySelector('#pitch-deck-preview');
@@ -586,9 +605,17 @@ class ScoringFormController {
           const iconEl = preview.querySelector('.file-preview__icon');
           const nameEl = preview.querySelector('.file-preview__name');
           if (iconEl) iconEl.textContent = fileIcon(file.name);
-          if (nameEl) nameEl.textContent = `${file.name} (${formatSize(file.size)})`;
+          if (nameEl) nameEl.textContent = `${file.name} · ${formatSize(file.size)}`;
           preview.hidden = false;
         }
+
+        // Best-effort page count (asynchrone, n'aligne pas la soumission)
+        extractPdfPageCount(file).then((pages) => {
+          if (!pages || !preview || preview.hidden) return;
+          const nameEl = preview.querySelector('.file-preview__name');
+          if (!nameEl) return;
+          nameEl.textContent = `${file.name} · ${formatSize(file.size)} · ${pages} page${pages > 1 ? 's' : ''}`;
+        });
 
         const reader = new FileReader();
         reader.onload = () => {
@@ -727,6 +754,9 @@ class ScoringFormController {
   // ARCHITECT-PRIME: Add Requis/Optionnel micro-badges to all labels
   #initLabelBadges() {
     this.form.querySelectorAll('.field').forEach((field) => {
+      // POLISH 16 : certains champs portent l'info "optionnel" dans le label lui-même,
+      // un badge serait redondant. data-no-badge skip l'ajout.
+      if (field.hasAttribute('data-no-badge')) return;
       const label = field.querySelector('.field__label');
       if (!label) return;
       // Skip if badge already exists
@@ -902,11 +932,14 @@ class ScoringFormController {
         hidden.dispatchEvent(new Event('input', { bubbles: true }));
       });
 
-      // Révéler MRR / clients si revenus=oui.
+      // Révéler MRR / clients si revenus=oui, ou message pré-revenus si revenus=non.
       const revenusInput = this.form.querySelector('#revenus');
       if (revenusInput) {
         const details = this.form.querySelector('#revenus-details');
-        if (details) details.hidden = revenusInput.value !== 'oui';
+        const preBlock = this.form.querySelector('#pre-revenus-block');
+        const val = revenusInput.value;
+        if (details) details.hidden = val !== 'oui';
+        if (preBlock) preBlock.hidden = val !== 'non';
       }
       this.#updateStepButtons();
     };
@@ -1275,12 +1308,11 @@ class ScoringFormController {
     if (this.progressFill) {
       this.progressFill.style.width = `${(this.currentStep / this.totalSteps) * 100}%`;
     }
+    // ARCHITECT-PRIME: POLISH 13 — compteur visible. aria-live sur .form-progress
+    // assure déjà l'annonce SR lorsqu'on change de step.
     if (this.stepLabel) {
-      this.stepLabel.textContent = String(this.currentStep);
+      this.stepLabel.textContent = `Étape ${this.currentStep} sur ${this.totalSteps}`;
     }
-    // Accessibility: update screen reader text
-    const srLabel = document.getElementById('step-current-sr');
-    if (srLabel) srLabel.textContent = `Étape ${this.currentStep} sur ${this.totalSteps}`;
 
     // ARCHITECT-PRIME: Linear-style progress dots
     const dotsBar = document.getElementById('progress-dots-bar');

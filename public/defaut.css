@@ -1892,6 +1892,16 @@
     letter-spacing: 0.02em;
   }
 
+  /* ARCHITECT-PRIME: POLISH 13 — compteur d'étape visible au-dessus de la track. */
+  .form-progress__step-counter {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
   .form-progress__steps-dots {
     display: flex;
     gap: var(--space-2);
@@ -2328,6 +2338,39 @@
 
   .field__counter--warning { color: var(--accent-amber); }
   .field__counter--error { color: var(--accent-rose); font-weight: 700; }
+
+  /* ARCHITECT-PRIME: POLISH 12 — bloc contextuel affiché quand revenus = Non.
+     Apaise le stress fondateur : rappel que le pré-revenus est légitime en early-stage. */
+  .pre-revenus-block {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--accent-violet);
+    border-radius: var(--radius-md);
+    background: rgba(139, 92, 246, 0.06);
+  }
+  .pre-revenus-block[hidden] { display: none; }
+  .pre-revenus-block__icon {
+    flex: 0 0 auto;
+    color: var(--accent-violet);
+    margin-top: 2px;
+  }
+  .pre-revenus-block__text {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  /* ARCHITECT-PRIME: POLISH 16 — séparateur visuel avant le bloc facultatif
+     "autres_informations" pour bien marquer qu'il sort du fil requis. */
+  .field-separator {
+    border: 0;
+    border-top: 1px dashed var(--border-subtle);
+    margin: var(--space-5) 0 var(--space-3);
+  }
 
   .field--valid .field__input { border-color: rgba(16, 185, 129, 0.45); }
   .field--error .field__input { border-color: rgba(244, 63, 94, 0.6); box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1); }
