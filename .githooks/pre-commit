@@ -1,0 +1,46 @@
+#!/bin/bash
+# Refuse les scripts/handlers inline qui violent la CSP stricte (flaynn-saas).
+# Whiteliste les <script type="application/ld+json"> (data blocks non execs).
+set -e
+
+STAGED_HTML=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.html$' || true)
+if [ -z "$STAGED_HTML" ]; then
+    exit 0
+fi
+
+VIOLATIONS=0
+
+for f in $STAGED_HTML; do
+    [ -f "$f" ] || continue
+
+    # 1) <script> inline (contenu non-vide entre balises) hors JSON-LD
+    #    PCRE requis -> perl, le grep BSD macOS n'a pas -P.
+    if perl -ne 'print "$ARGV:$.: $_" if /<script(?![^>]*\bsrc=)(?![^>]*type="application\/ld\+json")[^>]*>[^<]/' "$f" | grep -q .; then
+        echo "X $f contient un <script> inline -- viole la CSP"
+        perl -ne 'print "   $ARGV:$.: $_" if /<script(?![^>]*\bsrc=)(?![^>]*type="application\/ld\+json")[^>]*>[^<]/' "$f"
+        VIOLATIONS=$((VIOLATIONS+1))
+    fi
+
+    # 2) Handlers inline (onclick=, onload=, onchange=, ...)
+    if grep -nE ' on[a-z]+=' "$f" >/dev/null; then
+        echo "X $f contient un handler inline (onclick, onload, etc.) -- viole la CSP"
+        grep -nE ' on[a-z]+=' "$f" | sed 's/^/   /'
+        VIOLATIONS=$((VIOLATIONS+1))
+    fi
+
+    # 3) URLs javascript:
+    if grep -n 'javascript:' "$f" >/dev/null; then
+        echo "X $f contient une URL javascript: -- viole la CSP"
+        grep -n 'javascript:' "$f" | sed 's/^/   /'
+        VIOLATIONS=$((VIOLATIONS+1))
+    fi
+done
+
+if [ $VIOLATIONS -gt 0 ]; then
+    echo ""
+    echo "Commit refuse. Extraire le JS inline vers un fichier externe dans public/js/"
+    echo "puis referencer via <script src=\"/js/...\" defer></script>."
+    exit 1
+fi
+
+exit 0

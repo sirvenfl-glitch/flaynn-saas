@@ -118,6 +118,6 @@
 
   <script type="module" src="/register-sw.js"></script>
   <script src="/auth/app.js" type="module"></script>
-  <script>(function(){var loader=document.getElementById('page-loader');if(!loader)return;var canvas=document.getElementById('loader-starfield');var ctx=canvas.getContext('2d');var stars=[];var raf;function initStars(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;stars=Array.from({length:120},function(){return{x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.2+0.3,speed:Math.random()*0.4+0.1,opacity:Math.random()*0.7+0.3}});}function drawStars(){ctx.clearRect(0,0,canvas.width,canvas.height);stars.forEach(function(s){ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+s.opacity+')';ctx.fill();s.y+=s.speed;if(s.y>canvas.height){s.y=0;s.x=Math.random()*canvas.width;}});raf=requestAnimationFrame(drawStars);}document.addEventListener('click',function(e){var link=e.target.closest('a[href]');if(!link)return;var href=link.getAttribute('href');if(!href||href.startsWith('#')||href.startsWith('http')||href.startsWith('mailto')||link.target==='_blank')return;var timer=setTimeout(function(){initStars();drawStars();loader.classList.add('visible');},300);window.addEventListener('beforeunload',function(){clearTimeout(timer);},{once:true});});window.addEventListener('pageshow',function(){loader.classList.remove('visible');cancelAnimationFrame(raf);});})()</script>
+  <script src="/js/page-loader.js" defer></script>
 </body>
 </html>
