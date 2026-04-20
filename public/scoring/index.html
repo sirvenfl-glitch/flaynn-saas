@@ -344,7 +344,7 @@
                 <!-- ETAPE 6 : Vision & Levée -->
                 <fieldset class="form-step is-hidden" data-step="6" id="form-step-6" hidden>
                     <legend class="fieldset-legend">Vision & Levée</legend>
-                    <div class="field" data-validate="required|min:20|max:1000">
+                    <div class="field" data-validate="required|min:10|max:1000">
                         <label for="priorite_6_mois" class="field__label">Priorité des 6 prochains mois</label>
                         <textarea id="priorite_6_mois" name="priorite_6_mois" class="field__input field__input--textarea" rows="3" required placeholder="Ex: finaliser le produit d'ici juin, atteindre 10 clients payants, recruter un CTO, lancer la campagne de levée de fonds Series A..."></textarea>
                         <span class="field__error" role="alert"></span>
@@ -380,12 +380,12 @@
                         <input type="hidden" id="levee_amount" name="levee_amount" value="25K" required>
                         <span class="field__error" role="alert"></span>
                     </div>
-                    <div class="field" data-validate="required|min:20|max:2000">
+                    <div class="field" data-validate="required|min:10|max:2000">
                         <label for="jalons_18_mois" class="field__label">Jalons des 18 prochains mois</label>
                         <textarea id="jalons_18_mois" name="jalons_18_mois" class="field__input field__input--textarea" rows="3" required placeholder="Objectifs clés à atteindre..."></textarea>
                         <span class="field__error" role="alert"></span>
                     </div>
-                    <div class="field" data-validate="required|min:20|max:2000">
+                    <div class="field" data-validate="required|min:10|max:2000">
                         <label for="utilisation_fonds" class="field__label">Utilisation des fonds</label>
                         <textarea id="utilisation_fonds" name="utilisation_fonds" class="field__input field__input--textarea" rows="3" required placeholder="Répartition prévue des fonds levés..."></textarea>
                         <span class="field__error" role="alert"></span>
@@ -520,15 +520,16 @@ TAM_USD → TAM_AMOUNT (renommé + assoupli) :
   - Ancien champ : tam_usd, z.enum(["100K","500K","1M",…,"10B"]) (11 stops fixes)
   - Nouveau champ : tam_amount, z.string().regex(/^\d+(\.\d+)?(K|M|Md)?€?$/)
   - Saisie libre : slider prédéfini OU input numérique + select d'unité (K€/M€/Md€)
-  - Rétro-compat : le bridge n8n reçoit ENCORE tam_usd (copie de tam_amount)
-    côté back → pas de modif workflow n8n immédiate requise. À terme, migrer
-    le node pour lire tam_amount directement.
 
 MONTANT_LEVE → LEVEE_AMOUNT (renommé + assoupli) :
   - Ancien champ : montant_leve, z.enum(["25K","50K",…,"50M+"]) (15 stops)
   - Nouveau champ : levee_amount, z.string().regex(/^\d+(\.\d+)?(K|M|Md)?€?$/)
   - Saisie libre : idem TAM
-  - Rétro-compat : le bridge n8n reçoit ENCORE montant_leve (copie de levee_amount).
+
+Rétro-compat n8n : webhook backend injecte tam_usd et montant_leve dans
+le payload bridge avant appel n8n (voir scoring.js:232 et stripe.js:331).
+Le workflow n8n V6 continue de lire b.tam_usd et b.montant_leve dans
+Prep Gemini, Format Data, Prep Sonar Benchmark — ne pas casser ce contrat.
 
 SECTEUR (ouvert) :
   - Ancien : z.enum(22 valeurs) + champ secteur_autre conditionnel
@@ -540,8 +541,10 @@ SEGMENT_CLIENTELE (nouveau) :
   - z.string().trim().max(200).optional()
   - Requis min 3 caractères quand type_client === 'other' (superRefine).
 
-PRIORITE_6_MOIS (inchangé depuis session précédente) :
-  - textarea libre, z.string().min(20).max(1000)
+PRIORITE_6_MOIS / JALONS_18_MOIS / UTILISATION_FONDS (assouplis Phase 3) :
+  - min passé de 20 à 10 caractères (backend Zod + frontend data-validate).
+  - Les autres textareas (probleme, solution, moat, pourquoi_vous, vision_5_ans,
+    estimation_tam, acquisition_clients, concurrents) conservent min:20.
 
 PITCH_DECK (inchangé depuis session précédente) :
   - pitch_deck_base64 : z.string().min(1).max(15_000_000) (requis)

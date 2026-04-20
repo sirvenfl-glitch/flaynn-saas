@@ -236,6 +236,7 @@ class ScoringFormController {
     this.#initResubmitToggle();
     this.#initCharCounters();
     this.#initSegmentClienteleConditional();
+    this.#initDraftAutosave();
     this.#updateProgress();
     this.#updateStepButtons();
   }
@@ -792,6 +793,185 @@ class ScoringFormController {
     });
   }
 
+  // ARCHITECT-PRIME: MAJEUR 7 — sauvegarde draft localStorage toutes les 5 s.
+  // Clé 'flaynn_scoring_draft' = { timestamp, fields: { [id]: value } }. TTL 48 h.
+  // Au load : bannière "Reprendre" si draft < 48 h. Skippée si resubmit check +
+  // previous_ref déjà actifs à l'ouverture. Effacée après soumission réussie
+  // (cf. #clearDraft appelé dans #submit).
+  #initDraftAutosave() {
+    const DRAFT_KEY = 'flaynn_scoring_draft';
+    const DRAFT_TTL_MS = 48 * 60 * 60 * 1000;
+    const SKIP_IDS = new Set([
+      'pitch_deck_file', 'extra_docs_files',
+      'pitch_deck_base64', 'pitch_deck_filename',
+    ]);
+
+    const collect = () => {
+      const data = {};
+      this.form.querySelectorAll('input, textarea, select').forEach((el) => {
+        if (!el.id || SKIP_IDS.has(el.id)) return;
+        if (el.type === 'file') return;
+        if (el.type === 'checkbox') { data[el.id] = el.checked ? '1' : '0'; return; }
+        data[el.id] = el.value;
+      });
+      return data;
+    };
+
+    const hasAnyContent = (data) => {
+      // Ignorer les valeurs par défaut (sliders à 0, unit par défaut, hidden initialisés).
+      const DEFAULTS = {
+        tam_range: '0', levee_range: '0',
+        tam_amount_unit: 'M', levee_amount_unit: 'K',
+        tam_amount: '100K', levee_amount: '25K',
+        resubmit_check: '0', revenus: '', equipe_temps_plein: '',
+      };
+      for (const [k, v] of Object.entries(data)) {
+        if (v === '' || v === undefined || v === null) continue;
+        if (DEFAULTS[k] !== undefined && DEFAULTS[k] === v) continue;
+        return true;
+      }
+      return false;
+    };
+
+    const save = () => {
+      try {
+        const data = collect();
+        if (!hasAnyContent(data)) { localStorage.removeItem(DRAFT_KEY); return; }
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ timestamp: Date.now(), fields: data }));
+      } catch { /* quota ou localStorage indisponible */ }
+    };
+
+    this._clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY); } catch {} };
+
+    const restore = (fields) => {
+      // Pass 1 : injection silencieuse.
+      for (const [id, val] of Object.entries(fields)) {
+        const el = this.form.querySelector('#' + CSS.escape(id));
+        if (!el) continue;
+        if (el.type === 'checkbox') el.checked = val === '1';
+        else el.value = val;
+      }
+      // Pass 2 : cascades UI.
+      const resubmit = this.form.querySelector('#resubmit_check');
+      if (resubmit) resubmit.dispatchEvent(new Event('change', { bubbles: true }));
+
+      // Sliders d'abord (initialise hidden depuis stop).
+      this.form.querySelectorAll('input[type="range"]').forEach((r) => {
+        r.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      // Réinjecter amount_value / amount_unit (le slider ci-dessus a pu les overrider
+      // via son écho), puis fire input si non-vide (snap depuis l'input libre).
+      ['tam_amount_value', 'tam_amount_unit', 'levee_amount_value', 'levee_amount_unit'].forEach((id) => {
+        if (fields[id] !== undefined) {
+          const el = this.form.querySelector('#' + CSS.escape(id));
+          if (el) el.value = fields[id];
+        }
+      });
+      ['tam_amount_value', 'levee_amount_value'].forEach((id) => {
+        const el = this.form.querySelector('#' + CSS.escape(id));
+        if (el && el.value) el.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+
+      // Autres saisies texte : dispatch input pour déclencher validation + compteurs.
+      this.form.querySelectorAll('textarea, input[type="text"], input[type="email"], input[type="url"], input[type="number"]').forEach((el) => {
+        if (['tam_amount_value', 'levee_amount_value'].includes(el.id)) return; // déjà traité
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+
+      // Chips + custom dropdowns : synchro visuelle depuis hidden.
+      this.form.querySelectorAll('input[type="hidden"]').forEach((hidden) => {
+        if (!hidden.id || !hidden.value) return;
+        if (['tam_amount', 'levee_amount', 'secteur'].includes(hidden.id)) {
+          hidden.dispatchEvent(new Event('input', { bubbles: true }));
+          return;
+        }
+        const field = hidden.closest('.field');
+        if (!field) return;
+        field.querySelectorAll('.chip[data-value]').forEach((chip) => {
+          chip.setAttribute('aria-checked', chip.dataset.value === hidden.value ? 'true' : 'false');
+        });
+        const item = field.querySelector(`.custom-dropdown__item[data-value="${CSS.escape(hidden.value)}"]`);
+        if (item) {
+          field.querySelectorAll('.custom-dropdown__item').forEach((i) => i.removeAttribute('aria-selected'));
+          item.setAttribute('aria-selected', 'true');
+          const textEl = field.querySelector('.custom-dropdown__text');
+          const trigger = field.querySelector('.custom-dropdown__trigger');
+          if (textEl) textEl.textContent = item.textContent;
+          if (trigger) trigger.setAttribute('data-filled', 'true');
+        }
+        hidden.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+
+      // Révéler MRR / clients si revenus=oui.
+      const revenusInput = this.form.querySelector('#revenus');
+      if (revenusInput) {
+        const details = this.form.querySelector('#revenus-details');
+        if (details) details.hidden = revenusInput.value !== 'oui';
+      }
+      this.#updateStepButtons();
+    };
+
+    // Autosave 5 s (setInterval, pas setTimeout récursif — plus simple à stopper).
+    this._draftInterval = setInterval(save, 5000);
+
+    // Lecture au boot.
+    let envelope = null;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) envelope = JSON.parse(raw);
+    } catch { /* JSON corrompu → ignore */ }
+    if (!envelope || !envelope.timestamp || !envelope.fields) return;
+    if (Date.now() - envelope.timestamp > DRAFT_TTL_MS) { this._clearDraft(); return; }
+
+    // Skip si on est clairement en flow "re-soumets" (checkbox + previous_ref déjà remplis).
+    const resubmitCheckbox = this.form.querySelector('#resubmit_check');
+    const prevRefInput = this.form.querySelector('#previous_ref');
+    if (resubmitCheckbox?.checked && prevRefInput?.value?.trim()) return;
+
+    const ageMs = Date.now() - envelope.timestamp;
+    const ageMin = Math.floor(ageMs / 60000);
+    const ageLabel = ageMin < 1 ? "il y a moins d'une minute"
+      : ageMin < 60 ? `il y a ${ageMin} min`
+      : `il y a ${Math.floor(ageMin / 60)} h`;
+
+    this.#showDraftBanner(ageLabel, () => restore(envelope.fields), () => this._clearDraft());
+  }
+
+  #showDraftBanner(ageLabel, onRestore, onDismiss) {
+    const banner = document.createElement('div');
+    banner.className = 'draft-restore-banner card-glass';
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'polite');
+
+    const text = document.createElement('p');
+    text.className = 'draft-restore-banner__text';
+    text.textContent = `Un brouillon de votre dossier existe (${ageLabel}). Reprendre votre saisie ?`;
+
+    const btnRestore = document.createElement('button');
+    btnRestore.type = 'button';
+    btnRestore.className = 'btn-form btn-form--ghost draft-restore-banner__btn';
+    btnRestore.textContent = 'Reprendre';
+    btnRestore.addEventListener('click', () => { onRestore(); banner.remove(); });
+
+    const btnDismiss = document.createElement('button');
+    btnDismiss.type = 'button';
+    btnDismiss.className = 'btn-form btn-form--ghost draft-restore-banner__btn';
+    btnDismiss.textContent = 'Effacer';
+    btnDismiss.addEventListener('click', () => { onDismiss(); banner.remove(); });
+
+    banner.appendChild(text);
+    banner.appendChild(btnRestore);
+    banner.appendChild(btnDismiss);
+
+    // Insérer juste au-dessus de la progress bar.
+    const progress = this.form.querySelector('.form-progress');
+    if (progress && progress.parentElement) {
+      progress.parentElement.insertBefore(banner, progress);
+    } else {
+      this.form.prepend(banner);
+    }
+  }
+
   // ARCHITECT-PRIME: segment_clientele devient requis (min 3) quand type_client = "other".
   // Sinon optionnel (max 200). On synchronise data-validate, le badge de label, et on
   // re-valide pour mettre à jour la state des boutons.
@@ -952,6 +1132,56 @@ class ScoringFormController {
     if (!nextBtn) return;
     const valid = this.#validateStep(this.currentStep, false);
     nextBtn.disabled = !valid;
+    this.#updateMissingHint(step, nextBtn, valid);
+  }
+
+  // ARCHITECT-PRIME: MAJEUR 9 — hint contextuel sous le bouton Continuer quand
+  // il est désactivé. Liste les 3 premiers labels manquants/invalides + compteur.
+  #updateMissingHint(step, nextBtn, valid) {
+    const actions = nextBtn.closest('.form-step-actions');
+    if (!actions) return;
+    let hint = actions.parentElement.querySelector(':scope > .btn-form__hint');
+    if (valid) {
+      if (hint) { hint.textContent = ''; hint.hidden = true; }
+      return;
+    }
+    if (!hint) {
+      hint = document.createElement('p');
+      hint.className = 'btn-form__hint';
+      hint.setAttribute('role', 'status');
+      hint.setAttribute('aria-live', 'polite');
+      actions.insertAdjacentElement('afterend', hint);
+    }
+    const missing = this.#collectMissingLabels(step);
+    if (missing.length === 0) {
+      hint.textContent = '';
+      hint.hidden = true;
+      return;
+    }
+    const shown = missing.slice(0, 3).join(', ');
+    const extra = missing.length > 3 ? ` … et ${missing.length - 3} autre${missing.length - 3 > 1 ? 's' : ''}` : '';
+    hint.textContent = `Champs à compléter : ${shown}${extra}`;
+    hint.hidden = false;
+  }
+
+  #collectMissingLabels(step) {
+    const labels = [];
+    step.querySelectorAll('.field__input, input[type="hidden"]').forEach((input) => {
+      const field = input.closest('.field');
+      if (!field || !field.dataset.validate) return;
+      if (field.hidden) return;
+      if (input.closest('[data-amount-row]')) return;
+      if (input.type === 'hidden' && !['stage', 'secteur', 'tam_amount', 'type_client', 'stade', 'levee_amount', 'revenus', 'equipe_temps_plein'].includes(input.id)) return;
+      const ok = this.#validateField(input, false, true);
+      if (ok) return;
+      const labelEl = field.querySelector('.field__label');
+      if (!labelEl) return;
+      const cloned = labelEl.cloneNode(true);
+      cloned.querySelectorAll('.field__label-badge, .field__label-hint').forEach((el) => el.remove());
+      const text = cloned.textContent.trim().replace(/\s+/g, ' ');
+      if (text && !labels.includes(text)) labels.push(text);
+    });
+    return labels;
   }
 
   #goToStep(target) {
@@ -1195,6 +1425,12 @@ class ScoringFormController {
         }
         throw new Error(data.message || 'Service temporairement indisponible.');
       }
+
+      // ARCHITECT-PRIME: MAJEUR 7 — soumission OK → purge draft autosave.
+      // Même intention pour les deux branches (checkout Stripe ou succès direct) :
+      // on quitte la page de saisie, le brouillon n'a plus de raison d'être.
+      if (typeof this._clearDraft === 'function') this._clearDraft();
+      if (this._draftInterval) clearInterval(this._draftInterval);
 
       if (data.checkout_url) {
         localStorage.setItem('flaynn_pending_ref', data.reference || '');

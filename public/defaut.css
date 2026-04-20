@@ -2273,6 +2273,47 @@
     opacity: 1;
   }
 
+  /* ARCHITECT-PRIME: hint sous bouton Continuer désactivé (MAJEUR 9).
+     Liste les champs à compléter, discret, aligné au bloc d'actions. */
+  .btn-form__hint {
+    margin-top: var(--space-3);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+    text-align: right;
+  }
+  .btn-form__hint[hidden] { display: none; }
+
+  /* ARCHITECT-PRIME: bannière de reprise de brouillon (MAJEUR 7).
+     Apparaît au-dessus de la progress bar si un draft < 48 h existe. */
+  .draft-restore-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    border-left: 3px solid var(--accent-amber);
+  }
+  .draft-restore-banner__text {
+    margin: 0;
+    flex: 1;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+  .draft-restore-banner__btn {
+    min-height: 40px;
+    white-space: nowrap;
+  }
+  @media (min-width: 560px) {
+    .draft-restore-banner {
+      flex-direction: row;
+      align-items: center;
+    }
+    .draft-restore-banner__btn { flex: 0 0 auto; }
+  }
+
   /* ARCHITECT-PRIME: compteur de caractères live (BLOQ 2). Warning à 90 %, erreur > max. */
   .field__counter {
     display: block;

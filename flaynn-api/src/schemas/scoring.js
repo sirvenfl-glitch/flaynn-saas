@@ -20,6 +20,9 @@ export const ScoreSubmissionSchema = z.object({
   // Segment clientèle : précision libre (PME industrielles, fonds VC francophones, etc.).
   // Requis min 3 caractères quand type_client === 'other' (cf. superRefine).
   segment_clientele: z.string().trim().max(200).optional(),
+  // ATTENTION : le moteur n8n V6 lit b.tam_usd via le bridge rétro-compat
+  // (scoring.js:232). Si renommage futur, mettre à jour les nodes n8n
+  // Prep Gemini, Format Data, Prep Sonar Benchmark.
   tam_amount: z.string().trim().min(1).max(32).regex(EUR_AMOUNT_REGEX, 'TAM : format attendu ex. 200K, 15M, 2Md.'),
   estimation_tam: z.string().trim().min(20).max(2000),
   acquisition_clients: z.string().trim().min(20).max(2000),
@@ -31,10 +34,12 @@ export const ScoreSubmissionSchema = z.object({
   clients_payants: z.number().int().nonnegative().max(1_000_000).optional(),
   pourquoi_vous: z.string().trim().min(20).max(2000),
   equipe_temps_plein: z.enum(['oui', 'non']),
-  priorite_6_mois: z.string().trim().min(20).max(1000),
+  priorite_6_mois: z.string().trim().min(10).max(1000),
+  // Rétro-compat n8n : même contrat que tam_amount (voir note ci-dessus).
+  // b.montant_leve est aliasé par le bridge (scoring.js:232, stripe.js:331).
   levee_amount: z.string().trim().min(1).max(32).regex(EUR_AMOUNT_REGEX, 'Levée : format attendu ex. 500K, 1.5M, 2Md.'),
-  jalons_18_mois: z.string().trim().min(20).max(2000),
-  utilisation_fonds: z.string().trim().min(20).max(2000),
+  jalons_18_mois: z.string().trim().min(10).max(2000),
+  utilisation_fonds: z.string().trim().min(10).max(2000),
   vision_5_ans: z.string().trim().min(20).max(2000),
   autres_informations: z.string().trim().max(3000).optional(),
   linkedin_url: z.string().url().max(500).optional(),
