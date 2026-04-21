@@ -14,8 +14,15 @@ export const ScoreSubmissionSchema = z.object({
   pitch_une_phrase: z.string().trim().min(5).max(300),
   probleme: z.string().trim().min(20).max(2000),
   solution: z.string().trim().min(20).max(2000),
-  // Secteur : texte libre normalisé (slug ASCII minuscule-tirets, transliteré côté front).
-  secteur: z.string().trim().min(2).max(100).regex(/^[a-z0-9-]+$/, 'Secteur : caractères ASCII minuscules, chiffres et tirets uniquement.'),
+  // Secteur : liste fermée (dropdown frontend). 'other' déclenche secteur_autre (superRefine).
+  // Si tu ajoutes un secteur ici, synchronise-le dans public/scoring/index.html (custom-dropdown).
+  secteur: z.enum([
+    'fintech', 'healthtech', 'saas', 'marketplace', 'deeptech', 'greentech',
+    'edtech', 'ai-ml', 'cybersecurity', 'mobility', 'web3', 'other'
+  ]),
+  // Précision libre quand secteur === 'other' (LegalTech, FoodTech, InsurTech…).
+  // Requis min 3 caractères quand secteur === 'other' (cf. superRefine).
+  secteur_autre: z.string().trim().min(3).max(100).regex(/^[\p{L}\p{N}\s\-'.&/]+$/u, 'Secteur : lettres, chiffres, espaces et tirets uniquement.').optional(),
   type_client: z.enum(['b2b', 'b2c', 'b2b2c', 'b2g', 'other']),
   // Segment clientèle : précision libre (PME industrielles, fonds VC francophones, etc.).
   // Requis min 3 caractères quand type_client === 'other' (cf. superRefine).
@@ -59,6 +66,16 @@ export const ScoreSubmissionSchema = z.object({
         code: 'custom',
         path: ['segment_clientele'],
         message: 'Segment clientèle requis (min 3 caractères) quand Type de client = Autre.',
+      });
+    }
+  }
+  if (data.secteur === 'other') {
+    const autre = (data.secteur_autre ?? '').trim();
+    if (autre.length < 3) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['secteur_autre'],
+        message: 'Précision du secteur requise (min 3 caractères) quand Secteur = Autre.',
       });
     }
   }

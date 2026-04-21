@@ -236,6 +236,7 @@ class ScoringFormController {
     this.#initResubmitToggle();
     this.#initCharCounters();
     this.#initSegmentClienteleConditional();
+    this.#initSecteurAutreConditional();
     this.#initDraftAutosave();
     this.#updateProgress();
     this.#updateStepButtons();
@@ -289,30 +290,6 @@ class ScoringFormController {
       e.preventDefault();
       this.#submit();
     });
-
-    // ARCHITECT-PRIME: Secteur — free-form input with datalist autocomplete.
-    // Normalise à chaque frappe en slug ASCII ([a-z0-9-]) et propage dans le hidden #secteur.
-    const secteurInput = this.form.querySelector('#secteur_input');
-    const secteurHidden = this.form.querySelector('#secteur');
-    if (secteurInput && secteurHidden) {
-      // ARCHITECT-PRIME: slugification — accents → ASCII, lowercase, tout caractère
-      // hors [a-z0-9-] supprimé (espaces compris). Le user type "Health Tech Ω !" →
-      // "healthtech". Les tirets explicites saisis par l'utilisateur sont conservés.
-      const slugify = (raw) => {
-        return String(raw || '')
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, '')
-          .replace(/-+/g, '-')
-          .replace(/^-+|-+$/g, '');
-      };
-      const syncSecteur = () => {
-        secteurHidden.value = slugify(secteurInput.value);
-        secteurHidden.dispatchEvent(new Event('input', { bubbles: true }));
-      };
-      secteurInput.addEventListener('input', syncSecteur);
-      secteurInput.addEventListener('change', syncSecteur); // datalist pick
-    }
 
     // ARCHITECT-PRIME: Custom dark dropdowns (unified style, no native OS selects)
     this.form.querySelectorAll('[data-custom-dropdown]').forEach((dropdown) => {
@@ -911,7 +888,7 @@ class ScoringFormController {
       // Chips + custom dropdowns : synchro visuelle depuis hidden.
       this.form.querySelectorAll('input[type="hidden"]').forEach((hidden) => {
         if (!hidden.id || !hidden.value) return;
-        if (['tam_amount', 'levee_amount', 'secteur'].includes(hidden.id)) {
+        if (['tam_amount', 'levee_amount'].includes(hidden.id)) {
           hidden.dispatchEvent(new Event('input', { bubbles: true }));
           return;
         }
@@ -1005,27 +982,43 @@ class ScoringFormController {
     }
   }
 
-  // ARCHITECT-PRIME: segment_clientele devient requis (min 3) quand type_client = "other".
-  // Sinon optionnel (max 200). On synchronise data-validate, le badge de label, et on
-  // re-valide pour mettre à jour la state des boutons.
+  // ARCHITECT-PRIME: segment_clientele — visible uniquement si type_client === 'other'.
+  // Même règle que secteur_autre (cf. #initSecteurAutreConditional). Quand caché,
+  // le champ est vidé pour éviter qu'une valeur résiduelle soit envoyée au back,
+  // et #validateField skip via field.hidden (cf. ligne ~1035).
   #initSegmentClienteleConditional() {
     const typeHidden = this.form.querySelector('#type_client');
     const field = this.form.querySelector('#segment-clientele-field');
     const input = this.form.querySelector('#segment_clientele');
-    const hint = this.form.querySelector('#segment-clientele-hint');
     if (!typeHidden || !field || !input) return;
-
-    const badge = field.querySelector('.field__label-badge');
 
     const update = () => {
       const isOther = typeHidden.value === 'other';
-      field.dataset.validate = isOther ? 'required|min:3|max:200' : 'max:200';
-      if (hint) hint.textContent = isOther ? '(requis pour le type de client « Autre »)' : '(optionnel)';
-      if (badge) badge.textContent = isOther ? 'Requis' : 'Optionnel';
+      field.hidden = !isOther;
+      if (!isOther) input.value = '';
       this.#validateField(input, false);
       this.#updateStepButtons();
     };
     typeHidden.addEventListener('input', update);
+    update();
+  }
+
+  // ARCHITECT-PRIME: secteur_autre — visible uniquement si secteur === 'other'.
+  // Mirror de #initSegmentClienteleConditional. Reset de la value à chaque toggle OFF.
+  #initSecteurAutreConditional() {
+    const secteurHidden = this.form.querySelector('#secteur');
+    const field = this.form.querySelector('#secteur-autre-field');
+    const input = this.form.querySelector('#secteur_autre');
+    if (!secteurHidden || !field || !input) return;
+
+    const update = () => {
+      const isOther = secteurHidden.value === 'other';
+      field.hidden = !isOther;
+      if (!isOther) input.value = '';
+      this.#validateField(input, false);
+      this.#updateStepButtons();
+    };
+    secteurHidden.addEventListener('input', update);
     update();
   }
 

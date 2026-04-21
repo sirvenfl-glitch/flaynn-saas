@@ -150,32 +150,28 @@
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="field field--inline">
-                        <div class="field" data-validate="required|min:2|max:100">
-                            <label for="secteur_input" class="field__label">Secteur principal</label>
-                            <input type="text" id="secteur_input" class="field__input" list="secteur-datalist" required placeholder="Ex : fintech, cleantech, regtech..." autocomplete="off" maxlength="100">
-                            <datalist id="secteur-datalist">
-                                <option value="FinTech"></option>
-                                <option value="HealthTech"></option>
-                                <option value="SaaS"></option>
-                                <option value="Marketplace"></option>
-                                <option value="DeepTech"></option>
-                                <option value="GreenTech"></option>
-                                <option value="EdTech"></option>
-                                <option value="PropTech"></option>
-                                <option value="LegalTech"></option>
-                                <option value="FoodTech"></option>
-                                <option value="Mobility / Logistics"></option>
-                                <option value="Media / Entertainment"></option>
-                                <option value="HR / Recruiting"></option>
-                                <option value="Cybersecurity"></option>
-                                <option value="InsurTech"></option>
-                                <option value="BioTech"></option>
-                                <option value="AgriTech"></option>
-                                <option value="Social Impact"></option>
-                                <option value="AI / ML Native"></option>
-                                <option value="Web3 / Blockchain"></option>
-                                <option value="Space / Defense"></option>
-                            </datalist>
+                        <div class="field" data-validate="required">
+                            <label for="secteur" class="field__label">Secteur principal</label>
+                            <div class="custom-dropdown" data-custom-dropdown aria-expanded="false">
+                                <button type="button" class="custom-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="secteur-list">
+                                    <span class="custom-dropdown__text">Sélectionner</span>
+                                    <svg class="custom-dropdown__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11L3 6h10l-5 5z"/></svg>
+                                </button>
+                                <ul id="secteur-list" class="custom-dropdown__list" role="listbox" hidden>
+                                    <li class="custom-dropdown__item" role="option" data-value="fintech">FinTech</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="healthtech">HealthTech</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="saas">SaaS (Logiciels B2B)</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="marketplace">Marketplace / E-commerce</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="deeptech">DeepTech</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="greentech">GreenTech / CleanTech</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="edtech">EdTech</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="ai-ml">IA / Machine Learning</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="cybersecurity">Cybersecurity</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="mobility">Mobility / Logistics</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="web3">Web3 / Blockchain</li>
+                                    <li class="custom-dropdown__item" role="option" data-value="other">Autre</li>
+                                </ul>
+                            </div>
                             <input type="hidden" id="secteur" name="secteur" required>
                             <span class="field__error" role="alert"></span>
                         </div>
@@ -198,9 +194,14 @@
                             <span class="field__error" role="alert"></span>
                         </div>
                     </div>
-                    <div class="field" data-validate="max:200" id="segment-clientele-field">
-                        <label for="segment_clientele" class="field__label">Segment clientèle précis <span class="field__label-hint" id="segment-clientele-hint">(optionnel)</span></label>
-                        <input type="text" id="segment_clientele" name="segment_clientele" class="field__input" maxlength="200" placeholder="Ex : PME industrielles 50-500 salariés, fonds VC francophones early-stage, médecins généralistes...">
+                    <div class="field" data-validate="required|min:3|max:100" id="secteur-autre-field" hidden>
+                        <label for="secteur_autre" class="field__label">Précisez votre secteur <span class="field__label-hint">(requis pour « Autre »)</span></label>
+                        <input type="text" id="secteur_autre" name="secteur_autre" class="field__input" maxlength="100" placeholder="Ex : LegalTech, FoodTech, InsurTech, AgriTech...">
+                        <span class="field__error" role="alert"></span>
+                    </div>
+                    <div class="field" data-validate="required|min:3|max:200" id="segment-clientele-field" hidden>
+                        <label for="segment_clientele" class="field__label">Segment clientèle précis <span class="field__label-hint">(requis pour « Autre »)</span></label>
+                        <input type="text" id="segment_clientele" name="segment_clientele" class="field__input" maxlength="200" placeholder="Ex : PME industrielles 50-500 salariés, médecins généralistes, collectivités locales...">
                         <span class="field__error" role="alert"></span>
                     </div>
                     <div class="form-step-actions">
