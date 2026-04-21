@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#030407">
   <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Flaynn">
   <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
-  <title>Espace Membre · Flaynn</title>
+  <title>Activer votre compte · Flaynn</title>
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,14 +33,33 @@
     </div>
 
     <article class="card-glass auth-card">
-      <h1 class="auth-title" id="auth-title">Espace membre</h1>
-      <p class="auth-subtitle" id="auth-subtitle">Connectez-vous pour accéder à vos analyses.</p>
+      <h1 class="auth-title" id="auth-title">Activer votre compte</h1>
+      <p class="auth-subtitle" id="auth-subtitle">Vérification du lien d'invitation…</p>
 
-      <form id="auth-form" novalidate>
-        <!-- Email -->
+      <!-- État d'erreur (token invalide / expiré / utilisé) -->
+      <div id="activate-error-state" class="auth-forgot-panel" hidden>
+        <p id="activate-error-text" class="auth-forgot-panel__text"></p>
+        <div class="form-actions" style="gap: var(--space-3); display: flex; flex-direction: column;">
+          <a href="/scoring/?invite_only=1" class="btn-primary btn-gradient auth-submit" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+            <span class="btn__text">Soumettre un nouveau scoring</span>
+          </a>
+          <a href="/auth/" class="auth-forgot__link" style="text-align:center;">J'ai déjà un compte</a>
+        </div>
+      </div>
+
+      <!-- Formulaire activation -->
+      <form id="activate-form" novalidate hidden>
+        <!-- Email (lecture seule, vient du token) -->
         <div class="field">
-          <label for="email" class="field__label">Email professionnel</label>
-          <input type="email" id="email" name="email" class="field__input" required autocomplete="email" placeholder="vous@startup.com">
+          <label for="email" class="field__label">Email</label>
+          <input type="email" id="email" name="email" class="field__input" readonly autocomplete="email">
+          <p class="field__hint" id="email-hint">Lié à votre soumission de scoring.</p>
+        </div>
+
+        <!-- Nom -->
+        <div class="field">
+          <label for="name" class="field__label">Nom complet</label>
+          <input type="text" id="name" name="name" class="field__input" required minlength="2" maxlength="100" autocomplete="name" placeholder="Votre nom">
         </div>
 
         <!-- Mot de passe -->
@@ -50,43 +70,19 @@
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </label>
-          <input type="password" id="password" name="password" class="field__input" required minlength="12" autocomplete="current-password" placeholder="Min. 12 caractères">
+          <input type="password" id="password" name="password" class="field__input" required minlength="12" autocomplete="new-password" placeholder="Min. 12 caractères">
         </div>
 
         <!-- Erreur globale -->
-        <div id="auth-error" class="field__error" role="alert"></div>
-
-        <!-- Mot de passe oublie (login uniquement) -->
-        <div class="auth-forgot" id="auth-forgot">
-          <button type="button" class="auth-forgot__link" id="forgot-pw-btn">Mot de passe oublié ?</button>
-        </div>
+        <div id="activate-form-error" class="field__error" role="alert"></div>
 
         <!-- Submit -->
         <div class="form-actions">
           <button type="submit" class="btn-primary btn-gradient auth-submit" id="submit-btn">
-            <span class="btn__text">Se connecter</span>
+            <span class="btn__text">Créer mon compte</span>
           </button>
         </div>
       </form>
-
-      <!-- Panneau mot de passe oublie -->
-      <div id="forgot-panel" class="auth-forgot-panel" hidden>
-        <h2 class="auth-forgot-panel__title">Réinitialiser le mot de passe</h2>
-        <p class="auth-forgot-panel__text">Entrez votre email. Si un compte existe, vous recevrez un lien de réinitialisation.</p>
-        <form id="forgot-form" novalidate>
-          <div class="field">
-            <label for="forgot-email" class="field__label">Email</label>
-            <input type="email" id="forgot-email" class="field__input" required placeholder="vous@startup.com">
-          </div>
-          <div id="forgot-message" class="field__error" role="alert"></div>
-          <div class="form-actions" style="gap: var(--space-3); display: flex; flex-direction: column;">
-            <button type="submit" class="btn-primary btn-gradient auth-submit" id="forgot-submit-btn">
-              <span class="btn__text">Envoyer le lien</span>
-            </button>
-            <button type="button" class="auth-forgot__link" id="forgot-back-btn">Retour à la connexion</button>
-          </div>
-        </form>
-      </div>
 
       <div class="auth-footer-link">
         <a href="/" class="auth-back-link">
@@ -105,7 +101,7 @@
   </div>
 
   <script type="module" src="/register-sw.js"></script>
-  <script src="/auth/app.js" type="module"></script>
+  <script src="/auth/activate/app.js" type="module"></script>
   <script src="/js/page-loader.js" defer></script>
 </body>
 </html>

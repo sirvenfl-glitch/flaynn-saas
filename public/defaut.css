@@ -4840,3 +4840,37 @@
     }
   }
 }
+
+/* Delta 14 — bannière invite-only sur /scoring/ (page d'inscription gated) */
+@layer components {
+  .invite-only-banner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    margin: 0 auto var(--space-4);
+    max-width: 720px;
+    border: 1px solid rgba(var(--accent-violet-rgb), 0.32);
+    background:
+      linear-gradient(135deg, rgba(var(--accent-violet-rgb), 0.10), rgba(var(--accent-violet-rgb), 0.04));
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    box-shadow: 0 0 0 1px rgba(var(--accent-violet-rgb), 0.08), var(--shadow-card);
+  }
+
+  .invite-only-banner[hidden] { display: none; }
+
+  .invite-only-banner__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .invite-only-banner__text {
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+  }
+}

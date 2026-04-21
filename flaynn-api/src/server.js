@@ -218,6 +218,11 @@ export const start = async () => {
     // Gestion du Dashboard SPA + pages statiques
     fastify.get('/dashboard', async (_request, reply) => reply.code(302).redirect('/dashboard/'));
     fastify.get('/auth', async (_request, reply) => reply.code(302).redirect('/auth/'));
+    // ARCHITECT-PRIME: Delta 14 — /auth/activate sans trailing slash → préserve ?token=
+    fastify.get('/auth/activate', async (request, reply) => {
+      const qs = request.url.includes('?') ? request.url.slice(request.url.indexOf('?')) : '';
+      return reply.code(302).redirect(`/auth/activate/${qs}`);
+    });
     fastify.get('/scoring/succes', async (request, reply) => {
       // ARCHITECT-PRIME: préserve les query params (?session_id=...) lors de la redirection
       const qs = request.url.includes('?') ? request.url.slice(request.url.indexOf('?')) : '';
@@ -227,6 +232,7 @@ export const start = async () => {
     // ARCHITECT-PRIME: cache les HTML SPA en mémoire au boot (pas de readFile à chaque requête)
     const dashboardHtml = await readFile(join(siteRoot, 'dashboard/index.html'), 'utf-8');
     const authHtml = await readFile(join(siteRoot, 'auth/index.html'), 'utf-8');
+    const authActivateHtml = await readFile(join(siteRoot, 'auth/activate/index.html'), 'utf-8');
     const scoringHtml = await readFile(join(siteRoot, 'scoring/index.html'), 'utf-8');
     const scoringSuccesHtml = await readFile(join(siteRoot, 'scoring/succes/index.html'), 'utf-8');
 
@@ -238,6 +244,13 @@ export const start = async () => {
         const rest = url === '/dashboard' ? '' : url.slice('/dashboard/'.length);
         if (rest && rest.includes('.')) return reply.code(404).send('Not Found');
         return reply.header('Cache-Control', 'no-cache, no-store, must-revalidate').type('text/html').send(dashboardHtml);
+      }
+      // ARCHITECT-PRIME: Delta 14 — la page /auth/activate/ a son propre HTML
+      // (consommation token + formulaire). Doit précéder le fallback /auth/ générique.
+      if (url === '/auth/activate' || url.startsWith('/auth/activate/')) {
+        const rest = url === '/auth/activate' ? '' : url.slice('/auth/activate/'.length);
+        if (rest && rest.includes('.')) return reply.code(404).send('Not Found');
+        return reply.header('Cache-Control', 'no-cache, no-store, must-revalidate').type('text/html').send(authActivateHtml);
       }
       if (url === '/auth' || url.startsWith('/auth/')) {
         const rest = url === '/auth' ? '' : url.slice('/auth/'.length);

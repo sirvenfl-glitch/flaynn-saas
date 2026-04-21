@@ -155,8 +155,26 @@ export async function initDB(logger, retries = 8, delay = 2000) {
         CREATE INDEX IF NOT EXISTS idx_public_cards_active    ON public_cards(is_active) WHERE is_active = TRUE;
         CREATE INDEX IF NOT EXISTS idx_public_cards_email     ON public_cards(user_email);
         CREATE INDEX IF NOT EXISTS idx_public_cards_created   ON public_cards(created_at DESC);
+
+        -- ======================================================================
+        -- Delta 14 — Gating de la création de compte sur scoring certifié.
+        -- Le token clair n'existe qu'en mémoire le temps d'être renvoyé à n8n
+        -- pour l'email fondateur ; seul le SHA-256 hex (64 chars) est stocké ici.
+        -- ON DELETE CASCADE : si le scoring est purgé, l'invitation l'est aussi.
+        -- ======================================================================
+        CREATE TABLE IF NOT EXISTS account_activations (
+          token_hash    VARCHAR(64)  PRIMARY KEY,
+          email         VARCHAR(254) NOT NULL,
+          reference_id  VARCHAR(50)  NOT NULL REFERENCES scores(reference_id) ON DELETE CASCADE,
+          expires_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+          used_at       TIMESTAMP WITH TIME ZONE,
+          created_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_activations_email     ON account_activations(email);
+        CREATE INDEX IF NOT EXISTS idx_activations_reference ON account_activations(reference_id);
       `);
-      logger.info('[ARCHITECT-PRIME] PostgreSQL : Tables "users", "scores", "refresh_tokens", "business_angels", "intro_requests", "ba_digests", "public_cards" synchronisées et prêtes.');
+      logger.info('[ARCHITECT-PRIME] PostgreSQL : Tables "users", "scores", "refresh_tokens", "business_angels", "intro_requests", "ba_digests", "public_cards", "account_activations" synchronisées et prêtes.');
       return;
     } catch (err) {
       if (attempt === retries) {

@@ -1,13 +1,22 @@
 /**
  * Flaynn — auth/app.js
- * Gestion connexion / inscription / mot de passe oublie
- * Zero innerHTML, Liquid UX, anti-enumeration
+ * Connexion uniquement (Delta 14 : la création de compte passe par /auth/activate
+ * avec un token reçu par email après scoring certifié).
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ── Redirige vers /scoring/ si l'utilisateur arrive sur une ancienne URL d'inscription ──
+  const params = new URLSearchParams(window.location.search);
+  const hash = (window.location.hash || '').toLowerCase();
+  const wantsSignup = params.get('mode') === 'signup' || hash === '#inscription' || hash === '#register';
+  if (wantsSignup) {
+    window.location.replace('/scoring/?invite_only=1');
+    return;
+  }
+
   // ── Reveal animations ──
   const initAuthReveal = (root = document) => {
-    const targets = [...root.querySelectorAll('.auth-card, .auth-title, .auth-subtitle, .field, .form-actions, .auth-tabs')];
+    const targets = [...root.querySelectorAll('.auth-card, .auth-title, .auth-subtitle, .field, .form-actions')];
     if (!targets.length) return;
     targets.forEach((node, index) => {
       node.setAttribute('data-reveal', '');
@@ -27,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     targets.forEach((node) => observer.observe(node));
   };
 
-  // ── Session check — redirect si deja connecte ──
+  // ── Session check — redirect si déjà connecté ──
   const syncSession = async () => {
     try {
       const res = await fetch('/api/auth/session', { credentials: 'same-origin', signal: AbortSignal.timeout(8000) });
@@ -46,76 +55,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorEl = document.getElementById('auth-error');
   const pwToggle = document.querySelector('.auth-toggle-pw');
   const pwInput = document.getElementById('password');
-  const forgotLink = document.getElementById('auth-forgot');
   const forgotBtn = document.getElementById('forgot-pw-btn');
   const forgotPanel = document.getElementById('forgot-panel');
   const forgotBackBtn = document.getElementById('forgot-back-btn');
   const forgotForm = document.getElementById('forgot-form');
   const forgotMessage = document.getElementById('forgot-message');
-  const authTitle = document.getElementById('auth-title');
-  const authSubtitle = document.getElementById('auth-subtitle');
-  const nameField = document.getElementById('name-field');
-  const nameInput = document.getElementById('name');
-  const tabsContainer = document.getElementById('auth-tabs');
-  const tabs = tabsContainer.querySelectorAll('.auth-tab');
-
-  // ── State ──
-  let mode = 'login';
 
   // ── URL params ──
-  const params = new URLSearchParams(window.location.search);
   const urlEmail = params.get('email') || '';
-  const urlRef = params.get('ref') || '';
 
   if (params.get('expired') === '1') {
     errorEl.textContent = 'Votre session a expiré. Veuillez vous reconnecter.';
     window.history.replaceState(null, '', '/auth/');
   }
 
-  // Pre-fill email from URL
   if (urlEmail) {
     form.email.value = urlEmail;
   }
-
-  // If ref param present, default to register mode (founder coming from scoring email)
-  if (urlRef && !params.get('expired')) {
-    switchMode('register');
-  }
-
-  // ── Tab switching ──
-  function switchMode(newMode) {
-    mode = newMode;
-    tabs.forEach(tab => {
-      tab.classList.toggle('is-active', tab.dataset.tab === mode);
-    });
-
-    errorEl.textContent = '';
-    errorEl.className = 'field__error';
-
-    if (mode === 'register') {
-      authTitle.textContent = 'Créer votre compte';
-      authSubtitle.textContent = 'Inscrivez-vous pour accéder à vos résultats de scoring.';
-      nameField.hidden = false;
-      nameInput.required = true;
-      forgotLink.hidden = true;
-      submitText.textContent = 'Créer mon compte';
-      pwInput.autocomplete = 'new-password';
-    } else {
-      authTitle.textContent = 'Espace membre';
-      authSubtitle.textContent = 'Connectez-vous pour accéder à vos analyses.';
-      nameField.hidden = true;
-      nameInput.required = false;
-      forgotLink.hidden = false;
-      submitText.textContent = 'Se connecter';
-      pwInput.autocomplete = 'current-password';
-    }
-  }
-
-  tabsContainer.addEventListener('click', (e) => {
-    const tab = e.target.closest('.auth-tab');
-    if (!tab) return;
-    switchMode(tab.dataset.tab);
-  });
 
   // ── Toggle password visibility ──
   if (pwToggle && pwInput) {
@@ -132,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
     forgotBtn.addEventListener('click', () => {
       form.hidden = true;
       forgotPanel.hidden = false;
-      tabsContainer.hidden = true;
       forgotMessage.textContent = '';
       forgotMessage.className = 'field__error';
       document.getElementById('forgot-email').focus();
@@ -142,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
     forgotBackBtn.addEventListener('click', () => {
       forgotPanel.hidden = true;
       form.hidden = false;
-      tabsContainer.hidden = false;
     });
   }
   if (forgotForm) {
@@ -162,111 +116,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Form submit ──
+  // ── Form submit (login uniquement) ──
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorEl.textContent = '';
     errorEl.className = 'field__error';
     submitBtn.disabled = true;
+    submitText.textContent = 'Authentification...';
 
     const email = form.email.value.trim();
     const password = form.password.value;
 
-    if (mode === 'register') {
-      submitText.textContent = 'Création du compte...';
-      const name = nameInput.value.trim();
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email, password }),
+        signal: AbortSignal.timeout(15000)
+      });
 
-      if (!name || name.length < 2) {
-        errorEl.textContent = 'Veuillez entrer votre nom (min. 2 caractères).';
-        submitBtn.disabled = false;
-        submitText.textContent = 'Créer mon compte';
-        return;
+      const data = await res.json();
+
+      if (res.status === 429) {
+        throw new Error('Trop de tentatives. Veuillez patienter quelques minutes.');
       }
-      if (password.length < 12) {
-        errorEl.textContent = 'Le mot de passe doit contenir au moins 12 caractères.';
-        submitBtn.disabled = false;
-        submitText.textContent = 'Créer mon compte';
-        return;
+      if (res.status === 401 && data.message && data.message.includes('bloque')) {
+        throw new Error('Compte temporairement verrouillé (15 min). Trop de tentatives échouées.');
       }
+      if (!res.ok) throw new Error(data.message || 'Erreur lors de l\'authentification');
 
-      try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify({ name, email, password }),
-          signal: AbortSignal.timeout(15000)
-        });
-
-        const data = await res.json();
-
-        if (res.status === 429) {
-          throw new Error('Trop de tentatives. Veuillez patienter quelques minutes.');
-        }
-        if (res.status === 422) {
-          throw new Error(data.message || 'Veuillez vérifier les champs.');
-        }
-        if (!res.ok && res.status !== 200) {
-          throw new Error(data.message || 'Erreur lors de la création du compte.');
-        }
-
-        const sessionCheck = await fetch('/api/auth/session', { credentials: 'same-origin' });
-        if (!sessionCheck.ok) {
-          errorEl.className = 'field__error field__error--success';
-          errorEl.textContent = 'Un compte existe peut-être déjà avec cet email. Essayez de vous connecter.';
-          switchMode('login');
-          submitBtn.disabled = false;
-          return;
-        }
-
-        const sessionData = await sessionCheck.json();
-        localStorage.setItem('flaynn_auth', JSON.stringify(sessionData.user));
-        window.location.replace('/dashboard/');
-      } catch (err) {
-        errorEl.textContent = err.message;
-        submitBtn.disabled = false;
-        submitText.textContent = 'Créer mon compte';
-      }
-
-    } else {
-      submitText.textContent = 'Authentification...';
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify({ email, password }),
-          signal: AbortSignal.timeout(15000)
-        });
-
-        const data = await res.json();
-
-        if (res.status === 429) {
-          throw new Error('Trop de tentatives. Veuillez patienter quelques minutes.');
-        }
-        if (res.status === 401 && data.message && data.message.includes('bloque')) {
-          throw new Error('Compte temporairement verrouillé (15 min). Trop de tentatives échouées.');
-        }
-        if (!res.ok) throw new Error(data.message || 'Erreur lors de l\'authentification');
-
-        const sessionCheck = await fetch('/api/auth/session', { credentials: 'same-origin' });
-        if (!sessionCheck.ok) {
-          errorEl.textContent = 'Vérifiez vos identifiants et réessayez.';
-          submitBtn.disabled = false;
-          submitText.textContent = 'Se connecter';
-          return;
-        }
-
-        const sessionData = await sessionCheck.json();
-        localStorage.setItem('flaynn_auth', JSON.stringify(sessionData.user));
-        if (window.navigateTo) { window.navigateTo('/dashboard/'); }
-        else { window.location.replace('/dashboard/'); }
-      } catch (err) {
-        errorEl.textContent = err.message;
+      const sessionCheck = await fetch('/api/auth/session', { credentials: 'same-origin' });
+      if (!sessionCheck.ok) {
+        errorEl.textContent = 'Vérifiez vos identifiants et réessayez.';
         submitBtn.disabled = false;
         submitText.textContent = 'Se connecter';
+        return;
       }
+
+      const sessionData = await sessionCheck.json();
+      localStorage.setItem('flaynn_auth', JSON.stringify(sessionData.user));
+      if (window.navigateTo) { window.navigateTo('/dashboard/'); }
+      else { window.location.replace('/dashboard/'); }
+    } catch (err) {
+      errorEl.textContent = err.message;
+      submitBtn.disabled = false;
+      submitText.textContent = 'Se connecter';
     }
   });
 

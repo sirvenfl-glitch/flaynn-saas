@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { timingSafeEqual } from 'node:crypto';
 import { pool } from '../config/db.js';
 import { putObject } from '../lib/r2-storage.js';
+import { issueActivationToken, hasUnusedActivationFor } from '../services/activation-tokens.js';
 
 
 const WebhookPayloadSchema = z.object({
@@ -202,9 +203,11 @@ export default async function webhookRoutes(fastify) {
       throw err;
     }
 
+    // Flip status + récupère l'email fondateur dans le payload pour émettre l'invitation.
     const result = await pool.query(
       `UPDATE scores SET data = jsonb_set(data, '{status}', '"completed"')
-       WHERE reference_id = $1 RETURNING reference_id`,
+       WHERE reference_id = $1
+       RETURNING reference_id, user_email, data->'payload'->>'email' AS founder_email`,
       [parsed.reference]
     );
 
@@ -213,6 +216,62 @@ export default async function webhookRoutes(fastify) {
       return reply.code(404).send({ error: 'NOT_FOUND', message: 'Référence inconnue.' });
     }
 
-    return reply.code(200).send({ success: true, message: 'Scoring certifié.' });
+    const row = result.rows[0];
+    const founderEmail = row.founder_email;
+
+    // ARCHITECT-PRIME: Delta 14 — émission du token d'activation pour n8n.
+    // Pas d'email côté backend : c'est n8n qui envoie l'email contenant activation_url.
+    if (!founderEmail) {
+      request.log.warn({ ref: parsed.reference }, 'certify_no_founder_email_in_payload');
+      return reply.code(200).send({
+        success: true,
+        message: 'Scoring certifié. Aucun email fondateur en payload, pas de token émis.'
+      });
+    }
+
+    // Si l'utilisateur a déjà un compte, pas besoin d'invitation.
+    const existingUser = await pool.query('SELECT 1 FROM users WHERE email = $1', [founderEmail]);
+    if (existingUser.rowCount > 0) {
+      return reply.code(200).send({
+        success: true,
+        message: 'Scoring certifié. Compte déjà existant pour cet email.',
+        already_registered: true
+      });
+    }
+
+    // Idempotence : un certify rejoué ne doit PAS émettre un second token.
+    // Le token clair n'étant pas re-derivable du hash, n8n doit avoir persisté
+    // activation_url dès la première réponse.
+    if (await hasUnusedActivationFor(parsed.reference)) {
+      return reply.code(200).send({
+        success: true,
+        message: 'Scoring certifié. Token d\'activation déjà émis (réutilise activation_url précédent).',
+        activation_already_issued: true
+      });
+    }
+
+    let activationUrl;
+    try {
+      const { tokenClear } = await issueActivationToken({
+        email: founderEmail,
+        referenceId: parsed.reference
+      });
+      const appUrl = process.env.APP_URL || 'https://flaynn.io';
+      activationUrl = `${appUrl}/auth/activate?token=${tokenClear}`;
+    } catch (err) {
+      request.log.error({ err, ref: parsed.reference }, 'certify_activation_issue_failed');
+      // Status est déjà flippé : on ne re-rollback pas. n8n peut renvoyer le webhook
+      // pour réessayer l'émission (la branche hasUnusedActivationFor() restera false).
+      return reply.code(500).send({
+        error: 'INTERNAL_ERROR',
+        message: 'Statut certifié mais émission du token d\'activation échouée. Réessayez le webhook.'
+      });
+    }
+
+    return reply.code(200).send({
+      success: true,
+      message: 'Scoring certifié.',
+      activation_url: activationUrl
+    });
   });
 }

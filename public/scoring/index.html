@@ -54,6 +54,11 @@
     </header>
 
     <main class="scoring-page" id="main-content">
+        <!-- Bannière invite-only (Delta 14) : affichée uniquement si arrivée depuis /auth/?mode=signup -->
+        <div id="invite-only-banner" class="invite-only-banner" role="status" hidden>
+            <strong class="invite-only-banner__title">L'accès Flaynn est par invitation après scoring.</strong>
+            <span class="invite-only-banner__text">Soumettez votre dossier ci-dessous pour recevoir vos identifiants par email une fois votre analyse certifiée.</span>
+        </div>
         <div class="scoring-form-wrap card-glass">
             <div class="form-shell-intro">
                 <p class="form-shell-intro__eyebrow">Dossier fondateur</p>
@@ -517,6 +522,7 @@
     <script src="/js/page-transition.js" defer></script>
     <script src="/js/footer-year.js" defer></script>
     <script src="/js/page-loader.js" defer></script>
+    <script src="/js/scoring-invite-banner.js" defer></script>
 </body>
 </html>
 <!--
