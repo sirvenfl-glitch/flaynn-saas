@@ -66,7 +66,7 @@ export async function markTokenUsed(tokenHash) {
   );
 }
 
-// Pré-check côté webhook /certify : évite d'émettre 2 tokens si certify est rappelé.
+// Pré-check côté webhook : un token unused existe-t-il déjà pour cette référence ?
 export async function hasUnusedActivationFor(referenceId) {
   const { rowCount } = await pool.query(
     `SELECT 1 FROM account_activations
@@ -75,4 +75,16 @@ export async function hasUnusedActivationFor(referenceId) {
     [referenceId]
   );
   return rowCount > 0;
+}
+
+// Rotation : invalide tous les tokens unused d'une référence (utilisé quand
+// /issue-activation est rappelé — on ne peut pas re-dériver le clear depuis le
+// hash, donc on émet un nouveau et on révoque l'ancien). Retourne le nb révoqués.
+export async function revokeUnusedActivationsFor(referenceId) {
+  const { rowCount } = await pool.query(
+    `UPDATE account_activations SET used_at = NOW()
+     WHERE reference_id = $1 AND used_at IS NULL`,
+    [referenceId]
+  );
+  return rowCount;
 }

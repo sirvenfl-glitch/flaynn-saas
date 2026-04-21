@@ -2,7 +2,10 @@ import { z } from 'zod';
 import { timingSafeEqual } from 'node:crypto';
 import { pool } from '../config/db.js';
 import { putObject } from '../lib/r2-storage.js';
-import { issueActivationToken, hasUnusedActivationFor } from '../services/activation-tokens.js';
+import {
+  issueActivationToken,
+  revokeUnusedActivationsFor
+} from '../services/activation-tokens.js';
 
 
 const WebhookPayloadSchema = z.object({
@@ -18,6 +21,9 @@ const PdfPayloadSchema = z.object({
 const CertifyPayloadSchema = z.object({
   reference: z.string().min(1).max(64)
 }).strict();
+
+// Même schéma — alias clarifie le contrat /issue-activation.
+const IssueActivationPayloadSchema = CertifyPayloadSchema;
 
 function verifySignature(signature, expected) {
   if (!signature || !expected || signature.length !== expected.length) return false;
@@ -203,11 +209,12 @@ export default async function webhookRoutes(fastify) {
       throw err;
     }
 
-    // Flip status + récupère l'email fondateur dans le payload pour émettre l'invitation.
+    // ARCHITECT-PRIME: Delta 14.1 — /certify ne fait QUE le flip status.
+    // L'émission du token d'activation est dans /issue-activation (workflow n8n
+    // appelle issue-activation AVANT Send Email AVANT certify).
     const result = await pool.query(
       `UPDATE scores SET data = jsonb_set(data, '{status}', '"completed"')
-       WHERE reference_id = $1
-       RETURNING reference_id, user_email, data->'payload'->>'email' AS founder_email`,
+       WHERE reference_id = $1 RETURNING reference_id`,
       [parsed.reference]
     );
 
@@ -216,62 +223,111 @@ export default async function webhookRoutes(fastify) {
       return reply.code(404).send({ error: 'NOT_FOUND', message: 'Référence inconnue.' });
     }
 
-    const row = result.rows[0];
-    const founderEmail = row.founder_email;
+    return reply.code(200).send({ success: true, message: 'Scoring certifié.' });
+  });
 
-    // ARCHITECT-PRIME: Delta 14 — émission du token d'activation pour n8n.
-    // Pas d'email côté backend : c'est n8n qui envoie l'email contenant activation_url.
+  // ARCHITECT-PRIME: Delta 14.1 — émission du token d'activation, séparée de /certify.
+  // Appelé par n8n V5 Link AVANT le Send Email pour que l'activation_url soit dispo
+  // dans le template du mail. Le scoring reste en status 'under_review' jusqu'à /certify.
+  //
+  // Comportement de re-call : on ne peut pas re-dériver le token clair depuis le hash,
+  // donc un appel répété ROTATE — révoque tous les tokens unused de la référence puis
+  // émet un nouveau. Conséquence : l'URL renvoyée précédemment cesse de fonctionner
+  // dès qu'on rappelle cet endpoint. Acceptable car n8n appelle 1× par workflow.
+  fastify.post('/api/webhooks/n8n/issue-activation', {
+    config: { rateLimit: { max: 50, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const signature = request.headers['x-flaynn-signature'];
+    if (!verifySignature(signature, process.env.N8N_SECRET_TOKEN)) {
+      request.log.warn('[SECOPS] Tentative d\'acces non autorisee au webhook n8n/issue-activation');
+      return reply.code(401).send({ error: 'UNAUTHORIZED', message: 'Signature invalide.' });
+    }
+
+    let parsed;
+    try {
+      parsed = IssueActivationPayloadSchema.parse(request.body);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return reply.code(422).send({
+          error: 'VALIDATION_FAILED',
+          details: err.flatten().fieldErrors,
+        });
+      }
+      throw err;
+    }
+
+    // Récupère l'email fondateur (depuis data.payload.email — pattern hérité scoring.js)
+    const refRow = await pool.query(
+      `SELECT user_email, data->'payload'->>'email' AS founder_email
+       FROM scores WHERE reference_id = $1`,
+      [parsed.reference]
+    );
+
+    if (refRow.rowCount === 0) {
+      request.log.warn(`[SECOPS] issue-activation reçu pour référence inexistante: ${parsed.reference}`);
+      return reply.code(404).send({ error: 'NOT_FOUND', message: 'Référence inconnue.' });
+    }
+
+    const founderEmail = refRow.rows[0].founder_email;
     if (!founderEmail) {
-      request.log.warn({ ref: parsed.reference }, 'certify_no_founder_email_in_payload');
-      return reply.code(200).send({
-        success: true,
-        message: 'Scoring certifié. Aucun email fondateur en payload, pas de token émis.'
+      request.log.warn({ ref: parsed.reference }, 'issue_activation_no_founder_email');
+      return reply.code(422).send({
+        error: 'MISSING_FOUNDER_EMAIL',
+        message: 'La référence ne contient pas d\'email fondateur dans son payload.'
       });
     }
 
-    // Si l'utilisateur a déjà un compte, pas besoin d'invitation.
+    // Si l'utilisateur a déjà un compte, aucun token nécessaire.
     const existingUser = await pool.query('SELECT 1 FROM users WHERE email = $1', [founderEmail]);
     if (existingUser.rowCount > 0) {
       return reply.code(200).send({
         success: true,
-        message: 'Scoring certifié. Compte déjà existant pour cet email.',
+        message: 'Compte déjà existant pour cet email, aucun token émis.',
         already_registered: true
       });
     }
 
-    // Idempotence : un certify rejoué ne doit PAS émettre un second token.
-    // Le token clair n'étant pas re-derivable du hash, n8n doit avoir persisté
-    // activation_url dès la première réponse.
-    if (await hasUnusedActivationFor(parsed.reference)) {
-      return reply.code(200).send({
-        success: true,
-        message: 'Scoring certifié. Token d\'activation déjà émis (réutilise activation_url précédent).',
-        activation_already_issued: true
+    // Rotation : invalide les tokens unused précédents de cette référence.
+    let revokedCount = 0;
+    try {
+      revokedCount = await revokeUnusedActivationsFor(parsed.reference);
+    } catch (err) {
+      request.log.error({ err, ref: parsed.reference }, 'issue_activation_revoke_failed');
+      return reply.code(500).send({
+        error: 'INTERNAL_ERROR',
+        message: 'Échec de la révocation des tokens précédents.'
+      });
+    }
+    if (revokedCount > 0) {
+      request.log.info(
+        { ref: parsed.reference, revoked: revokedCount },
+        'issue_activation_rotated_existing_token'
+      );
+    }
+
+    let tokenClear;
+    let expiresAt;
+    try {
+      ({ tokenClear, expiresAt } = await issueActivationToken({
+        email: founderEmail,
+        referenceId: parsed.reference
+      }));
+    } catch (err) {
+      request.log.error({ err, ref: parsed.reference }, 'issue_activation_token_emit_failed');
+      return reply.code(500).send({
+        error: 'INTERNAL_ERROR',
+        message: 'Échec de l\'émission du token d\'activation.'
       });
     }
 
-    let activationUrl;
-    try {
-      const { tokenClear } = await issueActivationToken({
-        email: founderEmail,
-        referenceId: parsed.reference
-      });
-      const appUrl = process.env.APP_URL || 'https://flaynn.io';
-      activationUrl = `${appUrl}/auth/activate?token=${tokenClear}`;
-    } catch (err) {
-      request.log.error({ err, ref: parsed.reference }, 'certify_activation_issue_failed');
-      // Status est déjà flippé : on ne re-rollback pas. n8n peut renvoyer le webhook
-      // pour réessayer l'émission (la branche hasUnusedActivationFor() restera false).
-      return reply.code(500).send({
-        error: 'INTERNAL_ERROR',
-        message: 'Statut certifié mais émission du token d\'activation échouée. Réessayez le webhook.'
-      });
-    }
+    const appUrl = process.env.APP_URL || 'https://flaynn.io';
+    const activationUrl = `${appUrl}/auth/activate?token=${tokenClear}`;
 
     return reply.code(200).send({
       success: true,
-      message: 'Scoring certifié.',
-      activation_url: activationUrl
+      activation_url: activationUrl,
+      expires_at: expiresAt.toISOString(),
+      rotated: revokedCount > 0
     });
   });
 }
