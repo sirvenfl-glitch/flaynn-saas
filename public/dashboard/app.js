@@ -601,7 +601,8 @@ function buildPublicShareSection(data) {
         );
         if (!res.ok) {
           const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
-          throw new Error(err.message || 'Erreur');
+          const ref = err.reference ? ` (réf. ${err.reference})` : '';
+          throw new Error((err.message || err.error || 'Erreur inconnue') + ref);
         }
         window.location.reload();
       } catch (err) {
@@ -647,7 +648,8 @@ function buildPublicShareSection(data) {
         );
         if (!res.ok) {
           const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
-          throw new Error(err.message || 'Erreur');
+          const ref = err.reference ? ` (réf. ${err.reference})` : '';
+          throw new Error((err.message || err.error || 'Erreur inconnue') + ref);
         }
         window.location.reload();
       } catch (err) {

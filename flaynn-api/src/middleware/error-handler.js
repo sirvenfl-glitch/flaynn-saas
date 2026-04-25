@@ -27,9 +27,18 @@ export function errorHandler(error, request, reply) {
     });
   }
 
-  request.log.error({ err: error }, 'Unhandled Error');
-  return reply.code(500).send({
-    error: 'INTERNAL_SERVER_ERROR',
-    reference: request.id // Permet au support de retrouver l'erreur exacte dans les logs
+  // ARCHITECT-PRIME: préserver le statusCode d'origine quand Fastify lève une 4xx
+  // (FST_ERR_CTP_*, FST_ERR_VALIDATION, etc.) — sinon une mauvaise requête client
+  // était requalifiée en 500 et l'UX recevait un faux "erreur serveur".
+  const status = Number.isInteger(error.statusCode) && error.statusCode >= 400 && error.statusCode < 600
+    ? error.statusCode
+    : 500;
+  request.log.error({ err: error, status }, 'Unhandled Error');
+  return reply.code(status).send({
+    error: status >= 500 ? 'INTERNAL_SERVER_ERROR' : 'BAD_REQUEST',
+    message: status >= 500
+      ? `Une erreur inattendue est survenue. Communiquez la référence ${request.id} au support.`
+      : (error.message || 'Requête invalide.'),
+    reference: request.id
   });
 }
